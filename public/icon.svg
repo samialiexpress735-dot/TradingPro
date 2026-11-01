@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b1324" />
+      <stop offset="100%" stop-color="#040812" />
+    </linearGradient>
+    <linearGradient id="glowGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#06b6d4" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#10b981" flood-opacity="0.3" />
+    </filter>
+  </defs>
+
+  <!-- Background tile -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+  <rect width="504" height="504" x="4" y="4" rx="108" fill="none" stroke="#1e293b" stroke-width="4" />
+
+  <!-- Candlestick elements -->
+  <!-- Candle 1: down candle -->
+  <line x1="140" y1="220" x2="140" y2="340" stroke="#f43f5e" stroke-width="6" stroke-linecap="round" />
+  <rect x="122" y="240" width="36" height="65" rx="6" fill="#f43f5e" />
+
+  <!-- Candle 2: small consolidation -->
+  <line x1="210" y1="200" x2="210" y2="310" stroke="#06b6d4" stroke-width="6" stroke-linecap="round" />
+  <rect x="192" y="225" width="36" height="50" rx="6" fill="#06b6d4" />
+
+  <!-- Candle 3: strong impulse green candle -->
+  <line x1="280" y1="140" x2="280" y2="300" stroke="#10b981" stroke-width="6" stroke-linecap="round" />
+  <rect x="262" y="165" width="36" height="100" rx="6" fill="#10b981" />
+
+  <!-- Candle 4: ATH breakout candle -->
+  <line x1="350" y1="110" x2="350" y2="260" stroke="#10b981" stroke-width="6" stroke-linecap="round" />
+  <rect x="332" y="125" width="36" height="95" rx="6" fill="#10b981" />
+
+  <!-- Trendline pulse curve overlay -->
+  <path d="M 100 330 Q 190 320 230 250 T 360 135 L 415 110" fill="none" stroke="url(#glowGrad)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" filter="url(#shadow)" />
+
+  <!-- Pulse arrow head -->
+  <polygon points="425,105 390,105 415,130" fill="#06b6d4" />
+</svg>
