@@ -2,6 +2,8 @@ import express from 'express';
 import type { Request, Response } from 'express';
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
+import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI } from '@google/genai';
 
@@ -15,8 +17,76 @@ const PORT = 3000;
 
 app.use(express.json({ limit: '10mb' }));
 
-// In-memory trade storage for the backend session
-let tradesStore: any[] = [];
+// Ensure persistent data directory exists
+const DATA_DIR = path.resolve(__dirname, 'data');
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+const DB_FILE = path.resolve(DATA_DIR, 'tradepulse_db.json');
+
+// Interface for persistent store
+interface UserRecord {
+  id: string;
+  email: string;
+  passwordHash: string;
+  fullName: string;
+  createdAt: string;
+  lastLoginAt: string;
+}
+
+interface PersistentDB {
+  users: UserRecord[];
+  userTrades: Record<string, any[]>;
+  userStrategies: Record<string, any[]>;
+  userReviews: Record<string, any[]>;
+  userSettings: Record<string, { startingBalance: number; currency: string; riskPct: number }>;
+  loginLogs: Record<string, Array<{ id: string; timestamp: string; userAgent: string; status: string }>>;
+}
+
+// Load or initialize DB
+function loadDB(): PersistentDB {
+  try {
+    if (fs.existsSync(DB_FILE)) {
+      const raw = fs.readFileSync(DB_FILE, 'utf-8');
+      const parsed = JSON.parse(raw);
+      return {
+        users: parsed.users || [],
+        userTrades: parsed.userTrades || {},
+        userStrategies: parsed.userStrategies || {},
+        userReviews: parsed.userReviews || {},
+        userSettings: parsed.userSettings || {},
+        loginLogs: parsed.loginLogs || {},
+      };
+    }
+  } catch (err) {
+    console.error('Failed to read database file, initializing empty store:', err);
+  }
+  return {
+    users: [],
+    userTrades: {},
+    userStrategies: {},
+    userReviews: {},
+    userSettings: {},
+    loginLogs: {},
+  };
+}
+
+let db: PersistentDB = loadDB();
+
+function saveDB() {
+  try {
+    fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), 'utf-8');
+  } catch (err) {
+    console.error('Failed to write database file:', err);
+  }
+}
+
+// Password hashing helper (SHA256 + salt)
+function hashPassword(password: string): string {
+  return crypto.createHash('sha256').update(password + '_tradepulse_salt_2025').digest('hex');
+}
+
+// Fallback in-memory ticket store
 let supportTicketsStore: any[] = [];
 
 // Initialize Gemini SDK if API key is provided
@@ -30,7 +100,303 @@ if (process.env.GEMINI_API_KEY) {
 }
 
 // -------------------------------------------------------------
-// REST API Routes
+// Authentication & Multi-Device SaaS Sync Endpoints
+// -------------------------------------------------------------
+
+// POST /api/auth/signup - Register new account
+app.post('/api/auth/signup', (req: Request, res: Response) => {
+  const { email, password, fullName } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password are required.' });
+  }
+
+  const normalizedEmail = String(email).trim().toLowerCase();
+
+  if (password.length < 6) {
+    return res.status(400).json({ error: 'Password must be at least 6 characters long.' });
+  }
+
+  // Check if user already exists
+  const existingUser = db.users.find((u) => u.email.toLowerCase() === normalizedEmail);
+  if (existingUser) {
+    return res.status(409).json({ error: 'An account with this email already exists. Please sign in.' });
+  }
+
+  // Generate unique User UUID
+  const userId = `usr_${crypto.randomUUID()}`;
+  const now = new Date().toISOString();
+
+  const newUser: UserRecord = {
+    id: userId,
+    email: normalizedEmail,
+    passwordHash: hashPassword(password),
+    fullName: fullName?.trim() || normalizedEmail.split('@')[0],
+    createdAt: now,
+    lastLoginAt: now,
+  };
+
+  db.users.push(newUser);
+  db.userTrades[userId] = [];
+  db.userStrategies[userId] = [];
+  db.userReviews[userId] = [];
+  db.userSettings[userId] = {
+    startingBalance: 25000,
+    currency: 'USD',
+    riskPct: 1.0,
+  };
+
+  // Record audit log
+  const userAgent = req.headers['user-agent'] || 'Web Browser';
+  if (!db.loginLogs[userId]) db.loginLogs[userId] = [];
+  db.loginLogs[userId].unshift({
+    id: `log_${Date.now()}`,
+    timestamp: now,
+    userAgent,
+    status: 'SUCCESS',
+  });
+
+  saveDB();
+
+  const safeUser = {
+    id: userId,
+    email: newUser.email,
+    user_metadata: {
+      full_name: newUser.fullName,
+    },
+    created_at: newUser.createdAt,
+  };
+
+  res.status(201).json({
+    success: true,
+    user: safeUser,
+    token: `tkn_${Buffer.from(userId + ':' + Date.now()).toString('base64')}`,
+  });
+});
+
+// POST /api/auth/signin - Sign in to existing account
+app.post('/api/auth/signin', (req: Request, res: Response) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password are required.' });
+  }
+
+  const normalizedEmail = String(email).trim().toLowerCase();
+  const user = db.users.find((u) => u.email.toLowerCase() === normalizedEmail);
+
+  if (!user || user.passwordHash !== hashPassword(password)) {
+    return res.status(401).json({ error: 'Invalid email or password. Please try again.' });
+  }
+
+  const now = new Date().toISOString();
+  user.lastLoginAt = now;
+
+  // Record login log
+  const userAgent = req.headers['user-agent'] || 'Web Browser';
+  if (!db.loginLogs[user.id]) db.loginLogs[user.id] = [];
+  db.loginLogs[user.id].unshift({
+    id: `log_${Date.now()}`,
+    timestamp: now,
+    userAgent,
+    status: 'SUCCESS',
+  });
+  // Keep last 25 logins
+  if (db.loginLogs[user.id].length > 25) {
+    db.loginLogs[user.id] = db.loginLogs[user.id].slice(0, 25);
+  }
+
+  saveDB();
+
+  const safeUser = {
+    id: user.id,
+    email: user.email,
+    user_metadata: {
+      full_name: user.fullName,
+    },
+    created_at: user.createdAt,
+  };
+
+  res.json({
+    success: true,
+    user: safeUser,
+    token: `tkn_${Buffer.from(user.id + ':' + Date.now()).toString('base64')}`,
+  });
+});
+
+// Helper to extract userId from headers or query
+function getUserIdFromReq(req: Request): string | null {
+  const queryUserId = req.query.userId as string;
+  if (queryUserId) return queryUserId;
+
+  const headerUserId = req.headers['x-user-id'] as string;
+  if (headerUserId) return headerUserId;
+
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer tkn_')) {
+    try {
+      const decoded = Buffer.from(authHeader.replace('Bearer tkn_', ''), 'base64').toString('utf-8');
+      const parts = decoded.split(':');
+      if (parts[0]) return parts[0];
+    } catch {}
+  }
+  return null;
+}
+
+// GET /api/user/trades - Get trades for authenticated user
+app.get('/api/user/trades', (req: Request, res: Response) => {
+  const userId = getUserIdFromReq(req);
+  if (!userId) {
+    return res.status(400).json({ error: 'User identifier required' });
+  }
+
+  const userTrades = db.userTrades[userId] || [];
+  res.json({
+    success: true,
+    count: userTrades.length,
+    trades: userTrades,
+  });
+});
+
+// POST /api/user/trades - Upsert single trade for user
+app.post('/api/user/trades', (req: Request, res: Response) => {
+  const userId = getUserIdFromReq(req) || req.body.userId;
+  const trade = req.body.trade || req.body;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'User identifier required' });
+  }
+  if (!trade || !trade.symbol) {
+    return res.status(400).json({ error: 'Valid trade object required' });
+  }
+
+  if (!db.userTrades[userId]) {
+    db.userTrades[userId] = [];
+  }
+
+  const existingIdx = db.userTrades[userId].findIndex((t) => t.id === trade.id);
+  if (existingIdx >= 0) {
+    db.userTrades[userId][existingIdx] = trade;
+  } else {
+    db.userTrades[userId].unshift(trade);
+  }
+
+  saveDB();
+  res.json({ success: true, trade });
+});
+
+// DELETE /api/user/trades/:id - Delete single trade for user
+app.delete('/api/user/trades/:id', (req: Request, res: Response) => {
+  const userId = getUserIdFromReq(req);
+  const tradeId = req.params.id;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'User identifier required' });
+  }
+
+  if (db.userTrades[userId]) {
+    db.userTrades[userId] = db.userTrades[userId].filter((t) => t.id !== tradeId);
+    saveDB();
+  }
+
+  res.json({ success: true, message: `Trade ${tradeId} deleted` });
+});
+
+// POST /api/user/trades/sync - Bulk batch sync trades for user
+app.post('/api/user/trades/sync', (req: Request, res: Response) => {
+  const userId = getUserIdFromReq(req) || req.body.userId;
+  const trades = req.body.trades;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'User identifier required' });
+  }
+  if (!Array.isArray(trades)) {
+    return res.status(400).json({ error: 'trades must be an array' });
+  }
+
+  db.userTrades[userId] = trades;
+  saveDB();
+
+  res.json({ success: true, count: trades.length });
+});
+
+// GET /api/user/settings - Get settings for user
+app.get('/api/user/settings', (req: Request, res: Response) => {
+  const userId = getUserIdFromReq(req);
+  if (!userId) {
+    return res.status(400).json({ error: 'User identifier required' });
+  }
+
+  const settings = db.userSettings[userId] || { startingBalance: 25000, currency: 'USD', riskPct: 1.0 };
+  res.json({ success: true, settings });
+});
+
+// POST /api/user/settings - Update settings for user
+app.post('/api/user/settings', (req: Request, res: Response) => {
+  const userId = getUserIdFromReq(req) || req.body.userId;
+  const settings = req.body.settings || req.body;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'User identifier required' });
+  }
+
+  db.userSettings[userId] = {
+    ...db.userSettings[userId],
+    ...settings,
+  };
+  saveDB();
+
+  res.json({ success: true, settings: db.userSettings[userId] });
+});
+
+// GET /api/user/strategies - Get strategies for user
+app.get('/api/user/strategies', (req: Request, res: Response) => {
+  const userId = getUserIdFromReq(req);
+  if (!userId) {
+    return res.status(400).json({ error: 'User identifier required' });
+  }
+
+  const strategies = db.userStrategies[userId] || [];
+  res.json({ success: true, strategies });
+});
+
+// POST /api/user/strategies - Upsert strategy for user
+app.post('/api/user/strategies', (req: Request, res: Response) => {
+  const userId = getUserIdFromReq(req) || req.body.userId;
+  const strategy = req.body.strategy || req.body;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'User identifier required' });
+  }
+
+  if (!db.userStrategies[userId]) {
+    db.userStrategies[userId] = [];
+  }
+
+  const idx = db.userStrategies[userId].findIndex((s) => s.id === strategy.id);
+  if (idx >= 0) {
+    db.userStrategies[userId][idx] = strategy;
+  } else {
+    db.userStrategies[userId].push(strategy);
+  }
+  saveDB();
+
+  res.json({ success: true, strategy });
+});
+
+// GET /api/user/logins - Get user login history
+app.get('/api/user/logins', (req: Request, res: Response) => {
+  const userId = getUserIdFromReq(req);
+  if (!userId) {
+    return res.status(400).json({ error: 'User identifier required' });
+  }
+
+  const logs = db.loginLogs[userId] || [];
+  res.json({ success: true, logs });
+});
+
+// -------------------------------------------------------------
+// Legacy & Global API Routes (Backward-compatible)
 // -------------------------------------------------------------
 
 // Health check
@@ -38,14 +404,17 @@ app.get('/api/health', (_req: Request, res: Response) => {
   res.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
-    service: 'TradePulse API',
-    version: '1.0.0',
+    service: 'TradePulse Production API',
+    version: '1.2.0',
+    totalRegisteredUsers: db.users.length,
     hasGeminiSupport: !!process.env.GEMINI_API_KEY,
   });
 });
 
-// GET /api/trades - List trades
+// GET /api/trades - List trades (global fallback)
 app.get('/api/trades', (req: Request, res: Response) => {
+  const userId = getUserIdFromReq(req);
+  const tradesStore = userId && db.userTrades[userId] ? db.userTrades[userId] : [];
   const { symbol, assetClass, outcome, strategy } = req.query;
 
   let filtered = [...tradesStore];
@@ -69,9 +438,11 @@ app.get('/api/trades', (req: Request, res: Response) => {
   });
 });
 
-// POST /api/trades - Create trade
+// POST /api/trades - Create trade (global fallback)
 app.post('/api/trades', (req: Request, res: Response) => {
   const newTrade = req.body;
+  const userId = getUserIdFromReq(req) || req.body.userId;
+
   if (!newTrade.symbol || !newTrade.entryPrice || !newTrade.quantity) {
     return res.status(400).json({ error: 'symbol, entryPrice, and quantity are required.' });
   }
@@ -82,46 +453,35 @@ app.post('/api/trades', (req: Request, res: Response) => {
     createdAt: new Date().toISOString(),
   };
 
-  tradesStore.unshift(tradeWithId);
+  if (userId) {
+    if (!db.userTrades[userId]) db.userTrades[userId] = [];
+    db.userTrades[userId].unshift(tradeWithId);
+    saveDB();
+  }
+
   res.status(201).json({ success: true, trade: tradeWithId });
 });
 
-// PUT /api/trades/:id - Update trade
-app.put('/api/trades/:id', (req: Request, res: Response) => {
-  const { id } = req.params;
-  const index = tradesStore.findIndex((t) => t.id === id);
-
-  if (index === -1) {
-    // If not in store, add it
-    const trade = { ...req.body, id };
-    tradesStore.push(trade);
-    return res.json({ success: true, trade });
-  }
-
-  tradesStore[index] = { ...tradesStore[index], ...req.body };
-  res.json({ success: true, trade: tradesStore[index] });
-});
-
-// DELETE /api/trades/:id - Delete trade
-app.delete('/api/trades/:id', (req: Request, res: Response) => {
-  const { id } = req.params;
-  tradesStore = tradesStore.filter((t) => t.id !== id);
-  res.json({ success: true, message: `Trade ${id} deleted` });
-});
-
-// POST /api/trades/sync - Bulk sync from client state
+// POST /api/trades/sync - Bulk sync (global fallback)
 app.post('/api/trades/sync', (req: Request, res: Response) => {
-  const { trades } = req.body;
-  if (Array.isArray(trades)) {
-    tradesStore = trades;
-    res.json({ success: true, count: tradesStore.length });
-  } else {
-    res.status(400).json({ error: 'trades must be an array' });
+  const { trades, userId } = req.body;
+  if (!Array.isArray(trades)) {
+    return res.status(400).json({ error: 'trades must be an array' });
   }
+
+  if (userId) {
+    db.userTrades[userId] = trades;
+    saveDB();
+  }
+
+  res.json({ success: true, count: trades.length });
 });
 
 // GET /api/analytics - Aggregate calculations
-app.get('/api/analytics', (_req: Request, res: Response) => {
+app.get('/api/analytics', (req: Request, res: Response) => {
+  const userId = getUserIdFromReq(req);
+  const tradesStore = userId && db.userTrades[userId] ? db.userTrades[userId] : [];
+
   const closed = tradesStore.filter((t) => t.status === 'closed');
   const wins = closed.filter((t) => t.outcome === 'win');
   const losses = closed.filter((t) => t.outcome === 'loss');
@@ -235,7 +595,6 @@ Please provide an expert, institutional-quality analysis and response.`;
       });
     } catch (aiErr: any) {
       console.error('Gemini API call error:', aiErr?.message || aiErr);
-      // Fall through to algorithmic rule-based coaching
     }
   }
 

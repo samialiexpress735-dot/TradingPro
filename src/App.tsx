@@ -10,6 +10,8 @@ import { calculateStats, generateEquityCurve } from './utils/calculations';
 import {
   supabase,
   isSupabaseConfigured,
+  getStoredUserSession,
+  signOutUser,
   fetchUserTrades,
   upsertUserTrade,
   deleteUserTradeFromCloud,
@@ -39,18 +41,18 @@ export default function App() {
     'dashboard' | 'journal' | 'review' | 'calculator' | 'playbook' | 'analytics' | 'support'
   >('dashboard');
 
-  // Supabase Auth & Cloud Sync state
+  // Supabase / Multi-device Auth & Cloud Sync state
   const [user, setUser] = useState<any | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const isConfigured = isSupabaseConfigured();
 
-  // One-time cleanup check: if user has previous mock trades stored, clear them for a pristine production start
+  // One-time cleanup check: clear old mock trades for production
   useEffect(() => {
-    const isCleaned = localStorage.getItem('tradepulse_prod_clean_v2');
+    const isCleaned = localStorage.getItem('tradepulse_prod_clean_v3');
     if (!isCleaned) {
       localStorage.removeItem('tradepulse_trades');
-      localStorage.setItem('tradepulse_prod_clean_v2', 'true');
+      localStorage.setItem('tradepulse_prod_clean_v3', 'true');
     }
   }, []);
 
@@ -60,17 +62,14 @@ export default function App() {
     return saved ? Number(saved) : 25000;
   });
 
-  // Trades state with localStorage persistence (starts empty for production)
+  // Trades state with localStorage persistence
   const [trades, setTrades] = useState<Trade[]>(() => {
-    const isCleaned = localStorage.getItem('tradepulse_prod_clean_v2');
-    if (isCleaned) {
-      const saved = localStorage.getItem('tradepulse_trades');
-      if (saved) {
-        try {
-          return JSON.parse(saved);
-        } catch (e) {
-          console.error('Error loading trades from storage:', e);
-        }
+    const saved = localStorage.getItem('tradepulse_trades');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error('Error loading trades from storage:', e);
       }
     }
     return INITIAL_TRADES; // [] in production
@@ -94,44 +93,44 @@ export default function App() {
   const [editingTrade, setEditingTrade] = useState<Partial<Trade> | null>(null);
   const [isChecklistOpen, setIsChecklistOpen] = useState(false);
 
-  // Sync state to Supabase when user logs in
+  // Sync state with Cloud / Central Database when user logs in
   const syncWithCloud = useCallback(
     async (currentUser: any) => {
-      if (!currentUser || !isConfigured) return;
+      if (!currentUser?.id) return;
       setIsSyncing(true);
       try {
-        // 1. Fetch cloud trades
+        // 1. Fetch cloud trades for this user
         const cloudTrades = await fetchUserTrades(currentUser.id);
 
         if (cloudTrades && cloudTrades.length > 0) {
-          // Cloud has data: use it as source of truth
+          // Cloud has data for this user account: use it as source of truth
           setTrades(cloudTrades);
           localStorage.setItem('tradepulse_trades', JSON.stringify(cloudTrades));
         } else if (trades.length > 0) {
-          // Local has trades, cloud is empty: push local trades to cloud
+          // Local has trades, user account in cloud has none yet: push local trades
           await batchSyncUserTrades(currentUser.id, trades);
         }
 
-        // 2. Fetch cloud strategies
+        // 2. Fetch cloud strategies for this user
         const cloudStrategies = await fetchUserStrategies(currentUser.id);
         if (cloudStrategies && cloudStrategies.length > 0) {
           setStrategies(cloudStrategies);
           localStorage.setItem('tradepulse_strategies', JSON.stringify(cloudStrategies));
         }
 
-        // 3. Fetch user settings
+        // 3. Fetch user settings (e.g. balance)
         const settings = await fetchUserSettings(currentUser.id);
         if (settings?.startingBalance) {
           setStartingBalance(settings.startingBalance);
           localStorage.setItem('tradepulse_balance', String(settings.startingBalance));
         }
       } catch (err) {
-        console.error('Error synchronizing with Supabase:', err);
+        console.error('Error synchronizing with cloud:', err);
       } finally {
         setIsSyncing(false);
       }
     },
-    [isConfigured, trades]
+    [trades]
   );
 
   // Manual sync triggered from UserMenu
@@ -141,49 +140,57 @@ export default function App() {
     }
   };
 
-  // Listen to Supabase Auth state changes
+  // Restore authenticated session on initial load (across reloads and mobile sessions)
   useEffect(() => {
-    if (!supabase) return;
+    if (supabase) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        const currentUser = session?.user ?? null;
+        if (currentUser) {
+          setUser(currentUser);
+          syncWithCloud(currentUser);
+        } else {
+          const stored = getStoredUserSession();
+          if (stored) {
+            setUser(stored);
+            syncWithCloud(stored);
+          }
+        }
+      });
 
-    // Check active session on initial load
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      const currentUser = session?.user ?? null;
-      setUser(currentUser);
-      if (currentUser) {
-        syncWithCloud(currentUser);
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange(async (event, session) => {
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
+
+        if (event === 'SIGNED_IN' && currentUser) {
+          syncWithCloud(currentUser);
+        }
+      });
+
+      return () => {
+        subscription.unsubscribe();
+      };
+    } else {
+      const stored = getStoredUserSession();
+      if (stored) {
+        setUser(stored);
+        syncWithCloud(stored);
       }
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      const currentUser = session?.user ?? null;
-      setUser(currentUser);
-
-      if (event === 'SIGNED_IN' && currentUser) {
-        syncWithCloud(currentUser);
-      } else if (event === 'SIGNED_OUT') {
-        // Retain local state or start clean
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
+    }
   }, [syncWithCloud]);
 
-  // Sync to localStorage
+  // Persist to local storage & background server sync
   useEffect(() => {
     localStorage.setItem('tradepulse_trades', JSON.stringify(trades));
-    // Also sync to backend API in background so /api/trades is populated
-    fetch('/api/trades/sync', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ trades }),
-    }).catch(() => {
-      // ignore transient network errors in preview
-    });
-  }, [trades]);
+    if (user?.id) {
+      fetch('/api/user/trades/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, trades }),
+      }).catch(() => {});
+    }
+  }, [trades, user?.id]);
 
   useEffect(() => {
     localStorage.setItem('tradepulse_strategies', JSON.stringify(strategies));
@@ -213,12 +220,12 @@ export default function App() {
     });
     setEditingTrade(null);
 
-    // Save to Supabase cloud if authenticated
-    if (user && isConfigured) {
+    // Save to user account cloud/server database immediately
+    if (user?.id) {
       try {
         await upsertUserTrade(user.id, tradeToSave);
       } catch (err) {
-        console.error('Failed to sync saved trade to Supabase:', err);
+        console.error('Failed to sync saved trade:', err);
       }
     }
   };
@@ -226,12 +233,11 @@ export default function App() {
   const handleDeleteTrade = async (id: string) => {
     setTrades((prev) => prev.filter((t) => t.id !== id));
 
-    // Delete from Supabase cloud if authenticated
-    if (user && isConfigured) {
+    if (user?.id) {
       try {
         await deleteUserTradeFromCloud(user.id, id);
       } catch (err) {
-        console.error('Failed to delete trade from Supabase:', err);
+        console.error('Failed to delete trade from cloud:', err);
       }
     }
   };
@@ -258,45 +264,49 @@ export default function App() {
   };
 
   // CSV Import handler
-  const handleImportCsv = async (imported: Trade[]) => {
-    setTrades((prev) => [...imported, ...prev]);
-
-    // Push batch to Supabase if authenticated
-    if (user && isConfigured) {
+  const handleImportCsv = async (importedTrades: Trade[]) => {
+    setTrades((prev) => [...importedTrades, ...prev]);
+    if (user?.id) {
       try {
-        await batchSyncUserTrades(user.id, imported);
+        await batchSyncUserTrades(user.id, [...importedTrades, ...trades]);
       } catch (err) {
-        console.error('Failed to batch sync imported trades:', err);
+        console.error('Failed to sync imported trades:', err);
       }
     }
   };
 
-  // Pre-fill trade from Risk Calculator
-  const handlePreFillFromCalculator = (params: {
+  // Calculator integration
+  const handlePreFillFromCalculator = (calcData: {
     symbol?: string;
     assetClass: AssetClass;
+    direction: 'long' | 'short';
     entryPrice: number;
     stopLoss: number;
     takeProfit: number;
     quantity: number;
-    direction: 'long' | 'short';
+    plannedRR?: number;
+    fees?: number;
   }) => {
-    setEditingTrade({
-      symbol: params.symbol || 'NVDA',
-      assetClass: params.assetClass,
-      entryPrice: params.entryPrice,
-      stopLoss: params.stopLoss,
-      takeProfit: params.takeProfit,
-      quantity: params.quantity,
-      direction: params.direction,
-      status: 'closed',
+    const initialData: Partial<Trade> = {
+      ...calcData,
+      symbol: calcData.symbol || 'AAPL',
+      id: `tr-${Date.now()}`,
       date: new Date().toISOString().split('T')[0],
-      time: '09:45',
-    });
+      time: new Date().toTimeString().split(' ')[0].substring(0, 5),
+      status: 'open',
+      outcome: 'breakeven',
+      grossPnl: 0,
+      netPnl: 0,
+      roi: 0,
+      rating: 5,
+      emotion: 'Disciplined',
+      strategy: strategies[0]?.name || 'Breakout Edge',
+    };
+    setEditingTrade(initialData);
     setIsTradeModalOpen(true);
   };
 
-  // Load sample demo trades for exploration
+  // Load sample demo trades
   const handleLoadDemoTrades = () => {
     if (trades.length > 0) {
       if (!window.confirm('Load sample trades? Existing trades will be preserved alongside sample entries.')) {
@@ -305,6 +315,9 @@ export default function App() {
     }
     setTrades(SAMPLE_DEMO_TRADES);
     localStorage.setItem('tradepulse_trades', JSON.stringify(SAMPLE_DEMO_TRADES));
+    if (user?.id) {
+      batchSyncUserTrades(user.id, SAMPLE_DEMO_TRADES).catch(() => {});
+    }
   };
 
   // Reset or clear data
@@ -312,13 +325,24 @@ export default function App() {
     if (window.confirm('Clear all trades from your local journal to start completely fresh?')) {
       setTrades([]);
       localStorage.setItem('tradepulse_trades', JSON.stringify([]));
+      if (user?.id) {
+        batchSyncUserTrades(user.id, []).catch(() => {});
+      }
     }
+  };
+
+  // Sign out handler
+  const handleSignOut = async () => {
+    await signOutUser();
+    setUser(null);
+    setTrades([]);
+    localStorage.removeItem('tradepulse_trades');
   };
 
   // Strategy management
   const handleAddStrategy = async (newStrat: Strategy) => {
     setStrategies((prev) => [...prev, newStrat]);
-    if (user && isConfigured) {
+    if (user?.id) {
       try {
         await upsertUserStrategy(user.id, newStrat);
       } catch (e) {
@@ -329,7 +353,7 @@ export default function App() {
 
   const handleUpdateStrategy = async (updatedStrat: Strategy) => {
     setStrategies((prev) => prev.map((s) => (s.id === updatedStrat.id ? updatedStrat : s)));
-    if (user && isConfigured) {
+    if (user?.id) {
       try {
         await upsertUserStrategy(user.id, updatedStrat);
       } catch (e) {
@@ -340,7 +364,7 @@ export default function App() {
 
   const handleDeleteStrategy = async (id: string) => {
     setStrategies((prev) => prev.filter((s) => s.id !== id));
-    if (user && isConfigured) {
+    if (user?.id) {
       try {
         await deleteUserStrategyFromCloud(user.id, id);
       } catch (e) {
@@ -351,7 +375,7 @@ export default function App() {
 
   const handleUpdateBalance = (newBalance: number) => {
     setStartingBalance(newBalance);
-    if (user && isConfigured) {
+    if (user?.id) {
       saveUserSettings(user.id, newBalance);
     }
   };
@@ -369,7 +393,7 @@ export default function App() {
         onUpdateBalance={handleUpdateBalance}
         user={user}
         onOpenAuth={() => setIsAuthModalOpen(true)}
-        onSignOut={() => setUser(null)}
+        onSignOut={handleSignOut}
         onSyncCloud={handleManualSync}
         isSyncing={isSyncing}
         trades={trades}
@@ -447,7 +471,7 @@ export default function App() {
           <div className="flex items-center gap-4 font-mono text-[11px]">
             <span className="text-[#2e7d32] font-semibold flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-[#2e7d32]"></span>
-              {user ? 'Supabase Cloud Synced' : isConfigured ? 'Supabase Online' : 'Local Storage Active'}
+              {user ? `Connected: ${user.email} (Real-Time Cloud Synced)` : 'Multi-Device Cloud Ready'}
             </span>
             <span>Local Time: {new Date().toLocaleDateString()}</span>
           </div>
@@ -476,16 +500,14 @@ export default function App() {
         }}
       />
 
-      {/* Supabase Authentication Modal */}
+      {/* Authentication Modal */}
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
         onSuccess={(newUser) => {
           setUser(newUser);
           setIsAuthModalOpen(false);
-        }}
-        onContinueAsGuest={() => {
-          setIsAuthModalOpen(false);
+          syncWithCloud(newUser);
         }}
       />
 

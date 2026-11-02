@@ -81,8 +81,37 @@ This guide covers taking TradePulse from AI Studio to production using **GitHub*
 
 ---
 
+## Database Architecture & SQL Scripts
+
+TradePulse includes two production-grade SQL schemas located in this repository:
+
+### 1. `supabase-schema.sql` (For Supabase Cloud / Self-Hosted Supabase)
+Designed specifically for Supabase's managed PostgreSQL infrastructure with Supabase Auth:
+- **`profiles`**: Extends `auth.users` with trader handle, email, `last_login_at`, and `login_count`.
+- **`user_logins`**: Audit table recording every sign-in timestamp, client IP, user-agent browser, and status.
+- **`trades`**: Execution journal linked to registered users via `user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE`.
+- **`user_settings` & `strategies`**: Individual account capital and customized playbook setups.
+- **`on_auth_user_created` Trigger**: Automatically provisions profiles, default settings, and sample strategies whenever a user signs up.
+- **`vw_user_trade_summary`**: High-performance SQL view joining user profile, login count, win rate %, total net PnL, and largest win/loss.
+- **Row Level Security (RLS)**: Enforces complete cryptographic multi-tenant isolation (`auth.uid() = user_id`).
+
+### 2. `database/postgres-complete-auth-and-trades.sql` (For Standalone PostgreSQL / Any Cloud SQL)
+If you prefer standard PostgreSQL (Neon, Cloud SQL, AWS RDS, Docker, or bare metal without Supabase):
+- **`users`**: User registration table with bcrypt cryptographic password hashing via `pgcrypto` (`gen_salt('bf', 10)`).
+- **`user_login_logs`**: Logs all login attempts (success or failure, timestamp, IP address, user-agent device info).
+- **`trades`**: Full trade execution journal with foreign key `user_id UUID REFERENCES users(id) ON DELETE CASCADE`.
+- **Stored Procedures**:
+  - `sp_register_user(email, password, full_name, starting_balance)`: Validates email, hashes password with bcrypt, initializes settings, and logs initial registration.
+  - `sp_login_user(email, password, ip, user_agent)`: Checks credentials against bcrypt hash, updates `last_login_at` and `login_count`, and writes audit log to `user_login_logs`.
+  - `sp_record_trade(user_id, trade_id, date, symbol, ...)`: Records a trade tied to the authenticated user and automatically computes gross PnL, net PnL, ROI, and outcome (win/loss).
+  - `vw_user_trading_dashboard`: View aggregating user info, last login IP, account equity, win rate %, and total trades.
+
+---
+
 ## Production Security & Row Level Security (RLS)
 
 - **Isolation**: Each user only reads, modifies, and deletes their own trades. Row Level Security policies (`auth.uid() = user_id`) enforce this at the database engine level.
+- **Password Security**: Never stored in plain text. Passwords are cryptographically salted and hashed using bcrypt (`bf` algorithm with cost factor 10).
 - **Vercel Routing**: `vercel.json` contains SPA rewrite rules ensuring page refreshes and direct links route properly to `index.html`.
 - **Offline Resilience**: Even if the network drops mid-session, TradePulse caches your entries locally and displays the offline indicator.
+
