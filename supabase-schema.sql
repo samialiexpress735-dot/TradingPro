@@ -32,6 +32,12 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Ensure all columns exist even if profiles table was created with an older schema
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'trader';
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMPTZ;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS login_count INTEGER DEFAULT 0;
+
 -- ==============================================================================
 -- 3. User Login Sessions & Security Audit Table
 -- Tracks every login timestamp, IP address, device/user-agent, and status
@@ -60,6 +66,12 @@ CREATE TABLE IF NOT EXISTS public.user_settings (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Ensure all columns exist for user_settings
+ALTER TABLE public.user_settings ADD COLUMN IF NOT EXISTS starting_balance NUMERIC DEFAULT 25000.00;
+ALTER TABLE public.user_settings ADD COLUMN IF NOT EXISTS currency TEXT DEFAULT 'USD';
+ALTER TABLE public.user_settings ADD COLUMN IF NOT EXISTS risk_per_trade_pct NUMERIC DEFAULT 1.0;
+ALTER TABLE public.user_settings ADD COLUMN IF NOT EXISTS theme TEXT DEFAULT 'light';
 
 -- ==============================================================================
 -- 5. Strategies Table (Trader's playbook setups)
@@ -110,6 +122,14 @@ CREATE TABLE IF NOT EXISTS public.trades (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Ensure all columns exist for trades
+ALTER TABLE public.trades ADD COLUMN IF NOT EXISTS time TEXT DEFAULT '09:30';
+ALTER TABLE public.trades ADD COLUMN IF NOT EXISTS exit_date TEXT;
+ALTER TABLE public.trades ADD COLUMN IF NOT EXISTS exit_time TEXT;
+ALTER TABLE public.trades ADD COLUMN IF NOT EXISTS planned_rr NUMERIC DEFAULT 0;
+ALTER TABLE public.trades ADD COLUMN IF NOT EXISTS realized_rr NUMERIC DEFAULT 0;
+ALTER TABLE public.trades ADD COLUMN IF NOT EXISTS market_session TEXT;
+
 -- ==============================================================================
 -- 7. Daily Reviews Table (Pre-market prep & End-of-day debriefs)
 -- ==============================================================================
@@ -130,6 +150,9 @@ CREATE TABLE IF NOT EXISTS public.daily_reviews (
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Ensure all columns exist for daily_reviews
+ALTER TABLE public.daily_reviews ADD COLUMN IF NOT EXISTS chart_url TEXT;
 
 -- ==============================================================================
 -- High Performance Indexes
