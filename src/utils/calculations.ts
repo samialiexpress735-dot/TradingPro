@@ -361,55 +361,135 @@ export function groupTradesByDate(trades: Trade[]): Map<string, DailyPnL> {
 }
 
 export function calculatePositionSize(input: RiskCalcInput): RiskCalcResult {
-  const { accountBalance, riskPercentage, entryPrice, stopLossPrice, targetPrice, leverage = 1 } = input;
+  const {
+    accountBalance,
+    riskPercentage,
+    fixedRiskAmount,
+    riskMode = 'percent',
+    entryPrice,
+    stopLossPrice,
+    targetPrice,
+    assetClass,
+    leverage = 1,
+    pointMultiplier,
+  } = input;
 
-  const riskAmount = Number(((accountBalance * (riskPercentage / 100))).toFixed(2));
+  // Determine target dollar risk based on mode
+  const riskAmount = riskMode === 'dollar' && fixedRiskAmount !== undefined && fixedRiskAmount > 0
+    ? Number(fixedRiskAmount.toFixed(2))
+    : Number(((accountBalance * (riskPercentage / 100))).toFixed(2));
+
   const priceRiskPerUnit = Math.abs(entryPrice - stopLossPrice);
   const priceRiskPercent = entryPrice > 0 ? Number(((priceRiskPerUnit / entryPrice) * 100).toFixed(2)) : 0;
 
-  if (priceRiskPerUnit <= 0 || entryPrice <= 0) {
+  // Determine unit label
+  const unitLabel =
+    assetClass === 'stocks'
+      ? 'Shares'
+      : assetClass === 'futures'
+      ? 'Contracts'
+      : assetClass === 'options'
+      ? 'Contracts (x100)'
+      : assetClass === 'crypto'
+      ? 'Coins / Units'
+      : 'Units (Forex)';
+
+  // Determine point/contract multiplier
+  const effectiveMultiplier =
+    pointMultiplier && pointMultiplier > 0
+      ? pointMultiplier
+      : assetClass === 'options'
+      ? 100
+      : 1;
+
+  if (priceRiskPerUnit <= 0 || entryPrice <= 0 || riskAmount <= 0) {
     return {
       riskAmount,
       priceRiskPerUnit: 0,
       priceRiskPercent: 0,
       positionSize: 0,
+      quantity: 0,
+      unitLabel,
       positionValue: 0,
+      actualRisk: 0,
+      actualRiskPercent: 0,
       marginRequired: 0,
       isOverLeveraged: false,
+      stepFormula: {
+        step1Risk: `Target Risk: $${riskAmount.toFixed(2)}`,
+        step2Distance: `Stop Distance: $0.00 (Entry = Stop)`,
+        step3Quantity: `Quantity: 0 ${unitLabel}`,
+        step4LossAtStop: `Loss at Stop: $0.00`,
+        step5GainAtTarget: `Gain at Target: $0.00`,
+      },
     };
   }
 
-  // Exact share/unit sizing based on dollar risk
-  const rawSize = riskAmount / priceRiskPerUnit;
-  // Floor or round appropriately depending on asset class
-  const positionSize = input.assetClass === 'crypto' || input.assetClass === 'forex' 
-    ? Number(rawSize.toFixed(4)) 
-    : Math.floor(rawSize);
+  // Exact share/unit sizing based on dollar risk:
+  // Risk Per Unit = |Entry - Stop| * Multiplier
+  const unitLoss = priceRiskPerUnit * effectiveMultiplier;
+  const rawSize = riskAmount / unitLoss;
 
-  const positionValue = Number((positionSize * entryPrice).toFixed(2));
+  // Floor or round appropriately depending on asset class
+  let positionSize: number;
+  if (assetClass === 'crypto') {
+    positionSize = Number(rawSize.toFixed(4));
+  } else if (assetClass === 'forex') {
+    // Round to whole units (or 2 decimals for micro lots)
+    positionSize = Math.floor(rawSize);
+  } else {
+    // Stocks, Futures, Options trade in whole integer shares or contracts
+    positionSize = Math.floor(rawSize);
+  }
+
+  const actualRisk = Number((positionSize * unitLoss).toFixed(2));
+  const actualRiskPercent = accountBalance > 0 ? Number(((actualRisk / accountBalance) * 100).toFixed(2)) : 0;
+  const positionValue = Number((positionSize * entryPrice * effectiveMultiplier).toFixed(2));
   const effectiveLeverage = leverage > 0 ? leverage : 1;
   const marginRequired = Number((positionValue / effectiveLeverage).toFixed(2));
   const isOverLeveraged = marginRequired > accountBalance;
 
   let targetProfit: number | undefined;
   let rewardToRisk: number | undefined;
+  let rewardPerUnit: number | undefined;
 
   if (targetPrice && targetPrice > 0) {
-    const rewardPerUnit = Math.abs(targetPrice - entryPrice);
-    targetProfit = Number((rewardPerUnit * positionSize).toFixed(2));
+    rewardPerUnit = Math.abs(targetPrice - entryPrice);
+    targetProfit = Number((rewardPerUnit * effectiveMultiplier * positionSize).toFixed(2));
     rewardToRisk = priceRiskPerUnit > 0 ? Number((rewardPerUnit / priceRiskPerUnit).toFixed(2)) : 0;
   }
+
+  // Step-by-step mathematical explanation for the user
+  const stepFormula = {
+    step1Risk: `Target Risk: $${riskAmount.toFixed(2)} ${
+      riskMode === 'percent' ? `(${riskPercentage}% of $${accountBalance.toLocaleString()})` : `(Fixed Dollar Limit)`
+    }`,
+    step2Distance: `Stop-Loss Distance: $${priceRiskPerUnit.toFixed(2)} per unit ${
+      effectiveMultiplier > 1 ? `× ${effectiveMultiplier} multiplier = $${unitLoss.toFixed(2)} per contract` : ''
+    }`,
+    step3Quantity: `Calculated Quantity: $${riskAmount.toFixed(2)} ÷ $${unitLoss.toFixed(2)} = ${positionSize.toLocaleString()} ${unitLabel}`,
+    step4LossAtStop: `Actual Loss if Stopped Out: ${positionSize.toLocaleString()} ${unitLabel} × $${unitLoss.toFixed(2)} = -$${actualRisk.toFixed(2)} (${actualRiskPercent}% equity)`,
+    step5GainAtTarget: targetPrice && targetPrice > 0
+      ? `Estimated Gain if Target Hit: ${positionSize.toLocaleString()} ${unitLabel} × $${((rewardPerUnit || 0) * effectiveMultiplier).toFixed(2)} = +$${(targetProfit || 0).toFixed(2)} (${rewardToRisk} R:R)`
+      : 'Set a Target Price to project profit and R:R ratio',
+  };
 
   return {
     riskAmount,
     priceRiskPerUnit: Number(priceRiskPerUnit.toFixed(4)),
     priceRiskPercent,
     positionSize,
+    quantity: positionSize,
+    unitLabel,
     positionValue,
+    actualRisk,
+    actualRiskPercent,
+    rewardPerUnit,
     targetProfit,
     rewardToRisk,
     marginRequired,
     isOverLeveraged,
+    stepFormula,
   };
 }
 

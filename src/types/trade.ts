@@ -165,21 +165,36 @@ export interface DailyReview {
 export interface RiskCalcInput {
   accountBalance: number;
   riskPercentage: number;
+  fixedRiskAmount?: number;
+  riskMode?: 'percent' | 'dollar';
   entryPrice: number;
   stopLossPrice: number;
   targetPrice?: number;
   assetClass: AssetClass;
   leverage?: number;
+  pointMultiplier?: number; // e.g. 100 for options, 20 for NQ, 50 for ES, 5 for MES
 }
 
 export interface RiskCalcResult {
-  riskAmount: number;
+  riskAmount: number; // Planned dollar risk
   priceRiskPerUnit: number;
   priceRiskPercent: number;
-  positionSize: number; // shares / contracts / units
-  positionValue: number; // total dollar value
+  positionSize: number; // Exact calculated quantity / size
+  quantity: number; // Alias for positionSize
+  unitLabel: string; // 'Shares', 'Contracts', 'Coins', 'Lots', 'Units'
+  positionValue: number; // Total dollar value of the position
+  actualRisk: number; // Actual dollar loss if stopped out with rounded quantity
+  actualRiskPercent: number;
+  rewardPerUnit?: number;
   targetProfit?: number;
   rewardToRisk?: number;
   marginRequired: number;
   isOverLeveraged: boolean;
+  stepFormula?: {
+    step1Risk: string;
+    step2Distance: string;
+    step3Quantity: string;
+    step4LossAtStop: string;
+    step5GainAtTarget: string;
+  };
 }
