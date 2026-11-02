@@ -39,9 +39,9 @@ export function calculateTradeMetrics(params: {
   const realizedRR = riskPerUnit > 0 ? Number((priceDiff / riskPerUnit).toFixed(2)) : 0;
 
   let outcome: 'win' | 'loss' | 'breakeven' = 'breakeven';
-  if (netPnl > 2) {
+  if (netPnl > 0.001) {
     outcome = 'win';
-  } else if (netPnl < -2) {
+  } else if (netPnl < -0.001) {
     outcome = 'loss';
   }
 
@@ -433,10 +433,11 @@ export function calculatePositionSize(input: RiskCalcInput): RiskCalcResult {
   // Floor or round appropriately depending on asset class
   let positionSize: number;
   if (assetClass === 'crypto') {
-    positionSize = Number(rawSize.toFixed(4));
+    // Binance crypto supports up to 8 decimal places (Satoshi level: 0.00000001 BTC)
+    positionSize = Number(rawSize.toFixed(8));
   } else if (assetClass === 'forex') {
-    // Round to whole units (or 2 decimals for micro lots)
-    positionSize = Math.floor(rawSize);
+    // Forex supports micro-lots (0.01 lots) or fractional units
+    positionSize = Number(rawSize.toFixed(2));
   } else {
     // Stocks, Futures, Options trade in whole integer shares or contracts
     positionSize = Math.floor(rawSize);
@@ -459,18 +460,22 @@ export function calculatePositionSize(input: RiskCalcInput): RiskCalcResult {
     rewardToRisk = priceRiskPerUnit > 0 ? Number((rewardPerUnit / priceRiskPerUnit).toFixed(2)) : 0;
   }
 
+  const formattedQtyStr = assetClass === 'crypto'
+    ? positionSize.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 8 })
+    : positionSize.toLocaleString('en-US');
+
   // Step-by-step mathematical explanation for the user
   const stepFormula = {
     step1Risk: `Target Risk: $${riskAmount.toFixed(2)} ${
       riskMode === 'percent' ? `(${riskPercentage}% of $${accountBalance.toLocaleString()})` : `(Fixed Dollar Limit)`
     }`,
-    step2Distance: `Stop-Loss Distance: $${priceRiskPerUnit.toFixed(2)} per unit ${
+    step2Distance: `Stop-Loss Distance: $${priceRiskPerUnit.toFixed(priceRiskPerUnit < 0.01 ? 6 : 2)} per unit ${
       effectiveMultiplier > 1 ? `× ${effectiveMultiplier} multiplier = $${unitLoss.toFixed(2)} per contract` : ''
     }`,
-    step3Quantity: `Calculated Quantity: $${riskAmount.toFixed(2)} ÷ $${unitLoss.toFixed(2)} = ${positionSize.toLocaleString()} ${unitLabel}`,
-    step4LossAtStop: `Actual Loss if Stopped Out: ${positionSize.toLocaleString()} ${unitLabel} × $${unitLoss.toFixed(2)} = -$${actualRisk.toFixed(2)} (${actualRiskPercent}% equity)`,
+    step3Quantity: `Calculated Quantity: $${riskAmount.toFixed(2)} ÷ $${unitLoss.toFixed(unitLoss < 0.01 ? 6 : 2)} = ${formattedQtyStr} ${unitLabel}`,
+    step4LossAtStop: `Actual Loss if Stopped Out: ${formattedQtyStr} ${unitLabel} × $${unitLoss.toFixed(unitLoss < 0.01 ? 6 : 2)} = -$${actualRisk.toFixed(2)} (${actualRiskPercent}% equity)`,
     step5GainAtTarget: targetPrice && targetPrice > 0
-      ? `Estimated Gain if Target Hit: ${positionSize.toLocaleString()} ${unitLabel} × $${((rewardPerUnit || 0) * effectiveMultiplier).toFixed(2)} = +$${(targetProfit || 0).toFixed(2)} (${rewardToRisk} R:R)`
+      ? `Estimated Gain if Target Hit: ${formattedQtyStr} ${unitLabel} × $${((rewardPerUnit || 0) * effectiveMultiplier).toFixed(2)} = +$${(targetProfit || 0).toFixed(2)} (${rewardToRisk} R:R)`
       : 'Set a Target Price to project profit and R:R ratio',
   };
 

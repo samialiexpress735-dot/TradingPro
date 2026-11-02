@@ -2,6 +2,7 @@ import React from 'react';
 import { Trade, PerformanceStats, EquityPoint } from '../types/trade';
 import { EquityChart } from './EquityChart';
 import { CalendarHeatmap } from './CalendarHeatmap';
+import { formatPnL } from '../utils/formatters';
 import {
   TrendingUp,
   TrendingDown,
@@ -283,7 +284,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                             isWin ? 'text-[#1e6b37]' : isLoss ? 'text-[#b93829]' : 'text-[#7d695b]'
                           }`}
                         >
-                          {trade.netPnl >= 0 ? '+' : ''}${trade.netPnl.toFixed(2)}
+                          {formatPnL(trade.netPnl)}
                         </div>
                         <div className="text-[10px] text-[#8c7462]">
                           {trade.realizedRR >= 0 ? '+' : ''}{trade.realizedRR}R

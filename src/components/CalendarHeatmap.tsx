@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Trade, DailyPnL } from '../types/trade';
 import { groupTradesByDate } from '../utils/calculations';
+import { formatPrice, formatPnL } from '../utils/formatters';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, CheckCircle2, XCircle } from 'lucide-react';
 
 interface CalendarHeatmapProps {
@@ -9,9 +10,52 @@ interface CalendarHeatmapProps {
 }
 
 export const CalendarHeatmap: React.FC<CalendarHeatmapProps> = ({ trades, onSelectDate }) => {
-  const [currentYear, setCurrentYear] = useState<number>(2026);
-  const [currentMonth, setCurrentMonth] = useState<number>(9); // 0-indexed: 9 = October
+  // Initialize to latest trade's date or current date (e.g. November 2026)
+  const [currentYear, setCurrentYear] = useState<number>(() => {
+    if (trades && trades.length > 0) {
+      const sorted = [...trades].sort((a, b) => b.date.localeCompare(a.date));
+      const parts = sorted[0].date.split('-');
+      if (parts.length >= 2) {
+        const y = parseInt(parts[0], 10);
+        if (!isNaN(y)) return y;
+      }
+    }
+    return new Date().getFullYear();
+  });
+
+  const [currentMonth, setCurrentMonth] = useState<number>(() => {
+    if (trades && trades.length > 0) {
+      const sorted = [...trades].sort((a, b) => b.date.localeCompare(a.date));
+      const parts = sorted[0].date.split('-');
+      if (parts.length >= 2) {
+        const m = parseInt(parts[1], 10) - 1;
+        if (!isNaN(m) && m >= 0 && m <= 11) return m;
+      }
+    }
+    return new Date().getMonth();
+  });
+
   const [selectedDayTrades, setSelectedDayTrades] = useState<DailyPnL | null>(null);
+
+  // Auto-focus calendar on latest trade date when new trades are added
+  useEffect(() => {
+    if (trades && trades.length > 0) {
+      const sorted = [...trades].sort((a, b) => b.date.localeCompare(a.date));
+      const parts = sorted[0].date.split('-');
+      if (parts.length >= 2) {
+        const y = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10) - 1;
+        if (!isNaN(y) && !isNaN(m) && m >= 0 && m <= 11) {
+          setCurrentYear(y);
+          setCurrentMonth(m);
+        }
+      }
+    } else {
+      const now = new Date();
+      setCurrentYear(now.getFullYear());
+      setCurrentMonth(now.getMonth());
+    }
+  }, [trades.length]);
 
   const dailyMap = useMemo(() => groupTradesByDate(trades), [trades]);
 
@@ -36,6 +80,12 @@ export const CalendarHeatmap: React.FC<CalendarHeatmapProps> = ({ trades, onSele
     } else {
       setCurrentMonth((m) => m + 1);
     }
+  };
+
+  const handleJumpToCurrentMonth = () => {
+    const now = new Date();
+    setCurrentYear(now.getFullYear());
+    setCurrentMonth(now.getMonth());
   };
 
   // Generate calendar days
@@ -143,6 +193,13 @@ export const CalendarHeatmap: React.FC<CalendarHeatmapProps> = ({ trades, onSele
               title="Previous Month"
             >
               <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={handleJumpToCurrentMonth}
+              className="px-2 py-0.5 text-[11px] font-bold text-[#78350f] hover:bg-[#ede6dc] rounded-md transition cursor-pointer font-sans"
+              title="Jump to current month"
+            >
+              Today
             </button>
             <button
               onClick={handleNextMonth}
@@ -304,7 +361,7 @@ export const CalendarHeatmap: React.FC<CalendarHeatmapProps> = ({ trades, onSele
                       <span className="text-[#8c7462] font-mono text-[11px]">{t.time}</span>
                     </div>
                     <div className="text-[#7d695b] text-[11px]">
-                      {t.strategy} • In: ${t.entryPrice} → Out: ${t.exitPrice}
+                      {t.strategy} • In: {formatPrice(t.entryPrice)} → Out: {formatPrice(t.exitPrice)}
                     </div>
                   </div>
 
@@ -314,7 +371,7 @@ export const CalendarHeatmap: React.FC<CalendarHeatmapProps> = ({ trades, onSele
                         t.netPnl >= 0 ? 'text-[#1e6b37]' : 'text-[#b93829]'
                       }`}
                     >
-                      {t.netPnl >= 0 ? '+' : ''}${t.netPnl.toFixed(2)}
+                      {formatPnL(t.netPnl)}
                     </div>
                     <div className="text-[10px] text-[#8c7462] font-mono">
                       {t.roi >= 0 ? '+' : ''}{t.roi}% ROI ({t.realizedRR}R)

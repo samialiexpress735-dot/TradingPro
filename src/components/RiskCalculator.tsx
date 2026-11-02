@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { AssetClass } from '../types/trade';
 import { calculatePositionSize, calculateRiskOfRuin } from '../utils/calculations';
+import { formatQuantity, formatPrice } from '../utils/formatters';
 import {
   Calculator,
   ArrowRight,
@@ -390,7 +391,7 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
                 2. Price Levels (Determines Stop Distance)
               </span>
               <span className="text-xs font-mono text-[#8c7462]">
-                Risk per Share: <strong className="text-[#b93829]">${calcResult.priceRiskPerUnit.toFixed(2)}</strong>
+                Risk per Share: <strong className="text-[#b93829]">{formatPrice(calcResult.priceRiskPerUnit)}</strong>
               </span>
             </div>
 
@@ -416,7 +417,7 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
                   className="w-full bg-[#fcfaf7] border border-[#fecaca] rounded-xl px-4 py-2 text-[#b93829] font-mono text-sm font-semibold focus:outline-none focus:border-[#b93829] transition"
                 />
                 <span className="text-[10px] text-[#b93829] font-mono block mt-1">
-                  -${calcResult.priceRiskPerUnit.toFixed(2)} ({calcResult.priceRiskPercent}%) from entry
+                  -{formatPrice(calcResult.priceRiskPerUnit)} ({calcResult.priceRiskPercent}%) from entry
                 </span>
               </div>
 
@@ -430,7 +431,7 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
                   className="w-full bg-[#fcfaf7] border border-[#c3e6cb] rounded-xl px-4 py-2 text-[#1e6b37] font-mono text-sm font-semibold focus:outline-none focus:border-[#1e6b37] transition"
                 />
                 <span className="text-[10px] text-[#1e6b37] font-mono block mt-1">
-                  +${Math.abs(takeProfit - entryPrice).toFixed(2)} per unit
+                  +{formatPrice(Math.abs(takeProfit - entryPrice))} per unit
                 </span>
               </div>
             </div>
@@ -513,7 +514,7 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
               </span>
               <div className="flex items-baseline justify-center gap-2">
                 <span className="text-4xl sm:text-5xl font-black text-[#281d16] font-mono tracking-tight">
-                  {calcResult.positionSize.toLocaleString()}
+                  {formatQuantity(calcResult.positionSize, assetClass)}
                 </span>
                 <span className="text-base sm:text-lg font-bold text-[#78350f] uppercase">
                   {calcResult.unitLabel}
@@ -530,12 +531,14 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
                   {copied ? (
                     <>
                       <Check className="w-3.5 h-3.5 text-[#1e6b37]" />
-                      <span className="text-[#1e6b37] font-bold">Copied {calcResult.positionSize}!</span>
+                      <span className="text-[#1e6b37] font-bold">
+                        Copied {formatQuantity(calcResult.positionSize, assetClass)}!
+                      </span>
                     </>
                   ) : (
                     <>
                       <Copy className="w-3.5 h-3.5 text-[#78350f]" />
-                      <span>Copy Quantity ({calcResult.positionSize})</span>
+                      <span>Copy Quantity ({formatQuantity(calcResult.positionSize, assetClass)})</span>
                     </>
                   )}
                 </button>

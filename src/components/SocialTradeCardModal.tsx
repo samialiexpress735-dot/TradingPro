@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Trade } from '../types/trade';
+import { formatPrice, formatQuantity } from '../utils/formatters';
 import {
   X,
   Download,
@@ -166,9 +167,9 @@ export const SocialTradeCardModal: React.FC<SocialTradeCardModalProps> = ({
 
     // 4 Key Stats columns
     const cols = [
-      { label: 'ENTRY PRICE', val: `$${trade.entryPrice.toFixed(2)}` },
-      { label: 'EXIT PRICE', val: `$${trade.exitPrice.toFixed(2)}` },
-      { label: 'POSITION SIZE', val: `${trade.quantity} units` },
+      { label: 'ENTRY PRICE', val: formatPrice(trade.entryPrice) },
+      { label: 'EXIT PRICE', val: formatPrice(trade.exitPrice) },
+      { label: 'POSITION SIZE', val: `${formatQuantity(trade.quantity, trade.assetClass)} units` },
       { label: 'SETUP STRATEGY', val: trade.strategy || 'Momentum' },
     ];
 

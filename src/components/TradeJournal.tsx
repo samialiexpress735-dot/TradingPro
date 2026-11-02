@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Trade, Strategy, AssetClass, TradeOutcome } from '../types/trade';
+import { formatQuantity, formatPrice, formatPnL } from '../utils/formatters';
 import {
   Search,
   Filter,
@@ -472,9 +473,9 @@ export const TradeJournal: React.FC<TradeJournalProps> = ({
 
                         {/* Entry & Exit */}
                         <td className="py-3 px-3 font-mono text-xs">
-                          <div className="text-[#281d16]">${trade.entryPrice.toLocaleString()}</div>
+                          <div className="text-[#281d16]">{formatPrice(trade.entryPrice)}</div>
                           <div className="text-[#8c7462] text-[11px]">
-                            {isOpen ? '→ Live' : `→ $${trade.exitPrice.toLocaleString()}`}
+                            {isOpen ? '→ Live' : `→ ${formatPrice(trade.exitPrice)}`}
                           </div>
                         </td>
 
@@ -605,19 +606,19 @@ export const TradeJournal: React.FC<TradeJournalProps> = ({
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono">
                                   <div className="p-2.5 bg-white rounded-xl border border-[#e8dfd5]">
                                     <span className="text-[10px] text-[#8c7462] uppercase block font-sans">Stop Loss</span>
-                                    <span className="text-[#b93829] font-bold">${trade.stopLoss}</span>
+                                    <span className="text-[#b93829] font-bold">{formatPrice(trade.stopLoss)}</span>
                                   </div>
                                   <div className="p-2.5 bg-white rounded-xl border border-[#e8dfd5]">
                                     <span className="text-[10px] text-[#8c7462] uppercase block font-sans">Take Profit</span>
-                                    <span className="text-[#1e6b37] font-bold">${trade.takeProfit}</span>
+                                    <span className="text-[#1e6b37] font-bold">{formatPrice(trade.takeProfit)}</span>
                                   </div>
                                   <div className="p-2.5 bg-white rounded-xl border border-[#e8dfd5]">
                                     <span className="text-[10px] text-[#8c7462] uppercase block font-sans">Position Qty</span>
-                                    <span className="text-[#281d16] font-semibold">{trade.quantity.toLocaleString()}</span>
+                                    <span className="text-[#281d16] font-semibold">{formatQuantity(trade.quantity, trade.assetClass)}</span>
                                   </div>
                                   <div className="p-2.5 bg-white rounded-xl border border-[#e8dfd5]">
                                     <span className="text-[10px] text-[#8c7462] uppercase block font-sans">Fees / Comm</span>
-                                    <span className="text-[#7d695b]">${trade.fees}</span>
+                                    <span className="text-[#7d695b]">{formatPrice(trade.fees)}</span>
                                   </div>
                                 </div>
 
