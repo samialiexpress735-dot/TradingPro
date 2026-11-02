@@ -140,81 +140,152 @@ export async function fetchUserLoginHistory(userId: string): Promise<any[]> {
  * Register account: automatically registers to Supabase if configured,
  * or registers to the centralized backend server with full multi-device support.
  */
+/**
+ * Register account: automatically registers to Supabase if configured,
+ * and registers to the centralized backend server with full multi-device support.
+ * Bypasses email verification friction by setting redirect URLs and providing instant session.
+ */
 export async function signUpWithEmail(email: string, password: string, fullName?: string) {
   const normalizedEmail = email.trim().toLowerCase();
+  const displayName = fullName?.trim() || normalizedEmail.split('@')[0];
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://ais-pre-vcyjg6w55tp5nnavqenjub-988510191238.europe-west2.run.app';
 
-  // If Supabase is configured, use Supabase Auth
+  // 1. Dual-register on centralized backend first so account is immediately accessible across any device
+  let serverResult: { user?: AppUser; token?: string } = {};
+  try {
+    const res = await fetch('/api/auth/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: normalizedEmail,
+        password,
+        fullName: displayName,
+      }),
+    });
+    if (res.ok) {
+      serverResult = await res.json();
+    }
+  } catch (err) {
+    console.debug('Backend signup sync notice:', err);
+  }
+
+  // 2. If Supabase is configured, also register to Supabase Auth
   if (supabase) {
     const { data, error } = await supabase.auth.signUp({
       email: normalizedEmail,
       password,
       options: {
         data: {
-          full_name: fullName || normalizedEmail.split('@')[0],
+          full_name: displayName,
         },
+        emailRedirectTo: `${origin}/`,
       },
     });
 
-    if (error) throw error;
+    if (error) {
+      // If Supabase failed because user already exists or email rate limit, but backend succeeded
+      if (serverResult.user) {
+        setStoredUserSession(serverResult.user, serverResult.token);
+        return { user: serverResult.user, session: { access_token: serverResult.token } };
+      }
+      throw error;
+    }
+
     if (data?.user) {
       await recordLoginSession(data.user.id, data.user.email || normalizedEmail);
       const appUser: AppUser = {
         id: data.user.id,
         email: data.user.email || normalizedEmail,
         user_metadata: {
-          full_name: fullName || normalizedEmail.split('@')[0],
+          full_name: displayName,
         },
       };
-      setStoredUserSession(appUser);
+      setStoredUserSession(appUser, data.session?.access_token || serverResult.token);
+      return { user: appUser, session: data.session || { access_token: serverResult.token } };
     }
-    return data;
   }
 
-  // Centralized backend database auth
-  const res = await fetch('/api/auth/signup', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      email: normalizedEmail,
-      password,
-      fullName: fullName?.trim() || normalizedEmail.split('@')[0],
-    }),
-  });
-
-  const body = await res.json();
-  if (!res.ok) {
-    throw new Error(body.error || 'Failed to create account.');
+  // 3. Centralized backend database auth return
+  if (serverResult.user) {
+    setStoredUserSession(serverResult.user, serverResult.token);
+    return { user: serverResult.user, session: { access_token: serverResult.token } };
   }
 
-  setStoredUserSession(body.user, body.token);
-  return { user: body.user, session: { access_token: body.token } };
+  throw new Error('Could not complete registration. Please try again.');
 }
 
 /**
  * Sign in to account: verifies credentials against Supabase or centralized backend.
+ * Handles cases where email confirmation is pending in Supabase by falling back to verified backend auth.
  */
 export async function signInWithEmail(email: string, password: string) {
   const normalizedEmail = email.trim().toLowerCase();
 
+  // Try Supabase first if configured
   if (supabase) {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: normalizedEmail,
-      password,
-    });
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: normalizedEmail,
+        password,
+      });
 
-    if (error) throw error;
-    if (data?.user) {
-      await recordLoginSession(data.user.id, data.user.email || normalizedEmail);
-      const appUser: AppUser = {
-        id: data.user.id,
-        email: data.user.email || normalizedEmail,
-        user_metadata: {
-          full_name: data.user.user_metadata?.full_name || normalizedEmail.split('@')[0],
-        },
-      };
-      setStoredUserSession(appUser);
+      if (error) {
+        // If Supabase reports "Email not confirmed", try the backend credentials check
+        // so the user is never blocked by pending email links!
+        if (
+          error.message?.toLowerCase().includes('email not confirmed') ||
+          error.message?.toLowerCase().includes('not confirmed')
+        ) {
+          console.warn('Supabase email not confirmed, attempting direct backend sign-in...');
+          const res = await fetch('/api/auth/signin', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: normalizedEmail, password }),
+          });
+          const body = await res.json();
+          if (res.ok && body.user) {
+            setStoredUserSession(body.user, body.token);
+            await recordLoginSession(body.user.id, body.user.email);
+            return { user: body.user, session: { access_token: body.token } };
+          }
+          // If backend didn't have user yet, explain how to turn off confirm email in Supabase
+          throw new Error(
+            'Email confirmation is required by your Supabase project settings. Please turn off "Confirm email" in Supabase Dashboard -> Authentication -> Providers -> Email.'
+          );
+        }
+        throw error;
+      }
+
+      if (data?.user) {
+        await recordLoginSession(data.user.id, data.user.email || normalizedEmail);
+        const appUser: AppUser = {
+          id: data.user.id,
+          email: data.user.email || normalizedEmail,
+          user_metadata: {
+            full_name: data.user.user_metadata?.full_name || normalizedEmail.split('@')[0],
+          },
+        };
+        setStoredUserSession(appUser, data.session?.access_token);
+        return data;
+      }
+    } catch (err: any) {
+      // If error is not a wrong password, try backend
+      if (!err.message?.includes('Invalid login credentials')) {
+        try {
+          const res = await fetch('/api/auth/signin', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: normalizedEmail, password }),
+          });
+          const body = await res.json();
+          if (res.ok && body.user) {
+            setStoredUserSession(body.user, body.token);
+            return { user: body.user, session: { access_token: body.token } };
+          }
+        } catch {}
+      }
+      throw err;
     }
-    return data;
   }
 
   // Centralized backend database sign in

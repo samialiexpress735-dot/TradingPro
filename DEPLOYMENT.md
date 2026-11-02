@@ -38,7 +38,19 @@ This guide covers taking TradePulse from AI Studio to production using **GitHub*
    - Click **+ New query**.
    - Copy the entire contents of `supabase-schema.sql` located in this repository's root.
    - Paste into the SQL Editor and click **Run**.
-4. **Copy Your Supabase API Keys**:
+4. **Disable Email Confirmation (Important for Instant Access)**:
+   - In your Supabase Dashboard, click **Authentication** (left sidebar) -> **Providers** -> **Email**.
+   - Under **Email**, find the **Confirm email** toggle.
+   - Switch **Confirm email** to **OFF** (Disabled) and click **Save**.
+   - *Why?* This allows traders to register and log in instantly without waiting for an email or clicking any broken confirmation links!
+5. **Set Site URL & Redirect URLs**:
+   - In Supabase Dashboard, go to **Authentication** -> **URL Configuration**.
+   - Set **Site URL** to your live app URL (e.g., your Vercel URL or current preview URL `https://ais-pre-vcyjg6w55tp5nnavqenjub-988510191238.europe-west2.run.app`).
+   - Under **Redirect URLs**, add:
+     - `https://*.vercel.app/**`
+     - `https://ais-pre-vcyjg6w55tp5nnavqenjub-988510191238.europe-west2.run.app/**`
+   - Click **Save**. (This prevents Supabase from ever redirecting to `localhost`).
+6. **Copy Your Supabase API Keys**:
    - Go to **Project Settings** (gear icon) -> **API**.
    - Copy:
      - **Project URL** (e.g. `https://xyzcompany.supabase.co`)

@@ -90,6 +90,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         message = 'Invalid email or password. Please verify your credentials.';
       } else if (message.includes('User already registered') || message.includes('already exists')) {
         message = 'An account with this email already exists. Please sign in instead.';
+      } else if (message.toLowerCase().includes('email not confirmed') || message.toLowerCase().includes('confirm email')) {
+        message = 'Email confirmation is turned on in your Supabase project. To disable email verification: go to Supabase Dashboard -> Authentication -> Providers -> Email -> toggle "Confirm email" OFF.';
       }
       setErrorMsg(message);
     } finally {
