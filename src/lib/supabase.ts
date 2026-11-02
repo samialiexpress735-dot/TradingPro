@@ -1,12 +1,35 @@
 import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
 import { Trade, Strategy, DailyReview } from '../types/trade';
 
-// Retrieve Supabase environment variables
+// Production Supabase project configuration
+export const DEFAULT_SUPABASE_URL = 'https://tvzvzbsndptjcjjmwxfa.supabase.co';
+export const DEFAULT_SUPABASE_KEY = 'sb_publishable_M3VpKjLKHNS2skqEJ9yO5Q_1ZnGPaU7';
+
+// Retrieve Supabase environment variables or defaults
 export function getSupabaseCredentials(): { url: string; key: string } {
   const envUrl = (import.meta.env.VITE_SUPABASE_URL || '').trim();
   const envKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || '').trim();
 
-  return { url: envUrl, key: envKey };
+  let localUrl = '';
+  let localKey = '';
+  try {
+    if (typeof window !== 'undefined') {
+      localUrl = (localStorage.getItem('tradepulse_supabase_url') || '').trim();
+      localKey = (localStorage.getItem('tradepulse_supabase_anon_key') || '').trim();
+    }
+  } catch {}
+
+  const finalUrl =
+    envUrl && !envUrl.includes('your-project') && !envUrl.includes('placeholder')
+      ? envUrl
+      : localUrl || DEFAULT_SUPABASE_URL;
+
+  const finalKey =
+    envKey && !envKey.includes('your-anon-key') && !envKey.includes('placeholder')
+      ? envKey
+      : localKey || DEFAULT_SUPABASE_KEY;
+
+  return { url: finalUrl, key: finalKey };
 }
 
 /**
@@ -25,7 +48,7 @@ export function isSupabaseConfigured(): boolean {
 
 const initialCreds = getSupabaseCredentials();
 
-// Create singleton Supabase client if environment credentials are provided
+// Create singleton Supabase client
 export const supabase: SupabaseClient | null = isSupabaseConfigured()
   ? createClient(initialCreds.url, initialCreds.key, {
       auth: {
@@ -141,16 +164,60 @@ export async function fetchUserLoginHistory(userId: string): Promise<any[]> {
  * or registers to the centralized backend server with full multi-device support.
  */
 /**
- * Register account: automatically registers to Supabase if configured,
- * and registers to the centralized backend server with full multi-device support.
- * Bypasses email verification friction by setting redirect URLs and providing instant session.
+ * Guarantees that public.profiles and public.user_settings records exist for the authenticated user
+ */
+export async function ensureUserProfileExists(userId: string, email: string, fullName?: string) {
+  if (!supabase) return;
+  try {
+    const { data: existing } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (!existing) {
+      await supabase.from('profiles').upsert(
+        {
+          id: userId,
+          email: email,
+          full_name: fullName || email.split('@')[0],
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'id' }
+      );
+    }
+
+    const { data: existingSettings } = await supabase
+      .from('user_settings')
+      .select('user_id')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (!existingSettings) {
+      await supabase.from('user_settings').upsert(
+        {
+          user_id: userId,
+          starting_balance: 25000,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'user_id' }
+      );
+    }
+  } catch (err) {
+    console.debug('Profile ensure note:', err);
+  }
+}
+
+/**
+ * Register account: automatically registers to Supabase Auth and provisions database records.
+ * If user already exists in Supabase, attempts immediate sign-in with the provided password.
  */
 export async function signUpWithEmail(email: string, password: string, fullName?: string) {
   const normalizedEmail = email.trim().toLowerCase();
   const displayName = fullName?.trim() || normalizedEmail.split('@')[0];
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://ais-pre-vcyjg6w55tp5nnavqenjub-988510191238.europe-west2.run.app';
 
-  // 1. Dual-register on centralized backend first so account is immediately accessible across any device
+  // 1. Dual-register on centralized backend first
   let serverResult: { user?: AppUser; token?: string } = {};
   try {
     const res = await fetch('/api/auth/signup', {
@@ -169,7 +236,7 @@ export async function signUpWithEmail(email: string, password: string, fullName?
     console.debug('Backend signup sync notice:', err);
   }
 
-  // 2. If Supabase is configured, also register to Supabase Auth
+  // 2. If Supabase is configured, register to Supabase Auth
   if (supabase) {
     const { data, error } = await supabase.auth.signUp({
       email: normalizedEmail,
@@ -183,7 +250,42 @@ export async function signUpWithEmail(email: string, password: string, fullName?
     });
 
     if (error) {
-      // If Supabase failed because user already exists or email rate limit, but backend succeeded
+      // If the user already registered in Supabase, attempt instant sign-in with the password!
+      if (
+        error.message?.includes('User already registered') ||
+        error.message?.includes('already exists') ||
+        (error as any).code === 'user_already_exists'
+      ) {
+        try {
+          const signInRes = await supabase.auth.signInWithPassword({
+            email: normalizedEmail,
+            password,
+          });
+
+          if (signInRes.data?.user) {
+            await ensureUserProfileExists(signInRes.data.user.id, normalizedEmail, displayName);
+            await recordLoginSession(signInRes.data.user.id, normalizedEmail);
+            const appUser: AppUser = {
+              id: signInRes.data.user.id,
+              email: normalizedEmail,
+              user_metadata: {
+                full_name: displayName,
+              },
+            };
+            setStoredUserSession(appUser, signInRes.data.session?.access_token);
+            return { user: appUser, session: signInRes.data.session };
+          }
+        } catch (signInErr: any) {
+          if (signInErr?.message?.toLowerCase().includes('email not confirmed')) {
+            throw new Error(
+              'Your account was registered before email confirmation was turned off. In your Supabase Dashboard -> Authentication -> Users, click the 3 dots next to your email and select "Confirm user" (or delete it to re-register).'
+            );
+          }
+          throw new Error('An account with this email already exists. Please enter your correct password or sign in.');
+        }
+      }
+
+      // If Supabase failed but backend succeeded
       if (serverResult.user) {
         setStoredUserSession(serverResult.user, serverResult.token);
         return { user: serverResult.user, session: { access_token: serverResult.token } };
@@ -192,6 +294,8 @@ export async function signUpWithEmail(email: string, password: string, fullName?
     }
 
     if (data?.user) {
+      // Ensure profile & settings rows exist in public schema
+      await ensureUserProfileExists(data.user.id, normalizedEmail, displayName);
       await recordLoginSession(data.user.id, data.user.email || normalizedEmail);
       const appUser: AppUser = {
         id: data.user.id,
@@ -216,7 +320,6 @@ export async function signUpWithEmail(email: string, password: string, fullName?
 
 /**
  * Sign in to account: verifies credentials against Supabase or centralized backend.
- * Handles cases where email confirmation is pending in Supabase by falling back to verified backend auth.
  */
 export async function signInWithEmail(email: string, password: string) {
   const normalizedEmail = email.trim().toLowerCase();
@@ -230,33 +333,24 @@ export async function signInWithEmail(email: string, password: string) {
       });
 
       if (error) {
-        // If Supabase reports "Email not confirmed", try the backend credentials check
-        // so the user is never blocked by pending email links!
+        // If Supabase reports "Email not confirmed", provide exact guidance
         if (
           error.message?.toLowerCase().includes('email not confirmed') ||
           error.message?.toLowerCase().includes('not confirmed')
         ) {
-          console.warn('Supabase email not confirmed, attempting direct backend sign-in...');
-          const res = await fetch('/api/auth/signin', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: normalizedEmail, password }),
-          });
-          const body = await res.json();
-          if (res.ok && body.user) {
-            setStoredUserSession(body.user, body.token);
-            await recordLoginSession(body.user.id, body.user.email);
-            return { user: body.user, session: { access_token: body.token } };
-          }
-          // If backend didn't have user yet, explain how to turn off confirm email in Supabase
           throw new Error(
-            'Email confirmation is required by your Supabase project settings. Please turn off "Confirm email" in Supabase Dashboard -> Authentication -> Providers -> Email.'
+            'Your account was registered before email confirmation was turned off. In Supabase Dashboard -> Authentication -> Users, click the 3 dots next to your email and choose "Confirm user", or delete it to re-register.'
           );
         }
         throw error;
       }
 
       if (data?.user) {
+        await ensureUserProfileExists(
+          data.user.id,
+          normalizedEmail,
+          data.user.user_metadata?.full_name || normalizedEmail.split('@')[0]
+        );
         await recordLoginSession(data.user.id, data.user.email || normalizedEmail);
         const appUser: AppUser = {
           id: data.user.id,
@@ -269,7 +363,6 @@ export async function signInWithEmail(email: string, password: string) {
         return data;
       }
     } catch (err: any) {
-      // If error is not a wrong password, try backend
       if (!err.message?.includes('Invalid login credentials')) {
         try {
           const res = await fetch('/api/auth/signin', {

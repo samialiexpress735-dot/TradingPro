@@ -163,6 +163,11 @@ CREATE POLICY "Users can update own profile"
   ON public.profiles FOR UPDATE
   USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Users can insert own profile" ON public.profiles;
+CREATE POLICY "Users can insert own profile"
+  ON public.profiles FOR INSERT
+  WITH CHECK (auth.uid() = id);
+
 -- User Logins Policies
 DROP POLICY IF EXISTS "Users can view own login history" ON public.user_logins;
 CREATE POLICY "Users can view own login history"
@@ -372,3 +377,24 @@ SELECT
 FROM public.profiles p
 LEFT JOIN public.trades t ON p.id = t.user_id
 GROUP BY p.id, p.email, p.full_name, p.last_login_at, p.login_count;
+
+-- ==============================================================================
+-- Backfill existing registered users into profiles and user_settings
+-- ==============================================================================
+INSERT INTO public.profiles (id, email, full_name, created_at, updated_at)
+SELECT 
+  id, 
+  email, 
+  COALESCE(raw_user_meta_data->>'full_name', split_part(email, '@', 1)),
+  created_at,
+  NOW()
+FROM auth.users
+ON CONFLICT (id) DO UPDATE
+SET email = EXCLUDED.email,
+    full_name = COALESCE(EXCLUDED.full_name, public.profiles.full_name),
+    updated_at = NOW();
+
+INSERT INTO public.user_settings (user_id, starting_balance)
+SELECT id, 25000.00
+FROM auth.users
+ON CONFLICT (user_id) DO NOTHING;
