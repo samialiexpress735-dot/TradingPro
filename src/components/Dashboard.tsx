@@ -2,6 +2,7 @@ import React from 'react';
 import { Trade, PerformanceStats, EquityPoint } from '../types/trade';
 import { EquityChart } from './EquityChart';
 import { CalendarHeatmap } from './CalendarHeatmap';
+import { MonthlyTargetTracker } from './MonthlyTargetTracker';
 import { formatPnL } from '../utils/formatters';
 import {
   TrendingUp,
@@ -24,6 +25,10 @@ interface DashboardProps {
   trades: Trade[];
   equityData: EquityPoint[];
   startingBalance: number;
+  userId?: string;
+  monthlyTargetAmount?: number;
+  monthlyTargetType?: 'dollar' | 'percent';
+  onTargetChange?: (type: 'dollar' | 'percent', val: number) => void;
   onAddTrade: () => void;
   onOpenChecklist: () => void;
   onNavigateToTab: (tab: 'journal' | 'review' | 'calculator' | 'playbook' | 'analytics' | 'support') => void;
@@ -37,6 +42,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
   trades,
   equityData,
   startingBalance,
+  userId,
+  monthlyTargetAmount,
+  monthlyTargetType,
+  onTargetChange,
   onAddTrade,
   onOpenChecklist,
   onNavigateToTab,
@@ -197,6 +206,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Monthly P&L Target Tracker */}
+      <MonthlyTargetTracker
+        trades={trades}
+        startingBalance={startingBalance}
+        userId={userId}
+        initialTargetAmount={monthlyTargetAmount}
+        initialTargetType={monthlyTargetType}
+        onTargetChange={onTargetChange}
+      />
 
       {/* Main Row: Equity Curve Chart */}
       <EquityChart data={equityData} startingBalance={startingBalance} />

@@ -72,6 +72,9 @@ ALTER TABLE public.user_settings ADD COLUMN IF NOT EXISTS starting_balance NUMER
 ALTER TABLE public.user_settings ADD COLUMN IF NOT EXISTS currency TEXT DEFAULT 'USD';
 ALTER TABLE public.user_settings ADD COLUMN IF NOT EXISTS risk_per_trade_pct NUMERIC DEFAULT 1.0;
 ALTER TABLE public.user_settings ADD COLUMN IF NOT EXISTS theme TEXT DEFAULT 'light';
+ALTER TABLE public.user_settings ADD COLUMN IF NOT EXISTS monthly_target_amount NUMERIC DEFAULT 2500.00;
+ALTER TABLE public.user_settings ADD COLUMN IF NOT EXISTS monthly_target_type TEXT DEFAULT 'dollar';
+ALTER TABLE public.user_settings ADD COLUMN IF NOT EXISTS binance_api_key TEXT;
 
 -- ==============================================================================
 -- 5. Strategies Table (Trader's playbook setups)

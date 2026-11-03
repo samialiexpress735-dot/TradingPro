@@ -49,85 +49,66 @@ export default function App() {
   const [isSyncing, setIsSyncing] = useState(false);
   const isConfigured = isSupabaseConfigured();
 
-  // One-time cleanup check: clear old mock trades for production
-  useEffect(() => {
-    const isCleaned = localStorage.getItem('tradepulse_prod_clean_v3');
-    if (!isCleaned) {
-      localStorage.removeItem('tradepulse_trades');
-      localStorage.setItem('tradepulse_prod_clean_v3', 'true');
-    }
-  }, []);
+  // Account starting capital (stored in Supabase public.user_settings)
+  const [startingBalance, setStartingBalance] = useState<number>(25000);
 
-  // Account starting capital
-  const [startingBalance, setStartingBalance] = useState<number>(() => {
-    const saved = localStorage.getItem('tradepulse_balance');
-    return saved ? Number(saved) : 25000;
-  });
+  // Trades state (stored in Supabase public.trades)
+  const [trades, setTrades] = useState<Trade[]>(INITIAL_TRADES);
 
-  // Trades state with localStorage persistence
-  const [trades, setTrades] = useState<Trade[]>(() => {
-    const saved = localStorage.getItem('tradepulse_trades');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error('Error loading trades from storage:', e);
-      }
-    }
-    return INITIAL_TRADES; // [] in production
-  });
+  // Strategies state (stored in Supabase public.strategies)
+  const [strategies, setStrategies] = useState<Strategy[]>(INITIAL_STRATEGIES);
 
-  // Strategies state with localStorage persistence
-  const [strategies, setStrategies] = useState<Strategy[]>(() => {
-    const saved = localStorage.getItem('tradepulse_strategies');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error('Error loading strategies from storage:', e);
-      }
-    }
-    return INITIAL_STRATEGIES;
-  });
+  // Monthly P&L Target Tracker state (stored in Supabase public.user_settings)
+  const [monthlyTargetAmount, setMonthlyTargetAmount] = useState<number>(2500);
+  const [monthlyTargetType, setMonthlyTargetType] = useState<'dollar' | 'percent'>('dollar');
+  const [binanceApiKey, setBinanceApiKey] = useState<string>('');
 
   // Modals state
   const [isTradeModalOpen, setIsTradeModalOpen] = useState(false);
   const [editingTrade, setEditingTrade] = useState<Partial<Trade> | null>(null);
   const [isChecklistOpen, setIsChecklistOpen] = useState(false);
 
-  // Sync state with Cloud / Central Database when user logs in
+  // Sync state with Supabase Cloud Database when user logs in
   const syncWithCloud = useCallback(
     async (currentUser: any) => {
       if (!currentUser?.id) return;
       setIsSyncing(true);
       try {
-        // 1. Fetch cloud trades for this user
+        // 1. Fetch cloud trades for this user from Supabase
         const cloudTrades = await fetchUserTrades(currentUser.id);
 
         if (cloudTrades && cloudTrades.length > 0) {
           // Cloud has data for this user account: use it as source of truth
           setTrades(cloudTrades);
-          localStorage.setItem('tradepulse_trades', JSON.stringify(cloudTrades));
         } else if (trades.length > 0) {
-          // Local has trades, user account in cloud has none yet: push local trades
+          // Push initial in-memory trades to cloud
           await batchSyncUserTrades(currentUser.id, trades);
         }
 
-        // 2. Fetch cloud strategies for this user
+        // 2. Fetch cloud strategies for this user from Supabase
         const cloudStrategies = await fetchUserStrategies(currentUser.id);
         if (cloudStrategies && cloudStrategies.length > 0) {
           setStrategies(cloudStrategies);
-          localStorage.setItem('tradepulse_strategies', JSON.stringify(cloudStrategies));
         }
 
-        // 3. Fetch user settings (e.g. balance)
+        // 3. Fetch user settings (balance, monthly target, binance api key) from Supabase
         const settings = await fetchUserSettings(currentUser.id);
-        if (settings?.startingBalance) {
-          setStartingBalance(settings.startingBalance);
-          localStorage.setItem('tradepulse_balance', String(settings.startingBalance));
+        if (settings) {
+          if (settings.startingBalance !== undefined && settings.startingBalance !== null) {
+            setStartingBalance(settings.startingBalance);
+          }
+          if (settings.monthlyTargetAmount !== undefined && settings.monthlyTargetAmount !== null) {
+            setMonthlyTargetAmount(settings.monthlyTargetAmount);
+          }
+          if (settings.monthlyTargetType) {
+            setMonthlyTargetType(settings.monthlyTargetType);
+          }
+          if (settings.binanceApiKey) {
+            setBinanceApiKey(settings.binanceApiKey);
+          }
         }
       } catch (err) {
-        console.error('Error synchronizing with cloud:', err);
+        console.error('Error synchronizing with Supabase:', err);
       } finally {
         setIsSyncing(false);
       }
@@ -182,9 +163,8 @@ export default function App() {
     }
   }, [syncWithCloud]);
 
-  // Persist to local storage & background server sync
+  // Background server sync for trades
   useEffect(() => {
-    localStorage.setItem('tradepulse_trades', JSON.stringify(trades));
     if (user?.id) {
       fetch('/api/user/trades/sync', {
         method: 'POST',
@@ -193,14 +173,6 @@ export default function App() {
       }).catch(() => {});
     }
   }, [trades, user?.id]);
-
-  useEffect(() => {
-    localStorage.setItem('tradepulse_strategies', JSON.stringify(strategies));
-  }, [strategies]);
-
-  useEffect(() => {
-    localStorage.setItem('tradepulse_balance', String(startingBalance));
-  }, [startingBalance]);
 
   // Derived calculations
   const performanceStats = useMemo(() => calculateStats(trades), [trades]);
@@ -227,7 +199,7 @@ export default function App() {
       try {
         await upsertUserTrade(user.id, tradeToSave);
       } catch (err) {
-        console.error('Failed to sync saved trade:', err);
+        console.error('Failed to sync saved trade to Supabase:', err);
       }
     }
   };
@@ -239,7 +211,7 @@ export default function App() {
       try {
         await deleteUserTradeFromCloud(user.id, id);
       } catch (err) {
-        console.error('Failed to delete trade from cloud:', err);
+        console.error('Failed to delete trade from Supabase:', err);
       }
     }
   };
@@ -272,7 +244,7 @@ export default function App() {
       try {
         await batchSyncUserTrades(user.id, [...importedTrades, ...trades]);
       } catch (err) {
-        console.error('Failed to sync imported trades:', err);
+        console.error('Failed to sync imported trades to Supabase:', err);
       }
     }
   };
@@ -282,12 +254,11 @@ export default function App() {
     if (newTrades.length === 0) return;
     const updated = [...newTrades, ...trades];
     setTrades(updated);
-    localStorage.setItem('tradepulse_trades', JSON.stringify(updated));
     if (user?.id) {
       try {
         await batchSyncUserTrades(user.id, updated);
       } catch (err) {
-        console.error('Failed to sync imported Binance trades to cloud:', err);
+        console.error('Failed to sync imported Binance trades to Supabase:', err);
       }
     }
   };
@@ -331,7 +302,6 @@ export default function App() {
       }
     }
     setTrades(SAMPLE_DEMO_TRADES);
-    localStorage.setItem('tradepulse_trades', JSON.stringify(SAMPLE_DEMO_TRADES));
     if (user?.id) {
       batchSyncUserTrades(user.id, SAMPLE_DEMO_TRADES).catch(() => {});
     }
@@ -339,9 +309,8 @@ export default function App() {
 
   // Reset or clear data
   const handleResetData = () => {
-    if (window.confirm('Clear all trades from your local journal to start completely fresh?')) {
+    if (window.confirm('Clear all trades from your journal to start completely fresh?')) {
       setTrades([]);
-      localStorage.setItem('tradepulse_trades', JSON.stringify([]));
       if (user?.id) {
         batchSyncUserTrades(user.id, []).catch(() => {});
       }
@@ -353,7 +322,6 @@ export default function App() {
     await signOutUser();
     setUser(null);
     setTrades([]);
-    localStorage.removeItem('tradepulse_trades');
   };
 
   // Strategy management
@@ -393,7 +361,21 @@ export default function App() {
   const handleUpdateBalance = (newBalance: number) => {
     setStartingBalance(newBalance);
     if (user?.id) {
-      saveUserSettings(user.id, newBalance);
+      saveUserSettings(user.id, { startingBalance: newBalance }).catch((e) =>
+        console.error('Error saving balance to Supabase:', e)
+      );
+    }
+  };
+
+  // Monthly P&L Target handler
+  const handleTargetChange = (type: 'dollar' | 'percent', val: number) => {
+    setMonthlyTargetType(type);
+    setMonthlyTargetAmount(val);
+    if (user?.id) {
+      saveUserSettings(user.id, {
+        monthlyTargetType: type,
+        monthlyTargetAmount: val,
+      }).catch((e) => console.error('Failed to save monthly target to Supabase:', e));
     }
   };
 
@@ -425,6 +407,10 @@ export default function App() {
             trades={trades}
             equityData={equityCurveData}
             startingBalance={startingBalance}
+            userId={user?.id}
+            monthlyTargetAmount={monthlyTargetAmount}
+            monthlyTargetType={monthlyTargetType}
+            onTargetChange={handleTargetChange}
             onAddTrade={handleAddTradeClick}
             onOpenChecklist={() => setIsChecklistOpen(true)}
             onOpenBinanceSync={() => setIsBinanceModalOpen(true)}
@@ -450,6 +436,7 @@ export default function App() {
         {activeTab === 'review' && (
           <DailyReviewView
             trades={trades}
+            userId={user?.id}
             onNavigateToJournal={(date) => setActiveTab('journal')}
           />
         )}
@@ -536,6 +523,8 @@ export default function App() {
         onClose={() => setIsBinanceModalOpen(false)}
         onImportTrades={handleImportBinanceTrades}
         existingTrades={trades}
+        userId={user?.id}
+        initialApiKey={binanceApiKey}
       />
 
       {/* PWA Offline Network Toast */}

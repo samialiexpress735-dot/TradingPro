@@ -712,21 +712,42 @@ export async function deleteUserStrategyFromCloud(userId: string, strategyId: st
 }
 
 /**
- * User account settings
+/**
+ * User account settings interface for Supabase storage
  */
-export async function fetchUserSettings(userId: string): Promise<{ startingBalance?: number } | null> {
+export interface UserSettings {
+  startingBalance?: number;
+  monthlyTargetAmount?: number;
+  monthlyTargetType?: 'dollar' | 'percent';
+  binanceApiKey?: string;
+  currency?: string;
+  riskPerTradePct?: number;
+  theme?: string;
+}
+
+export async function fetchUserSettings(userId: string): Promise<UserSettings | null> {
   if (supabase) {
     try {
       const { data, error } = await supabase
         .from('user_settings')
         .select('*')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
-      if (!error && data?.starting_balance) {
-        return { startingBalance: Number(data.starting_balance) };
+      if (!error && data) {
+        return {
+          startingBalance: data.starting_balance !== null && data.starting_balance !== undefined ? Number(data.starting_balance) : 25000,
+          monthlyTargetAmount: data.monthly_target_amount !== null && data.monthly_target_amount !== undefined ? Number(data.monthly_target_amount) : 2500,
+          monthlyTargetType: data.monthly_target_type === 'percent' ? 'percent' : 'dollar',
+          binanceApiKey: data.binance_api_key || '',
+          currency: data.currency || 'USD',
+          riskPerTradePct: data.risk_per_trade_pct !== null && data.risk_per_trade_pct !== undefined ? Number(data.risk_per_trade_pct) : 1.0,
+          theme: data.theme || 'light',
+        };
       }
-    } catch {}
+    } catch (e) {
+      console.warn('Error fetching user settings from Supabase:', e);
+    }
   }
 
   try {
@@ -734,26 +755,39 @@ export async function fetchUserSettings(userId: string): Promise<{ startingBalan
       headers: { 'x-user-id': userId },
     });
     const result = await res.json();
-    if (result.success && result.settings?.startingBalance) {
-      return { startingBalance: Number(result.settings.startingBalance) };
+    if (result.success && result.settings) {
+      return result.settings;
     }
   } catch {}
 
   return null;
 }
 
-export async function saveUserSettings(userId: string, startingBalance: number): Promise<void> {
+export async function saveUserSettings(
+  userId: string,
+  settings: number | Partial<UserSettings>
+): Promise<void> {
+  const payloadData: Partial<UserSettings> =
+    typeof settings === 'number' ? { startingBalance: settings } : settings;
+
   if (supabase) {
     try {
-      await supabase.from('user_settings').upsert(
-        {
-          user_id: userId,
-          starting_balance: startingBalance,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'user_id' }
-      );
-    } catch {}
+      const dbPayload: Record<string, any> = {
+        user_id: userId,
+        updated_at: new Date().toISOString(),
+      };
+      if (payloadData.startingBalance !== undefined) dbPayload.starting_balance = payloadData.startingBalance;
+      if (payloadData.monthlyTargetAmount !== undefined) dbPayload.monthly_target_amount = payloadData.monthlyTargetAmount;
+      if (payloadData.monthlyTargetType !== undefined) dbPayload.monthly_target_type = payloadData.monthlyTargetType;
+      if (payloadData.binanceApiKey !== undefined) dbPayload.binance_api_key = payloadData.binanceApiKey;
+      if (payloadData.currency !== undefined) dbPayload.currency = payloadData.currency;
+      if (payloadData.riskPerTradePct !== undefined) dbPayload.risk_per_trade_pct = payloadData.riskPerTradePct;
+      if (payloadData.theme !== undefined) dbPayload.theme = payloadData.theme;
+
+      await supabase.from('user_settings').upsert(dbPayload, { onConflict: 'user_id' });
+    } catch (e) {
+      console.warn('Error saving user settings to Supabase:', e);
+    }
   }
 
   try {
@@ -763,7 +797,7 @@ export async function saveUserSettings(userId: string, startingBalance: number):
         'Content-Type': 'application/json',
         'x-user-id': userId,
       },
-      body: JSON.stringify({ userId, settings: { startingBalance } }),
+      body: JSON.stringify({ userId, settings: payloadData }),
     });
   } catch {}
 }

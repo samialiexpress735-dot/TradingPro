@@ -22,57 +22,70 @@ import {
   History,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { fetchUserDailyReviews, upsertUserDailyReview } from '../lib/supabase';
 
 interface DailyReviewViewProps {
   trades: Trade[];
+  userId?: string;
   onNavigateToJournal?: (date: string) => void;
 }
 
-export const DailyReviewView: React.FC<DailyReviewViewProps> = ({ trades, onNavigateToJournal }) => {
+const SAMPLE_REVIEWS: DailyReview[] = [
+  {
+    id: 'rev-2026-10-24',
+    date: '2026-10-24',
+    grade: 'A',
+    marketConditions: 'Trending Bullish',
+    sleepQuality: 8,
+    focusLevel: 9,
+    rulesFollowedPct: 95,
+    checklistCompleted: true,
+    morningNotes: 'Tech momentum continuation. Watched NVDA 138 key breakout level with strict stop.',
+    eveningNotes: 'Followed sizing limits, took partial profits at 2R. Zero FOMO trades.',
+    keyTakeaway: 'Patience at the open pays dividends. Waiting for the 15-minute candle close prevented false breakout entries.',
+    updatedAt: '2026-10-24T17:00:00Z',
+  },
+  {
+    id: 'rev-2026-10-25',
+    date: '2026-10-25',
+    grade: 'B',
+    marketConditions: 'Choppy / Range-Bound',
+    sleepQuality: 6,
+    focusLevel: 7,
+    rulesFollowedPct: 80,
+    checklistCompleted: true,
+    morningNotes: 'Choppy overnight action. Kept size half standard.',
+    eveningNotes: 'Took one premature entry on AAPL when volume died down around lunch time.',
+    keyTakeaway: 'Do not trade the 11:30 - 13:30 NY lunch lull. Market dries up and whipsaws.',
+    updatedAt: '2026-10-25T16:30:00Z',
+  },
+];
+
+export const DailyReviewView: React.FC<DailyReviewViewProps> = ({ trades, userId, onNavigateToJournal }) => {
   const [selectedDate, setSelectedDate] = useState<string>(() => new Date().toISOString().split('T')[0]);
 
-  // Load reviews from localStorage
-  const [reviews, setReviews] = useState<DailyReview[]>(() => {
-    const saved = localStorage.getItem('tradepulse_daily_reviews');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error('Failed to parse daily reviews:', e);
-      }
-    }
-    // Initial sample reviews
-    return [
-      {
-        id: 'rev-2026-10-24',
-        date: '2026-10-24',
-        grade: 'A',
-        marketConditions: 'Trending Bullish',
-        sleepQuality: 8,
-        focusLevel: 9,
-        rulesFollowedPct: 95,
-        checklistCompleted: true,
-        morningNotes: 'Tech momentum continuation. Watched NVDA 138 key breakout level with strict stop.',
-        eveningNotes: 'Followed sizing limits, took partial profits at 2R. Zero FOMO trades.',
-        keyTakeaway: 'Patience at the open pays dividends. Waiting for the 15-minute candle close prevented false breakout entries.',
-        updatedAt: '2026-10-24T17:00:00Z',
-      },
-      {
-        id: 'rev-2026-10-25',
-        date: '2026-10-25',
-        grade: 'B',
-        marketConditions: 'Choppy / Range-Bound',
-        sleepQuality: 6,
-        focusLevel: 7,
-        rulesFollowedPct: 80,
-        checklistCompleted: true,
-        morningNotes: 'Choppy overnight action. Kept size half standard.',
-        eveningNotes: 'Took one premature entry on AAPL when volume died down around lunch time.',
-        keyTakeaway: 'Do not trade the 11:30 - 13:30 NY lunch lull. Market dries up and whipsaws.',
-        updatedAt: '2026-10-25T16:30:00Z',
-      },
-    ];
-  });
+  // Load reviews from in-memory state and sync with Supabase
+  const [reviews, setReviews] = useState<DailyReview[]>(SAMPLE_REVIEWS);
+
+  // Load reviews from Supabase when userId is available
+  useEffect(() => {
+    if (!userId) return;
+    let isCancelled = false;
+
+    fetchUserDailyReviews(userId)
+      .then((cloudReviews) => {
+        if (!isCancelled && cloudReviews && cloudReviews.length > 0) {
+          setReviews(cloudReviews);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load reviews from Supabase:', err);
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [userId]);
 
   // Active review form state
   const currentReview = useMemo(() => {
@@ -122,11 +135,6 @@ export const DailyReviewView: React.FC<DailyReviewViewProps> = ({ trades, onNavi
     }
   }, [selectedDate, currentReview]);
 
-  // Persist reviews to localStorage
-  useEffect(() => {
-    localStorage.setItem('tradepulse_daily_reviews', JSON.stringify(reviews));
-  }, [reviews]);
-
   // Trades on selectedDate
   const daysTrades = useMemo(() => {
     return trades.filter((t) => (t.exitDate || t.date) === selectedDate && t.status === 'closed');
@@ -140,8 +148,8 @@ export const DailyReviewView: React.FC<DailyReviewViewProps> = ({ trades, onNavi
     return daysTrades.filter((t) => t.outcome === 'win').length;
   }, [daysTrades]);
 
-  // Handle Save Review
-  const handleSaveReview = () => {
+  // Handle Save Review (syncs to Supabase if logged in)
+  const handleSaveReview = async () => {
     const updatedReview: DailyReview = {
       id: currentReview?.id || `rev-${selectedDate}`,
       date: selectedDate,
@@ -166,6 +174,14 @@ export const DailyReviewView: React.FC<DailyReviewViewProps> = ({ trades, onNavi
       }
       return [updatedReview, ...prev];
     });
+
+    if (userId) {
+      try {
+        await upsertUserDailyReview(userId, updatedReview);
+      } catch (err) {
+        console.error('Failed to sync daily review to Supabase:', err);
+      }
+    }
 
     setSavedSuccess(true);
     setTimeout(() => setSavedSuccess(false), 2500);

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   X,
   Upload,
@@ -25,6 +25,7 @@ import {
   SAMPLE_BINANCE_SPOT_CSV,
   SAMPLE_BINANCE_FUTURES_CSV,
 } from '../utils/binanceParser';
+import { saveUserSettings } from '../lib/supabase';
 import { formatPrice, formatQuantity, formatPnL } from '../utils/formatters';
 
 interface BinanceSyncModalProps {
@@ -32,6 +33,8 @@ interface BinanceSyncModalProps {
   onClose: () => void;
   onImportTrades: (newTrades: Trade[]) => Promise<void> | void;
   existingTrades: Trade[];
+  userId?: string;
+  initialApiKey?: string;
 }
 
 export const BinanceSyncModal: React.FC<BinanceSyncModalProps> = ({
@@ -39,6 +42,8 @@ export const BinanceSyncModal: React.FC<BinanceSyncModalProps> = ({
   onClose,
   onImportTrades,
   existingTrades,
+  userId,
+  initialApiKey = '',
 }) => {
   const [activeTab, setActiveTab] = useState<'csv' | 'api'>('csv');
   const [dragActive, setDragActive] = useState(false);
@@ -50,9 +55,13 @@ export const BinanceSyncModal: React.FC<BinanceSyncModalProps> = ({
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   // API Sync State
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem('tradepulse_binance_api_key') || '');
+  const [apiKey, setApiKey] = useState(initialApiKey);
   const [apiSecret, setApiSecret] = useState('');
   const [apiTesting, setApiTesting] = useState(false);
+
+  useEffect(() => {
+    if (initialApiKey) setApiKey(initialApiKey);
+  }, [initialApiKey]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -134,13 +143,13 @@ export const BinanceSyncModal: React.FC<BinanceSyncModalProps> = ({
   };
 
   const handleSaveApiKeys = () => {
-    if (apiKey) {
-      localStorage.setItem('tradepulse_binance_api_key', apiKey.trim());
+    if (apiKey && userId) {
+      saveUserSettings(userId, { binanceApiKey: apiKey.trim() });
     }
     setApiTesting(true);
     setTimeout(() => {
       setApiTesting(false);
-      setSuccessMsg('Read-only API key configured. Background order synchronization is enabled.');
+      setSuccessMsg('Read-only API key saved to your Supabase account settings. Background sync is enabled.');
     }, 800);
   };
 
