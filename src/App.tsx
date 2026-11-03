@@ -34,6 +34,7 @@ import { TradeModal } from './components/TradeModal';
 import { PreTradeChecklistModal } from './components/PreTradeChecklistModal';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { AuthModal } from './components/AuthModal';
+import { BinanceSyncModal } from './components/BinanceSyncModal';
 
 export default function App() {
   // Navigation tab state
@@ -44,6 +45,7 @@ export default function App() {
   // Supabase / Multi-device Auth & Cloud Sync state
   const [user, setUser] = useState<any | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isBinanceModalOpen, setIsBinanceModalOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const isConfigured = isSupabaseConfigured();
 
@@ -275,6 +277,21 @@ export default function App() {
     }
   };
 
+  // Binance trades import handler (Spot & Futures)
+  const handleImportBinanceTrades = async (newTrades: Trade[]) => {
+    if (newTrades.length === 0) return;
+    const updated = [...newTrades, ...trades];
+    setTrades(updated);
+    localStorage.setItem('tradepulse_trades', JSON.stringify(updated));
+    if (user?.id) {
+      try {
+        await batchSyncUserTrades(user.id, updated);
+      } catch (err) {
+        console.error('Failed to sync imported Binance trades to cloud:', err);
+      }
+    }
+  };
+
   // Calculator integration
   const handlePreFillFromCalculator = (calcData: {
     symbol?: string;
@@ -410,6 +427,7 @@ export default function App() {
             startingBalance={startingBalance}
             onAddTrade={handleAddTradeClick}
             onOpenChecklist={() => setIsChecklistOpen(true)}
+            onOpenBinanceSync={() => setIsBinanceModalOpen(true)}
             onNavigateToTab={setActiveTab}
             onSelectDate={() => setActiveTab('journal')}
             onLoadDemoTrades={trades.length === 0 ? handleLoadDemoTrades : undefined}
@@ -425,6 +443,7 @@ export default function App() {
             onDeleteTrade={handleDeleteTrade}
             onDuplicateTrade={handleDuplicateTrade}
             onImportCsv={handleImportCsv}
+            onOpenBinanceSync={() => setIsBinanceModalOpen(true)}
           />
         )}
 
@@ -509,6 +528,14 @@ export default function App() {
           setIsAuthModalOpen(false);
           syncWithCloud(newUser);
         }}
+      />
+
+      {/* Binance Spot & Futures Sync Modal */}
+      <BinanceSyncModal
+        isOpen={isBinanceModalOpen}
+        onClose={() => setIsBinanceModalOpen(false)}
+        onImportTrades={handleImportBinanceTrades}
+        existingTrades={trades}
       />
 
       {/* PWA Offline Network Toast */}

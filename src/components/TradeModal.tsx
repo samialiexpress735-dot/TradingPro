@@ -257,13 +257,33 @@ export const TradeModal: React.FC<TradeModalProps> = ({
               <label className="block text-xs font-medium text-[#7d695b] mb-1">Asset Class</label>
               <select
                 value={assetClass}
-                onChange={(e) => setAssetClass(e.target.value as AssetClass)}
+                onChange={(e) => {
+                  const newType = e.target.value as AssetClass;
+                  setAssetClass(newType);
+                  if (newType === 'futures') {
+                    if (symbol === 'NVDA' || symbol === 'AAPL' || symbol === 'BTC/USDT' || symbol === 'BTCUSDT') {
+                      setSymbol('BTCUSDT.P');
+                      setEntryPrice(68500);
+                      setExitPrice(70500);
+                      setStopLoss(67200);
+                      setTakeProfit(71500);
+                      setQuantity(0.05);
+                    }
+                    setMarketSession('24/7 Crypto');
+                  } else if (newType === 'crypto') {
+                    if (symbol === 'NVDA' || symbol === 'AAPL' || symbol === 'BTCUSDT.P') {
+                      setSymbol('BTCUSDT');
+                      setQuantity(0.05);
+                    }
+                    setMarketSession('24/7 Crypto');
+                  }
+                }}
                 className="w-full bg-[#fcfaf7] border border-[#e8dfd5] rounded-xl px-2.5 py-2 text-[#281d16] text-xs focus:outline-none focus:border-[#78350f] capitalize"
               >
                 <option value="stocks">Stocks</option>
-                <option value="crypto">Crypto</option>
+                <option value="crypto">Crypto (Spot)</option>
+                <option value="futures">Futures (Perpetual)</option>
                 <option value="forex">Forex</option>
-                <option value="futures">Futures</option>
                 <option value="options">Options</option>
               </select>
             </div>
@@ -308,6 +328,62 @@ export const TradeModal: React.FC<TradeModalProps> = ({
               </select>
             </div>
           </div>
+
+          {/* Binance Future & Spot Coins Quick Selector */}
+          {(assetClass === 'futures' || assetClass === 'crypto') && (
+            <div className="p-2.5 bg-[#faf7f2] rounded-xl border border-[#e2d8cb] space-y-1.5">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="font-semibold text-[#634832] flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#f3ba2f]"></span>
+                  <span>{assetClass === 'futures' ? 'Binance USDT-M Futures (.P)' : 'Binance Spot Pairs'}</span>
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {(assetClass === 'futures'
+                  ? [
+                      { sym: 'BTCUSDT.P', price: 68500, sl: 67200, tp: 71500, qty: 0.05 },
+                      { sym: 'ETHUSDT.P', price: 2650, sl: 2580, tp: 2800, qty: 0.5 },
+                      { sym: 'SOLUSDT.P', price: 178.50, sl: 172.00, tp: 195.00, qty: 5 },
+                      { sym: 'BNBUSDT.P', price: 595, sl: 580, tp: 630, qty: 1.5 },
+                      { sym: 'DOGEUSDT.P', price: 0.158, sl: 0.149, tp: 0.180, qty: 5000 },
+                      { sym: 'XRPUSDT.P', price: 0.542, sl: 0.518, tp: 0.600, qty: 1000 },
+                      { sym: 'SUIUSDT.P', price: 2.15, sl: 2.02, tp: 2.45, qty: 250 },
+                      { sym: 'PEPEUSDT.P', price: 0.0000095, sl: 0.0000088, tp: 0.0000115, qty: 50000000 },
+                    ]
+                  : [
+                      { sym: 'BTCUSDT', price: 68500, sl: 67200, tp: 71500, qty: 0.05 },
+                      { sym: 'ETHUSDT', price: 2650, sl: 2580, tp: 2800, qty: 0.5 },
+                      { sym: 'SOLUSDT', price: 178.50, sl: 172.00, tp: 195.00, qty: 5 },
+                      { sym: 'BNBUSDT', price: 595, sl: 580, tp: 630, qty: 1.5 },
+                      { sym: 'DOGEUSDT', price: 0.158, sl: 0.149, tp: 0.180, qty: 5000 },
+                      { sym: 'XRPUSDT', price: 0.542, sl: 0.518, tp: 0.600, qty: 1000 },
+                      { sym: 'SUIUSDT', price: 2.15, sl: 2.02, tp: 2.45, qty: 250 },
+                      { sym: 'PEPEUSDT', price: 0.0000095, sl: 0.0000088, tp: 0.0000115, qty: 50000000 },
+                    ]
+                ).map((item) => (
+                  <button
+                    key={item.sym}
+                    type="button"
+                    onClick={() => {
+                      setSymbol(item.sym);
+                      setEntryPrice(item.price);
+                      setExitPrice(direction === 'long' ? item.price * 1.03 : item.price * 0.97);
+                      setStopLoss(item.sl);
+                      setTakeProfit(item.tp);
+                      setQuantity(item.qty);
+                    }}
+                    className={`px-2 py-0.5 text-xs font-mono rounded-lg transition cursor-pointer ${
+                      symbol === item.sym
+                        ? 'bg-[#78350f] text-white font-bold shadow-xs'
+                        : 'bg-white text-[#634832] border border-[#e2d8cb] hover:bg-[#ede6dc]'
+                    }`}
+                  >
+                    {item.sym}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Row 2: Dates and Times */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -383,13 +459,23 @@ export const TradeModal: React.FC<TradeModalProps> = ({
             )}
 
             <div>
-              <label className="block text-xs font-medium text-[#7d695b] mb-1">Quantity / Size *</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-medium text-[#7d695b]">
+                  {assetClass === 'futures' || assetClass === 'crypto'
+                    ? 'Quantity (Coins) *'
+                    : 'Quantity / Size *'}
+                </label>
+                {(assetClass === 'futures' || assetClass === 'crypto') && (
+                  <span className="text-[10px] text-[#78350f] font-mono font-medium">8 Decimals</span>
+                )}
+              </div>
               <input
                 type="number"
                 step="any"
                 required
                 value={quantity}
                 onChange={(e) => setQuantity(Number(e.target.value))}
+                placeholder={assetClass === 'futures' || assetClass === 'crypto' ? '0.05 or 15.5' : '100'}
                 className="w-full bg-[#fcfaf7] border border-[#e8dfd5] rounded-xl px-3 py-2 text-[#281d16] font-mono text-xs focus:outline-none focus:border-[#78350f]"
               />
             </div>

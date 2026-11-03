@@ -160,13 +160,21 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
               onClick={() => handlePresetSelect('BTCUSDT', 'crypto', 68000, 66500, 72000, 1)}
               className="px-2.5 py-1 text-xs bg-[#faf7f2] hover:bg-[#f2ece2] text-[#4a3b32] rounded-lg border border-[#e2d8cb] transition cursor-pointer"
             >
-              BTC (Crypto)
+              BTCUSDT (Spot)
             </button>
             <button
-              onClick={() => handlePresetSelect('NQ', 'futures', 20500, 20450, 20650, 20)}
-              className="px-2.5 py-1 text-xs bg-[#faf7f2] hover:bg-[#f2ece2] text-[#4a3b32] rounded-lg border border-[#e2d8cb] transition cursor-pointer"
+              onClick={() => handlePresetSelect('BTCUSDT.P', 'futures', 68500, 67200, 71500, 1)}
+              className="px-2.5 py-1 text-xs bg-[#faf7f2] hover:bg-[#f2ece2] text-[#78350f] font-semibold rounded-lg border border-[#d8bca6] transition cursor-pointer flex items-center gap-1"
             >
-              NQ Futures ($20/pt)
+              <span className="w-1.5 h-1.5 rounded-full bg-[#f3ba2f]"></span>
+              <span>BTCUSDT.P</span>
+            </button>
+            <button
+              onClick={() => handlePresetSelect('SOLUSDT.P', 'futures', 178.50, 172.00, 195.00, 1)}
+              className="px-2.5 py-1 text-xs bg-[#faf7f2] hover:bg-[#f2ece2] text-[#78350f] font-semibold rounded-lg border border-[#d8bca6] transition cursor-pointer flex items-center gap-1"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-[#f3ba2f]"></span>
+              <span>SOLUSDT.P</span>
             </button>
             <button
               onClick={() => handlePresetSelect('EUR/USD', 'forex', 1.0850, 1.0820, 1.0920, 1)}
@@ -341,15 +349,26 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
                 onChange={(e) => {
                   const newType = e.target.value as AssetClass;
                   setAssetClass(newType);
-                  if (newType === 'futures') setPointMultiplier(20);
-                  else if (newType === 'options') setPointMultiplier(100);
-                  else setPointMultiplier(1);
+                  if (newType === 'futures') {
+                    setPointMultiplier(1);
+                    setSymbol('BTCUSDT.P');
+                    setEntryPrice(68500);
+                    setStopLoss(67200);
+                    setTakeProfit(71500);
+                  } else if (newType === 'crypto') {
+                    setPointMultiplier(1);
+                    setSymbol('BTCUSDT');
+                  } else if (newType === 'options') {
+                    setPointMultiplier(100);
+                  } else {
+                    setPointMultiplier(1);
+                  }
                 }}
                 className="w-full bg-[#fcfaf7] border border-[#e8dfd5] rounded-xl px-3 py-2 text-[#281d16] text-sm focus:outline-none focus:border-[#78350f] transition capitalize"
               >
                 <option value="stocks">Stocks (Shares)</option>
-                <option value="crypto">Crypto (Coins)</option>
-                <option value="futures">Futures (Contracts)</option>
+                <option value="crypto">Crypto (Spot)</option>
+                <option value="futures">Futures (Perpetual)</option>
                 <option value="forex">Forex (Units/Lots)</option>
                 <option value="options">Options (x100 Contracts)</option>
               </select>
@@ -437,54 +456,82 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
             </div>
           </div>
 
-          {/* Futures contract multiplier settings */}
+          {/* Binance Futures USDT-M Quick Coins & Contract Sizing */}
           {assetClass === 'futures' && (
-            <div className="p-3.5 bg-[#faf7f2] rounded-xl border border-[#e2d8cb] space-y-2">
-              <div className="flex justify-between items-center text-xs">
-                <span className="font-semibold text-[#4a3b32]">Futures Point Value / Multiplier</span>
-                <span className="font-mono font-bold text-[#78350f]">${pointMultiplier} per 1.0 point</span>
+            <div className="p-3 bg-[#faf7f2] rounded-xl border border-[#e2d8cb] space-y-2">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-[#4a3b32]">
+                <span className="w-2 h-2 rounded-full bg-[#f3ba2f]"></span>
+                <span>Binance Perpetual Coins (.P)</span>
               </div>
-              <div className="flex gap-2 flex-wrap">
+              <div className="flex gap-1.5 flex-wrap">
                 {[
-                  { label: 'NQ ($20/pt)', val: 20 },
-                  { label: 'MNQ ($2/pt)', val: 2 },
-                  { label: 'ES ($50/pt)', val: 50 },
-                  { label: 'MES ($5/pt)', val: 5 },
-                  { label: 'GC ($100/pt)', val: 100 },
-                  { label: 'CL ($1000/pt)', val: 1000 },
-                ].map((item) => (
+                  { sym: 'BTCUSDT.P', entry: 68500, sl: 67200, tp: 71500 },
+                  { sym: 'ETHUSDT.P', entry: 2650, sl: 2580, tp: 2800 },
+                  { sym: 'SOLUSDT.P', entry: 178.50, sl: 172.00, tp: 195.00 },
+                  { sym: 'BNBUSDT.P', entry: 595.00, sl: 580.00, tp: 630.00 },
+                  { sym: 'DOGEUSDT.P', entry: 0.1580, sl: 0.1490, tp: 0.1800 },
+                  { sym: 'XRPUSDT.P', entry: 0.5420, sl: 0.5180, tp: 0.6000 },
+                  { sym: 'SUIUSDT.P', entry: 2.15, sl: 2.02, tp: 2.45 },
+                  { sym: 'PEPEUSDT.P', entry: 0.0000095, sl: 0.0000088, tp: 0.0000115 },
+                ].map((coin) => (
                   <button
-                    key={item.label}
+                    key={coin.sym}
                     type="button"
-                    onClick={() => setPointMultiplier(item.val)}
+                    onClick={() => {
+                      setSymbol(coin.sym);
+                      setEntryPrice(coin.entry);
+                      setStopLoss(coin.sl);
+                      setTakeProfit(coin.tp);
+                      setDirection(coin.entry > coin.sl ? 'long' : 'short');
+                      setPointMultiplier(1);
+                    }}
                     className={`px-2.5 py-1 text-xs font-mono rounded-lg transition cursor-pointer ${
-                      pointMultiplier === item.val
+                      symbol === coin.sym
                         ? 'bg-[#78350f] text-white shadow-xs font-bold'
-                        : 'bg-white text-[#7d695b] border border-[#e2d8cb]'
+                        : 'bg-white text-[#7d695b] hover:text-[#281d16] border border-[#e2d8cb]'
                     }`}
                   >
-                    {item.label}
+                    {coin.sym}
                   </button>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Leverage slider */}
-          {(assetClass === 'crypto' || assetClass === 'forex') && (
-            <div className="pt-2 border-t border-[#ede6dc]">
-              <div className="flex justify-between items-center text-xs mb-1">
-                <span className="text-[#7d695b]">Leverage / Margin Multiplier</span>
+          {/* Leverage slider & Binance Quick Chips */}
+          {(assetClass === 'crypto' || assetClass === 'futures' || assetClass === 'forex') && (
+            <div className="pt-2 border-t border-[#ede6dc] space-y-2">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-[#7d695b]">Leverage</span>
                 <span className="font-mono font-bold text-[#78350f]">{leverage}x</span>
               </div>
               <input
                 type="range"
                 min="1"
-                max="50"
+                max={assetClass === 'futures' ? 125 : 50}
                 value={leverage}
                 onChange={(e) => setLeverage(Number(e.target.value))}
                 className="w-full accent-[#78350f] cursor-pointer"
               />
+              {assetClass === 'futures' && (
+                <div className="flex items-center gap-1.5 flex-wrap text-[11px] font-mono">
+                  <span className="text-[#8c7462] text-[10px]">Quick Leverage:</span>
+                  {[1, 5, 10, 20, 50, 75, 100, 125].map((lev) => (
+                    <button
+                      key={lev}
+                      type="button"
+                      onClick={() => setLeverage(lev)}
+                      className={`px-2 py-0.5 rounded transition cursor-pointer ${
+                        leverage === lev
+                          ? 'bg-[#78350f] text-white font-bold'
+                          : 'bg-[#faf7f2] text-[#634832] border border-[#e2d8cb] hover:bg-[#ede6dc]'
+                      }`}
+                    >
+                      {lev}x
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>

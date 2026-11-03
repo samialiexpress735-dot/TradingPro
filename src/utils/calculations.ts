@@ -389,14 +389,16 @@ export function calculatePositionSize(input: RiskCalcInput): RiskCalcResult {
       : assetClass === 'futures'
       ? 'Contracts'
       : assetClass === 'options'
-      ? 'Contracts (x100)'
+      ? 'Contracts'
       : assetClass === 'crypto'
-      ? 'Coins / Units'
-      : 'Units (Forex)';
+      ? 'Coins'
+      : 'Units';
 
-  // Determine point/contract multiplier
+  // Determine point/contract multiplier (Binance USDT-M Futures is 1:1 coin-based)
   const effectiveMultiplier =
-    pointMultiplier && pointMultiplier > 0
+    assetClass === 'futures'
+      ? 1
+      : pointMultiplier && pointMultiplier > 0
       ? pointMultiplier
       : assetClass === 'options'
       ? 100
@@ -432,14 +434,14 @@ export function calculatePositionSize(input: RiskCalcInput): RiskCalcResult {
 
   // Floor or round appropriately depending on asset class
   let positionSize: number;
-  if (assetClass === 'crypto') {
-    // Binance crypto supports up to 8 decimal places (Satoshi level: 0.00000001 BTC)
+  if (assetClass === 'crypto' || assetClass === 'futures') {
+    // Binance crypto spot & USDT-M futures support up to 8 decimal places (Satoshi level: 0.00000001 BTC)
     positionSize = Number(rawSize.toFixed(8));
   } else if (assetClass === 'forex') {
     // Forex supports micro-lots (0.01 lots) or fractional units
     positionSize = Number(rawSize.toFixed(2));
   } else {
-    // Stocks, Futures, Options trade in whole integer shares or contracts
+    // Stocks, Options trade in whole integer shares or contracts
     positionSize = Math.floor(rawSize);
   }
 
@@ -460,7 +462,7 @@ export function calculatePositionSize(input: RiskCalcInput): RiskCalcResult {
     rewardToRisk = priceRiskPerUnit > 0 ? Number((rewardPerUnit / priceRiskPerUnit).toFixed(2)) : 0;
   }
 
-  const formattedQtyStr = assetClass === 'crypto'
+  const formattedQtyStr = (assetClass === 'crypto' || assetClass === 'futures')
     ? positionSize.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 8 })
     : positionSize.toLocaleString('en-US');
 

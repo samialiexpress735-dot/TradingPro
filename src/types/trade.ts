@@ -33,7 +33,8 @@ export type MarketSession =
   | 'Power Hour'
   | 'After-Hours'
   | 'Asian Session'
-  | 'London Session';
+  | 'London Session'
+  | '24/7 Crypto';
 
 export interface Trade {
   id: string;
@@ -172,7 +173,7 @@ export interface RiskCalcInput {
   targetPrice?: number;
   assetClass: AssetClass;
   leverage?: number;
-  pointMultiplier?: number; // e.g. 100 for options, 20 for NQ, 50 for ES, 5 for MES
+  pointMultiplier?: number; // e.g. 100 for options, 1 for Binance crypto futures
 }
 
 export interface RiskCalcResult {

@@ -1,0 +1,6 @@
+{
+  "summary": "Implementation plan for Binance and crypto exchange automated trade sync, supporting Binance Spot and USDT-M Futures CSV formats, read-only API sync, 8-decimal precision, and Supabase cloud persistence.",
+  "updatedAt": "2026-11-03T10:31:59.015901559Z",
+  "requestFeedback": true,
+  "userFacing": true
+}

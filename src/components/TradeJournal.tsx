@@ -25,6 +25,7 @@ import {
   Share2,
   FileSpreadsheet,
   BookOpen,
+  Zap,
 } from 'lucide-react';
 import { CsvImportModal } from './CsvImportModal';
 import { SocialTradeCardModal } from './SocialTradeCardModal';
@@ -37,6 +38,7 @@ interface TradeJournalProps {
   onDeleteTrade: (id: string) => void;
   onDuplicateTrade: (trade: Trade) => void;
   onImportCsv: (trades: Trade[]) => void;
+  onOpenBinanceSync?: () => void;
 }
 
 export const TradeJournal: React.FC<TradeJournalProps> = ({
@@ -47,6 +49,7 @@ export const TradeJournal: React.FC<TradeJournalProps> = ({
   onDeleteTrade,
   onDuplicateTrade,
   onImportCsv,
+  onOpenBinanceSync,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAsset, setSelectedAsset] = useState<string>('all');
@@ -204,6 +207,17 @@ export const TradeJournal: React.FC<TradeJournalProps> = ({
 
           {/* Action buttons */}
           <div className="flex items-center gap-2 flex-wrap">
+            {onOpenBinanceSync && (
+              <button
+                onClick={onOpenBinanceSync}
+                className="px-2.5 sm:px-3 py-1.5 sm:py-2 bg-[#fef3c7] hover:bg-[#fde68a] text-[#92400e] text-xs font-bold rounded-xl border border-[#fde68a] flex items-center gap-1.5 transition cursor-pointer shadow-xs"
+                title="Automated Binance Spot &amp; Futures Import"
+              >
+                <Zap className="w-3.5 h-3.5 fill-[#d97706]" />
+                <span>Sync Binance</span>
+              </button>
+            )}
+
             <button
               onClick={() => setIsCsvModalOpen(true)}
               className="px-2.5 sm:px-3 py-1.5 sm:py-2 bg-[#faf7f2] hover:bg-[#f2ece2] text-[#78350f] text-xs font-semibold rounded-xl border border-[#debfa8] flex items-center gap-1.5 transition cursor-pointer"
@@ -379,7 +393,7 @@ export const TradeJournal: React.FC<TradeJournalProps> = ({
                         <p className="text-xs text-[#7d695b]">
                           Start building your trading track record by logging individual executions or importing historical broker trade statements.
                         </p>
-                        <div className="pt-2 flex items-center justify-center gap-2.5">
+                        <div className="pt-2 flex items-center justify-center gap-2.5 flex-wrap">
                           <button
                             onClick={onAddTrade}
                             className="px-4 py-2 bg-[#78350f] hover:bg-[#632909] text-white text-xs font-bold rounded-xl transition shadow-xs cursor-pointer flex items-center gap-1.5"
@@ -387,6 +401,15 @@ export const TradeJournal: React.FC<TradeJournalProps> = ({
                             <Plus className="w-4 h-4" />
                             <span>Log Trade</span>
                           </button>
+                          {onOpenBinanceSync && (
+                            <button
+                              onClick={onOpenBinanceSync}
+                              className="px-4 py-2 bg-[#fef3c7] hover:bg-[#fde68a] text-[#92400e] text-xs font-bold rounded-xl border border-[#fde68a] transition shadow-xs cursor-pointer flex items-center gap-1.5"
+                            >
+                              <Zap className="w-4 h-4 fill-[#d97706]" />
+                              <span>Sync Binance</span>
+                            </button>
+                          )}
                           <button
                             onClick={() => setIsCsvModalOpen(true)}
                             className="px-4 py-2 bg-white hover:bg-[#f6efe6] text-[#78350f] text-xs font-bold rounded-xl border border-[#d2bfad] transition cursor-pointer flex items-center gap-1.5"

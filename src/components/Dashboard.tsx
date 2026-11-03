@@ -29,6 +29,7 @@ interface DashboardProps {
   onNavigateToTab: (tab: 'journal' | 'review' | 'calculator' | 'playbook' | 'analytics' | 'support') => void;
   onSelectDate: (date: string) => void;
   onLoadDemoTrades?: () => void;
+  onOpenBinanceSync?: () => void;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
@@ -41,6 +42,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onNavigateToTab,
   onSelectDate,
   onLoadDemoTrades,
+  onOpenBinanceSync,
 }) => {
   const isNetPositive = stats.netProfit >= 0;
   const recentTrades = trades.slice(0, 5);
@@ -213,13 +215,25 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <h3 className="text-xs font-bold uppercase tracking-wider text-[#634832]">
                 Recent Executions
               </h3>
-              <button
-                onClick={() => onNavigateToTab('journal')}
-                className="text-xs text-[#78350f] hover:text-[#50230a] flex items-center gap-1 font-semibold transition cursor-pointer"
-              >
-                <span>View Full Journal</span>
-                <ArrowRight className="w-3 h-3" />
-              </button>
+              <div className="flex items-center gap-2">
+                {onOpenBinanceSync && (
+                  <button
+                    onClick={onOpenBinanceSync}
+                    className="px-2 py-0.5 text-xs font-bold bg-[#fef3c7] hover:bg-[#fde68a] text-[#92400e] border border-[#fde68a] rounded-lg transition cursor-pointer flex items-center gap-1 shadow-xs"
+                    title="Import or sync from Binance"
+                  >
+                    <Zap className="w-3 h-3 fill-[#d97706]" />
+                    <span>Sync Binance</span>
+                  </button>
+                )}
+                <button
+                  onClick={() => onNavigateToTab('journal')}
+                  className="text-xs text-[#78350f] hover:text-[#50230a] flex items-center gap-1 font-semibold transition cursor-pointer"
+                >
+                  <span>View Full Journal</span>
+                  <ArrowRight className="w-3 h-3" />
+                </button>
+              </div>
             </div>
 
             <div className="space-y-2.5">
@@ -240,6 +254,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       <Plus className="w-3.5 h-3.5" />
                       <span>Log Trade</span>
                     </button>
+                    {onOpenBinanceSync && (
+                      <button
+                        onClick={onOpenBinanceSync}
+                        className="px-3 py-1.5 bg-[#fef3c7] hover:bg-[#fde68a] text-[#92400e] text-xs font-bold rounded-lg border border-[#fde68a] transition shadow-xs cursor-pointer flex items-center gap-1"
+                      >
+                        <Zap className="w-3.5 h-3.5 fill-[#d97706]" />
+                        <span>Sync Binance</span>
+                      </button>
+                    )}
                     {onLoadDemoTrades && (
                       <button
                         onClick={onLoadDemoTrades}
