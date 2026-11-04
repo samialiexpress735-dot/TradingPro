@@ -31,7 +31,7 @@ interface DashboardProps {
   onTargetChange?: (type: 'dollar' | 'percent', val: number) => void;
   onAddTrade: () => void;
   onOpenChecklist: () => void;
-  onNavigateToTab: (tab: 'journal' | 'review' | 'calculator' | 'playbook' | 'analytics' | 'support') => void;
+  onNavigateToTab: (tab: 'journal' | 'review' | 'calculator' | 'playbook' | 'analytics' | 'news') => void;
   onSelectDate: (date: string) => void;
   onLoadDemoTrades?: () => void;
   onOpenBinanceSync?: () => void;
@@ -341,17 +341,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
           </div>
 
-          {/* Quick AI Coaching Callout */}
+          {/* Quick Market Catalyst Intelligence Callout */}
           <div className="mt-4 pt-4 border-t border-[#ede6dc] flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs text-[#7d695b]">
-              <Sparkles className="w-4 h-4 text-[#78350f]" />
-              <span>Ask AI Coach to review this week</span>
+              <Zap className="w-4 h-4 text-[#b45309]" />
+              <span>High-impact catalysts can spike volatility</span>
             </div>
             <button
-              onClick={() => onNavigateToTab('support')}
+              onClick={() => onNavigateToTab('news')}
               className="px-3 py-1 bg-[#f5ede4] hover:bg-[#ede1d3] text-[#78350f] text-xs font-semibold rounded-lg border border-[#dac6b3] transition cursor-pointer"
             >
-              Audit Journal
+              Analyze News Catalysts
             </button>
           </div>
         </div>

@@ -11,6 +11,7 @@ import {
   RotateCcw,
   Wallet,
   Sparkles,
+  Radio,
   CalendarCheck,
 } from 'lucide-react';
 import { PWAInstallButton } from './PWAInstallButton';
@@ -18,8 +19,8 @@ import { UserMenu } from './UserMenu';
 import { Trade } from '../types/trade';
 
 interface NavbarProps {
-  activeTab: 'dashboard' | 'journal' | 'review' | 'calculator' | 'playbook' | 'analytics' | 'support';
-  onSelectTab: (tab: 'dashboard' | 'journal' | 'review' | 'calculator' | 'playbook' | 'analytics' | 'support') => void;
+  activeTab: 'dashboard' | 'journal' | 'review' | 'calculator' | 'playbook' | 'analytics' | 'news';
+  onSelectTab: (tab: 'dashboard' | 'journal' | 'review' | 'calculator' | 'playbook' | 'analytics' | 'news') => void;
   onOpenTradeModal: () => void;
   onOpenChecklistModal: () => void;
   onResetData: () => void;
@@ -54,7 +55,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [tempBalance, setTempBalance] = useState(String(accountBalance));
 
   interface NavItem {
-    id: 'dashboard' | 'journal' | 'review' | 'calculator' | 'playbook' | 'analytics' | 'support';
+    id: 'dashboard' | 'journal' | 'review' | 'calculator' | 'playbook' | 'analytics' | 'news';
     label: string;
     icon: React.ComponentType<{ className?: string }>;
     hasBadge?: boolean;
@@ -67,7 +68,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'calculator', label: 'Risk Sizer', icon: Calculator },
     { id: 'playbook', label: 'Playbook', icon: Layers },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-    { id: 'support', label: 'API & Support', icon: Code2, hasBadge: true },
+    { id: 'news', label: 'Market News', icon: Radio, hasBadge: true },
   ];
 
   const handleSaveBalance = () => {

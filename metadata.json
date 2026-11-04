@@ -1,6 +1,6 @@
 {
   "name": "TradePulse - Trading Journal & P&L Analytics",
-  "description": "Professional trade journaling platform with profit/loss tracking, interactive equity curves, strategy playbooks, risk position calculator, and AI support API.",
+  "description": "Professional trade journaling platform with profit/loss tracking, interactive equity curves, strategy playbooks, risk position calculator, and market news catalyst intelligence.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

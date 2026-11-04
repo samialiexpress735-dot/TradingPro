@@ -553,101 +553,188 @@ app.post('/api/risk-calc', (req: Request, res: Response) => {
   });
 });
 
-// POST /api/support - AI Trading Coach & Support API
-app.post('/api/support', async (req: Request, res: Response) => {
-  const { question, statsSummary, recentTrades } = req.body;
+// -------------------------------------------------------------
+// POST /api/news/analyze - AI Market News & Catalyst Trading Impact Analyzer
+// -------------------------------------------------------------
+app.post('/api/news/analyze', async (req: Request, res: Response) => {
+  const { headline, category, context, userSymbols } = req.body;
 
-  if (!question) {
-    return res.status(400).json({ error: 'question parameter is required.' });
+  if (!headline || typeof headline !== 'string' || !headline.trim()) {
+    return res.status(400).json({ error: 'headline parameter is required.' });
   }
 
-  // If Gemini API Key is available, invoke Gemini 3.8 Flash model
+  const trimmedHeadline = headline.trim();
+
+  // If Gemini API Key is configured, run Gemini 3.8 Flash model
   if (process.env.GEMINI_API_KEY && aiClient) {
     try {
-      const systemInstruction = `You are the lead trading performance analyst and risk mentor for TradePulse.
-Your role:
-- Provide rigorous, professional trading psychology advice, statistical trade journal audits, and risk management feedback.
-- Highlight asymmetry, risk-to-reward ratio, stop-loss discipline, and psychological errors (e.g. FOMO, revenge trading, moving stops).
-- Keep answers concise, actionable, and structured with bullet points.
-- Ground advice directly in the trader's actual journal stats when provided.`;
+      const systemInstruction = `You are the Senior Quantitative Macro Strategist and Futures Execution Lead for TradePulse.
+Your job is to rigorously analyze market news headlines, economic data releases, regulatory actions, and Binance futures listings, and determine their precise trading impact.
 
-      const prompt = `Trader question: "${question}"
+You must output valid JSON matching this schema:
+{
+  "sentiment": "BULLISH" | "BEARISH" | "VOLATILE_CHOP" | "NEUTRAL",
+  "impactLevel": "HIGH" | "MEDIUM" | "LOW",
+  "impactScore": number (1 to 10),
+  "affectedAssets": string[] (e.g. ["BTCUSDT.P", "ETHUSDT.P", "SPY", "QQQ", "DXY"]),
+  "summary": string (concise 2-sentence institutional summary of the catalyst),
+  "marketMechanism": string (how this flows through liquidity, interest rates, funding rates, or order flow),
+  "tradingTakeaway": string (one powerful sentence on what this means for day/swing traders),
+  "tacticalAdvice": {
+    "recommendedAction": string (e.g. "Wait for 15-min opening range retest", "Fade false breakout", "Reduce risk by 50%"),
+    "stopLossGuidance": string (clear stop distance and structural invalidation advice),
+    "bestSetup": string (e.g. "VWAP pullback long", "Liquidity sweep reversal short"),
+    "volatilityWarning": string (spread widening, liquidation cascade, or whipsaw notice)
+  },
+  "keyRisks": string[]
+}`;
 
-Trader Journal Context:
-- Summary Metrics: ${JSON.stringify(statsSummary || {})}
-- Sample Recent Trades: ${JSON.stringify(recentTrades || [])}
+      const prompt = `Analyze this trading catalyst:
+Headline: "${trimmedHeadline}"
+Category: ${category || 'general'}
+Additional Context: ${context || 'None'}
+Trader Active Watchlist/Positions: ${JSON.stringify(userSymbols || ['BTCUSDT.P', 'ETHUSDT.P', 'SPY'])}
 
-Please provide an expert, institutional-quality analysis and response.`;
+Evaluate the directional bias, volatility surge risk, affected Binance perpetual futures / equity symbols, and provide an actionable execution playbook.`;
 
       const geminiResponse = await aiClient.models.generateContent({
         model: 'gemini-3.8-flash',
         contents: prompt,
         config: {
           systemInstruction,
+          responseMimeType: 'application/json',
         },
       });
 
-      const replyText = geminiResponse.text || 'Analysis completed.';
-      return res.json({
-        success: true,
-        reply: replyText,
-        source: 'gemini-3.8-flash',
-      });
+      const responseText = geminiResponse.text;
+      if (responseText) {
+        try {
+          const parsed = JSON.parse(responseText);
+          return res.json({
+            success: true,
+            analysis: {
+              ...parsed,
+              headline: trimmedHeadline,
+              source: 'gemini-3.8-flash',
+              analyzedAt: new Date().toISOString(),
+            },
+          });
+        } catch (jsonErr) {
+          console.warn('Could not parse Gemini JSON response, falling back to structured engine:', jsonErr);
+        }
+      }
     } catch (aiErr: any) {
-      console.error('Gemini API call error:', aiErr?.message || aiErr);
+      console.error('Gemini API news analysis error:', aiErr?.message || aiErr);
     }
   }
 
-  // Institutional Rule-Based Trading Coach Fallback
-  const qLower = question.toLowerCase();
-  let fallbackReply = '';
+  // Institutional Quantitative News Engine Fallback
+  const lower = trimmedHeadline.toLowerCase();
 
-  if (qLower.includes('audit') || qLower.includes('review') || qLower.includes('leak')) {
-    fallbackReply = `### 📊 Professional Trade Journal Audit
+  let sentiment: 'BULLISH' | 'BEARISH' | 'VOLATILE_CHOP' | 'NEUTRAL' = 'NEUTRAL';
+  let impactLevel: 'HIGH' | 'MEDIUM' | 'LOW' = 'MEDIUM';
+  let impactScore = 6;
+  const affectedAssets: string[] = [];
+  let summary = '';
+  let marketMechanism = '';
+  let tradingTakeaway = '';
+  let recommendedAction = '';
+  let stopLossGuidance = '';
+  let bestSetup = '';
+  let volatilityWarning = '';
+  const keyRisks: string[] = [];
 
-1. **Statistical Edge**: Your win rate is solid with positive mathematical expectancy. Your highest edge setups are **Opening Range Breakouts** and **VWAP Bounces**, which yield an average 2.4R+.
-2. **Behavioral Leak Identified**: Reviewing your trade logs shows that losses tend to cluster during **Mid-Day** and **Power Hour** when entering on "FOMO" or "Revenge".
-3. **Execution Rule**: Limit your trades to the first 90 minutes of the market session. Do not take any setup that offers less than a 2.0 Risk-to-Reward ratio.
-4. **Drawdown Protection**: After 2 consecutive losses in a single day, shut down your platform to protect mental capital.`;
-  } else if (qLower.includes('risk') || qLower.includes('sizing') || qLower.includes('stop loss')) {
-    fallbackReply = `### ⚖️ Risk Management & Sizing Protocol
+  // Determine affected assets
+  if (lower.includes('binance') || lower.includes('perpetual') || lower.includes('listing') || lower.includes('leverage')) {
+    affectedAssets.push('BTCUSDT.P', 'SOLUSDT.P', 'BNBUSDT.P');
+  }
+  if (lower.includes('bitcoin') || lower.includes('btc') || lower.includes('etf') || lower.includes('crypto')) {
+    if (!affectedAssets.includes('BTCUSDT.P')) affectedAssets.push('BTCUSDT.P');
+    if (!affectedAssets.includes('ETHUSDT.P')) affectedAssets.push('ETHUSDT.P');
+  }
+  if (lower.includes('fed') || lower.includes('fomc') || lower.includes('powell') || lower.includes('cpi') || lower.includes('inflation') || lower.includes('rate cut') || lower.includes('rate hike')) {
+    affectedAssets.push('SPY', 'QQQ', 'BTCUSDT.P', 'DXY', 'USDJPY');
+  }
+  if (lower.includes('nvidia') || lower.includes('tech') || lower.includes('ai') || lower.includes('semiconductor') || lower.includes('nasdaq')) {
+    affectedAssets.push('QQQ', 'NVDA', 'SPY');
+  }
+  if (affectedAssets.length === 0) {
+    affectedAssets.push('BTCUSDT.P', 'SPY', 'DXY');
+  }
 
-- **The 1% Rule**: Never risk more than 1.0% of your current liquid account balance on any single execution.
-- **Stop Loss Placement**: Hard stop-losses must be anchored to structural technical invalidation (e.g., previous swing high/low, order block), never arbitrary dollar amounts.
-- **Asymmetric Payoffs**: Aim for realized gains of 2R to 3R to maintain profitability even during periods where win rate drops below 40%.`;
+  // Determine sentiment & impact
+  if (lower.includes('cpi cooler') || lower.includes('rate cut') || lower.includes('etf inflow') || lower.includes('approval') || lower.includes('surge') || lower.includes('record high') || lower.includes('beat') || lower.includes('settlement')) {
+    sentiment = 'BULLISH';
+    impactLevel = 'HIGH';
+    impactScore = 8;
+    summary = `The headline signals loosening financial conditions, expanding liquidity, or strong institutional capital allocation into risk assets.`;
+    marketMechanism = `Dollar index and bond yield compression stimulate risk appetite, driving spot buying and aggressive perpetual futures bidding.`;
+    tradingTakeaway = `Expect momentum continuation to the upside; prioritize long dips into structural support over fading rallies.`;
+    recommendedAction = `Look for long entries on pullbacks to the 15-minute VWAP with positive cumulative volume delta.`;
+    stopLossGuidance = `Anchor stop loss below the pre-breakout consolidation low; avoid trailing too tightly during initial expansions.`;
+    bestSetup = `Opening Range Breakout (ORB) continuation on high relative volume.`;
+    volatilityWarning = `Watch out for sudden funding rate spikes on perpetuals (> 0.03%) which can trigger leveraged long flushes.`;
+    keyRisks.push('Funding rate overheating', 'Liquidity exhaustion at higher time-frame resistance', 'Profit taking at daily round levels');
+  } else if (lower.includes('rate hike') || lower.includes('cpi hotter') || lower.includes('delisting') || lower.includes('ban') || lower.includes('subpoena') || lower.includes('liquidation') || lower.includes('crash') || lower.includes('recession') || lower.includes('hawkish')) {
+    sentiment = 'BEARISH';
+    impactLevel = 'HIGH';
+    impactScore = 9;
+    summary = `Macro tightening pressures or adverse regulatory/exchange interventions threaten market liquidity and trigger risk-off derisking.`;
+    marketMechanism = `Deleveraging across centralized venues forces margin calls and liquidation cascades down into order book bid clusters.`;
+    tradingTakeaway = `Elevated downside momentum; long breakouts are prone to immediate failure. Prioritize short setups or preserve cash.`;
+    recommendedAction = `Fade weak bounces into newly formed resistance order blocks or stay on the sidelines until the 4-hour candle closes.`;
+    stopLossGuidance = `Place stops above the breakdown swing high; widen stop distances by 1.5x and cut position size to keep dollar risk fixed.`;
+    bestSetup = `Liquidity sweep into resistance followed by rapid breakdown (Bearish MSS).`;
+    volatilityWarning = `Severe slippage on stop orders during cascade flushes; avoid market selling at the lows.`;
+    keyRisks.push('Cascading stop runs', 'Wide exchange bid-ask spreads', 'Sharp dead-cat bounce traps');
+  } else if (lower.includes('perpetual') || lower.includes('listing') || lower.includes('leverage') || lower.includes('fomc') || lower.includes('speech') || lower.includes('volatility')) {
+    sentiment = 'VOLATILE_CHOP';
+    impactLevel = 'HIGH';
+    impactScore = 8;
+    summary = `High uncertainty event capable of generating rapid two-way market spikes and stop-hunting sweeps before establishing trend direction.`;
+    marketMechanism = `Market makers widen spreads and pull limit order liquidity ahead of the event, exaggerating small order flow into wide price swings.`;
+    tradingTakeaway = `Wait for the dust to settle. Entering prior to or during the initial 5 minutes carries poor risk-to-reward.`;
+    recommendedAction = `Wait 15 to 30 minutes after the release to identify true institutional direction before committing risk.`;
+    stopLossGuidance = `Keep stop loss outside daily average true range (ATR) levels or use option hedges rather than tight stop orders.`;
+    bestSetup = `Post-whipsaw range reclamation trade once both highs and lows have been swept.`;
+    volatilityWarning = `High frequency algorithms actively hunt resting retail liquidity pools on both sides of the book.`;
+    keyRisks.push('Double wick stops', 'Order execution latency during peak volatility', 'Exchange connectivity throttle');
   } else {
-    fallbackReply = `### 💡 TradePulse Support & Guidance
-
-Thank you for reaching out! Regarding your inquiry:
-- **Consistency**: High-performing traders focus on process over outcome. Log every trade immediately with emotional tags to catch leaks early.
-- **Pre-Flight Routine**: Use the built-in **Pre-Trade Checklist** before opening positions.
-- **REST API Integration**: You can also query \`/api/trades\` and \`/api/analytics\` programmatically to sync external trading bots or broker feeds.`;
+    sentiment = 'NEUTRAL';
+    impactLevel = 'LOW';
+    impactScore = 4;
+    summary = `Headline is largely priced in or does not substantially alter macro liquidity or institutional positioning.`;
+    marketMechanism = `Standard liquidity distribution; algorithmic market makers maintain baseline bid-ask spreads without dislocation.`;
+    tradingTakeaway = `Trade standard technical patterns according to your core playbook without requiring headline risk adjustments.`;
+    recommendedAction = `Stick to regular strategy rules and standard 1.0% risk sizing.`;
+    stopLossGuidance = `Standard structural stop loss placement based on technical chart structure.`;
+    bestSetup = `Standard playbook setup (e.g. Trend pullback, VWAP bounce).`;
+    volatilityWarning = `Normal market conditions.`;
+    keyRisks.push('Overtrading in low-volatility conditions', 'False breakout chops in low-volume periods');
   }
 
   res.json({
     success: true,
-    reply: fallbackReply,
-    source: 'tradepulse-rule-engine',
+    analysis: {
+      headline: trimmedHeadline,
+      sentiment,
+      impactLevel,
+      impactScore,
+      affectedAssets,
+      summary,
+      marketMechanism,
+      tradingTakeaway,
+      tacticalAdvice: {
+        recommendedAction,
+        stopLossGuidance,
+        bestSetup,
+        volatilityWarning,
+      },
+      keyRisks,
+      source: 'tradepulse-catalyst-engine',
+      analyzedAt: new Date().toISOString(),
+    },
   });
-});
-
-// POST /api/support/ticket - Support ticket creation
-app.post('/api/support/ticket', (req: Request, res: Response) => {
-  const { subject, category, details, userEmail } = req.body;
-  const ticketId = `TICK-${Math.floor(100000 + Math.random() * 900000)}`;
-
-  const ticket = {
-    id: ticketId,
-    subject,
-    category,
-    details,
-    userEmail: userEmail || 'trader@tradepulse.io',
-    status: 'open',
-    createdAt: new Date().toISOString(),
-  };
-
-  supportTicketsStore.push(ticket);
-  res.status(201).json({ success: true, ticket });
 });
 
 // Serve static public folder for manifest and icons

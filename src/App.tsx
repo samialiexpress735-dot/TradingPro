@@ -28,7 +28,7 @@ import { TradeJournal } from './components/TradeJournal';
 import { RiskCalculator } from './components/RiskCalculator';
 import { StrategyPlaybook } from './components/StrategyPlaybook';
 import { AnalyticsView } from './components/AnalyticsView';
-import { SupportAndApi } from './components/SupportAndApi';
+import { MarketNewsView } from './components/MarketNewsView';
 import { DailyReviewView } from './components/DailyReviewView';
 import { TradeModal } from './components/TradeModal';
 import { PreTradeChecklistModal } from './components/PreTradeChecklistModal';
@@ -39,7 +39,7 @@ import { BinanceSyncModal } from './components/BinanceSyncModal';
 export default function App() {
   // Navigation tab state
   const [activeTab, setActiveTab] = useState<
-    'dashboard' | 'journal' | 'review' | 'calculator' | 'playbook' | 'analytics' | 'support'
+    'dashboard' | 'journal' | 'review' | 'calculator' | 'playbook' | 'analytics' | 'news'
   >('dashboard');
 
   // Supabase / Multi-device Auth & Cloud Sync state
@@ -462,8 +462,11 @@ export default function App() {
           <AnalyticsView trades={trades} stats={performanceStats} />
         )}
 
-        {activeTab === 'support' && (
-          <SupportAndApi trades={trades} stats={performanceStats} />
+        {activeTab === 'news' && (
+          <MarketNewsView
+            trades={trades}
+            onNavigateToTab={setActiveTab}
+          />
         )}
       </main>
 
