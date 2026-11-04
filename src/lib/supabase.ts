@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
-import { Trade, Strategy, DailyReview } from '../types/trade';
+import { Trade, Strategy, DailyReview, CapitalTransaction } from '../types/trade';
 
 // Production Supabase project configuration
 export const DEFAULT_SUPABASE_URL = 'https://tvzvzbsndptjcjjmwxfa.supabase.co';
@@ -723,6 +723,7 @@ export interface UserSettings {
   currency?: string;
   riskPerTradePct?: number;
   theme?: string;
+  capitalTransactions?: CapitalTransaction[];
 }
 
 export async function fetchUserSettings(userId: string): Promise<UserSettings | null> {
@@ -743,6 +744,7 @@ export async function fetchUserSettings(userId: string): Promise<UserSettings | 
           currency: data.currency || 'USD',
           riskPerTradePct: data.risk_per_trade_pct !== null && data.risk_per_trade_pct !== undefined ? Number(data.risk_per_trade_pct) : 1.0,
           theme: data.theme || 'light',
+          capitalTransactions: Array.isArray(data.capital_adjustments) ? data.capital_adjustments : [],
         };
       }
     } catch (e) {
@@ -783,8 +785,14 @@ export async function saveUserSettings(
       if (payloadData.currency !== undefined) dbPayload.currency = payloadData.currency;
       if (payloadData.riskPerTradePct !== undefined) dbPayload.risk_per_trade_pct = payloadData.riskPerTradePct;
       if (payloadData.theme !== undefined) dbPayload.theme = payloadData.theme;
+      if (payloadData.capitalTransactions !== undefined) dbPayload.capital_adjustments = payloadData.capitalTransactions;
 
-      await supabase.from('user_settings').upsert(dbPayload, { onConflict: 'user_id' });
+      const { error } = await supabase.from('user_settings').upsert(dbPayload, { onConflict: 'user_id' });
+      // If error occurred (e.g. column capital_adjustments not present in user's Supabase yet), retry without it
+      if (error && dbPayload.capital_adjustments) {
+        delete dbPayload.capital_adjustments;
+        await supabase.from('user_settings').upsert(dbPayload, { onConflict: 'user_id' });
+      }
     } catch (e) {
       console.warn('Error saving user settings to Supabase:', e);
     }

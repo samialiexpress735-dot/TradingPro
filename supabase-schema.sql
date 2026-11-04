@@ -75,6 +75,7 @@ ALTER TABLE public.user_settings ADD COLUMN IF NOT EXISTS theme TEXT DEFAULT 'li
 ALTER TABLE public.user_settings ADD COLUMN IF NOT EXISTS monthly_target_amount NUMERIC DEFAULT 2500.00;
 ALTER TABLE public.user_settings ADD COLUMN IF NOT EXISTS monthly_target_type TEXT DEFAULT 'dollar';
 ALTER TABLE public.user_settings ADD COLUMN IF NOT EXISTS binance_api_key TEXT;
+ALTER TABLE public.user_settings ADD COLUMN IF NOT EXISTS capital_adjustments JSONB DEFAULT '[]'::JSONB;
 
 -- ==============================================================================
 -- 5. Strategies Table (Trader's playbook setups)

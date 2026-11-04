@@ -33,6 +33,7 @@ interface NavbarProps {
   isSyncing: boolean;
   trades: Trade[];
   onLoadDemoTrades?: () => void;
+  onOpenDepositModal?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -50,6 +51,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   isSyncing,
   trades,
   onLoadDemoTrades,
+  onOpenDepositModal,
 }) => {
   const [isEditingBalance, setIsEditingBalance] = useState(false);
   const [tempBalance, setTempBalance] = useState(String(accountBalance));
@@ -130,30 +132,24 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Right: Account Balance & Quick Actions */}
         <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-          {/* Account Balance Widget */}
-          <div className="bg-white border border-[#ddcfbf] px-2.5 sm:px-3 py-1.5 rounded-xl hidden sm:flex items-center gap-1.5 font-mono text-xs shadow-xs">
-            <Wallet className="w-3.5 h-3.5 text-[#8c7462]" />
-            {isEditingBalance ? (
-              <input
-                type="number"
-                value={tempBalance}
-                onChange={(e) => setTempBalance(e.target.value)}
-                onBlur={handleSaveBalance}
-                onKeyDown={(e) => e.key === 'Enter' && handleSaveBalance()}
-                autoFocus
-                className="w-16 sm:w-20 bg-[#faf7f2] border border-[#92400e] rounded px-1.5 py-0.5 text-[#281d16] text-xs font-mono focus:outline-none"
-              />
-            ) : (
-              <span
-                onClick={() => {
-                  setTempBalance(String(accountBalance));
-                  setIsEditingBalance(true);
-                }}
-                className="cursor-pointer text-[#281d16] hover:text-[#92400e] font-bold transition"
-                title="Click to edit starting balance"
+          {/* Account Balance Widget with Simulated Deposit Action */}
+          <div className="bg-white border border-[#ddcfbf] px-2.5 sm:px-3 py-1.5 rounded-xl hidden sm:flex items-center gap-2 font-mono text-xs shadow-xs">
+            <button
+              onClick={onOpenDepositModal}
+              className="flex items-center gap-1.5 text-[#281d16] hover:text-[#92400e] font-bold transition cursor-pointer"
+              title="Deposit or withdraw simulated paper capital"
+            >
+              <Wallet className="w-3.5 h-3.5 text-[#8c7462]" />
+              <span>${accountBalance.toLocaleString()}</span>
+            </button>
+            {onOpenDepositModal && (
+              <button
+                onClick={onOpenDepositModal}
+                className="px-1.5 py-0.5 text-[10px] bg-[#f5ede4] hover:bg-[#ebd5c3] text-[#78350f] rounded font-bold border border-[#dac6b3] transition cursor-pointer"
+                title="Deposit / Withdraw Paper Funds"
               >
-                ${accountBalance.toLocaleString()}
-              </span>
+                + Cash
+              </button>
             )}
           </div>
 

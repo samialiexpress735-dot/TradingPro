@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS user_settings (
     starting_balance NUMERIC(15, 2) DEFAULT 25000.00,
     currency VARCHAR(10) DEFAULT 'USD',
     default_risk_pct NUMERIC(5, 2) DEFAULT 1.00,
+    capital_adjustments JSONB DEFAULT '[]'::JSONB,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

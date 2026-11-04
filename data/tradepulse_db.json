@@ -1,0 +1,23 @@
+{
+  "users": [],
+  "userTrades": {},
+  "userStrategies": {},
+  "userReviews": {},
+  "userSettings": {
+    "test_trader": {
+      "startingBalance": 30000,
+      "capitalTransactions": [
+        {
+          "id": "tx_1",
+          "type": "deposit",
+          "amount": 5000,
+          "note": "Simulated Account Top-Up",
+          "balanceBefore": 25000,
+          "balanceAfter": 30000,
+          "date": "2026-11-04T17:00:00Z"
+        }
+      ]
+    }
+  },
+  "loginLogs": {}
+}

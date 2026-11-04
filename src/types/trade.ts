@@ -199,3 +199,14 @@ export interface RiskCalcResult {
     step5GainAtTarget: string;
   };
 }
+
+export interface CapitalTransaction {
+  id: string;
+  date: string; // ISO string
+  type: 'deposit' | 'withdrawal';
+  amount: number;
+  note?: string;
+  balanceBefore: number;
+  balanceAfter: number;
+}
+

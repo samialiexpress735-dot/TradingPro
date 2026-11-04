@@ -19,6 +19,7 @@ import {
   Zap,
   Sparkles,
   CalendarCheck,
+  Wallet,
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -37,6 +38,7 @@ interface DashboardProps {
   onSelectDate: (date: string) => void;
   onLoadDemoTrades?: () => void;
   onOpenBinanceSync?: () => void;
+  onOpenDepositModal?: () => void;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
@@ -55,6 +57,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onSelectDate,
   onLoadDemoTrades,
   onOpenBinanceSync,
+  onOpenDepositModal,
 }) => {
   const isNetPositive = stats.netProfit >= 0;
   const recentTrades = trades.slice(0, 5);
@@ -76,6 +79,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
 
         <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
+          {onOpenDepositModal && (
+            <button
+              onClick={onOpenDepositModal}
+              className="px-2.5 sm:px-3 py-1.5 sm:py-2 bg-[#fcfaf7] hover:bg-[#f6efe6] text-[#78350f] text-xs font-semibold rounded-xl border border-[#debfa8] flex items-center justify-center gap-1.5 transition cursor-pointer"
+              title="Deposit or withdraw simulated paper funds"
+            >
+              <Wallet className="w-3.5 h-3.5 text-[#78350f] shrink-0" />
+              <span className="truncate">Deposit/Withdraw</span>
+            </button>
+          )}
+
           <button
             onClick={() => onNavigateToTab('review')}
             className="px-2.5 sm:px-3 py-1.5 sm:py-2 bg-[#fcfaf7] hover:bg-[#f6efe6] text-[#78350f] text-xs font-semibold rounded-xl border border-[#debfa8] flex items-center justify-center gap-1.5 transition cursor-pointer"

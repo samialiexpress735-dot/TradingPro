@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Trade, Strategy, AssetClass } from './types/trade';
+import { Trade, Strategy, AssetClass, CapitalTransaction } from './types/trade';
 import { INITIAL_TRADES, INITIAL_STRATEGIES, SAMPLE_DEMO_TRADES } from './data/mockTrades';
 import { calculateStats, generateEquityCurve } from './utils/calculations';
 import {
@@ -36,6 +36,7 @@ import { PreTradeChecklistModal } from './components/PreTradeChecklistModal';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { AuthModal } from './components/AuthModal';
 import { BinanceSyncModal } from './components/BinanceSyncModal';
+import { DepositWithdrawModal } from './components/DepositWithdrawModal';
 
 export default function App() {
   // Navigation tab state
@@ -69,6 +70,8 @@ export default function App() {
   const [isTradeModalOpen, setIsTradeModalOpen] = useState(false);
   const [editingTrade, setEditingTrade] = useState<Partial<Trade> | null>(null);
   const [isChecklistOpen, setIsChecklistOpen] = useState(false);
+  const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
+  const [capitalTransactions, setCapitalTransactions] = useState<CapitalTransaction[]>([]);
 
   // Sync state with Supabase Cloud Database when user logs in
   const syncWithCloud = useCallback(
@@ -93,7 +96,7 @@ export default function App() {
           setStrategies(cloudStrategies);
         }
 
-        // 3. Fetch user settings (balance, monthly target, binance api key) from Supabase
+        // 3. Fetch user settings (balance, monthly target, binance api key, capital adjustments) from Supabase
         const settings = await fetchUserSettings(currentUser.id);
         if (settings) {
           if (settings.startingBalance !== undefined && settings.startingBalance !== null) {
@@ -107,6 +110,9 @@ export default function App() {
           }
           if (settings.binanceApiKey) {
             setBinanceApiKey(settings.binanceApiKey);
+          }
+          if (settings.capitalTransactions && Array.isArray(settings.capitalTransactions)) {
+            setCapitalTransactions(settings.capitalTransactions);
           }
         }
       } catch (err) {
@@ -138,6 +144,15 @@ export default function App() {
           if (stored) {
             setUser(stored);
             syncWithCloud(stored);
+          } else {
+            fetchUserSettings('default_guest').then((settings) => {
+              if (settings) {
+                if (settings.startingBalance) setStartingBalance(settings.startingBalance);
+                if (settings.capitalTransactions && Array.isArray(settings.capitalTransactions)) {
+                  setCapitalTransactions(settings.capitalTransactions);
+                }
+              }
+            });
           }
         }
       });
@@ -161,6 +176,15 @@ export default function App() {
       if (stored) {
         setUser(stored);
         syncWithCloud(stored);
+      } else {
+        fetchUserSettings('default_guest').then((settings) => {
+          if (settings) {
+            if (settings.startingBalance) setStartingBalance(settings.startingBalance);
+            if (settings.capitalTransactions && Array.isArray(settings.capitalTransactions)) {
+              setCapitalTransactions(settings.capitalTransactions);
+            }
+          }
+        });
       }
     }
   }, [syncWithCloud]);
@@ -182,6 +206,29 @@ export default function App() {
     () => generateEquityCurve(trades, startingBalance),
     [trades, startingBalance]
   );
+
+  // Capital adjustments (paper deposits and withdrawals)
+  const handleApplyCapitalAdjustment = async (newBalance: number, transaction: CapitalTransaction) => {
+    setStartingBalance(newBalance);
+    const updatedTxs = [transaction, ...capitalTransactions];
+    setCapitalTransactions(updatedTxs);
+
+    const targetUserId = user?.id || 'default_guest';
+    await saveUserSettings(targetUserId, {
+      startingBalance: newBalance,
+      capitalTransactions: updatedTxs,
+    });
+  };
+
+  const handleDeleteCapitalTransaction = async (txId: string) => {
+    const updatedTxs = capitalTransactions.filter((t) => t.id !== txId);
+    setCapitalTransactions(updatedTxs);
+    const targetUserId = user?.id || 'default_guest';
+    await saveUserSettings(targetUserId, {
+      startingBalance,
+      capitalTransactions: updatedTxs,
+    });
+  };
 
   // Trade management handlers
   const handleSaveTrade = async (tradeToSave: Trade) => {
@@ -399,6 +446,7 @@ export default function App() {
         isSyncing={isSyncing}
         trades={trades}
         onLoadDemoTrades={handleLoadDemoTrades}
+        onOpenDepositModal={() => setIsDepositModalOpen(true)}
       />
 
       {/* Global Market Pulse & Binance Perpetual Ticker Bar */}
@@ -419,6 +467,7 @@ export default function App() {
             onAddTrade={handleAddTradeClick}
             onOpenChecklist={() => setIsChecklistOpen(true)}
             onOpenBinanceSync={() => setIsBinanceModalOpen(true)}
+            onOpenDepositModal={() => setIsDepositModalOpen(true)}
             onNavigateToTab={setActiveTab}
             onNavigateToJournalWithFilter={(mistake) => {
               setJournalMistakeFilter(mistake);
@@ -538,6 +587,16 @@ export default function App() {
         existingTrades={trades}
         userId={user?.id}
         initialApiKey={binanceApiKey}
+      />
+
+      {/* Simulated Deposit & Withdrawal Modal */}
+      <DepositWithdrawModal
+        isOpen={isDepositModalOpen}
+        onClose={() => setIsDepositModalOpen(false)}
+        currentBalance={startingBalance}
+        onApplyAdjustment={handleApplyCapitalAdjustment}
+        transactions={capitalTransactions}
+        onDeleteTransaction={handleDeleteCapitalTransaction}
       />
 
       {/* PWA Offline Network Toast */}
