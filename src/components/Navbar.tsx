@@ -218,16 +218,16 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               key={item.id}
               onClick={() => onSelectTab(item.id)}
-              className={`px-3 py-1.5 rounded-xl font-medium transition shrink-0 flex items-center gap-1.5 border ${
+              className={`px-3 py-1.5 rounded-xl font-medium transition shrink-0 whitespace-nowrap flex items-center gap-1.5 border ${
                 isActive
                   ? 'bg-white text-[#78350f] font-bold border-[#d2c0ad] shadow-xs'
                   : 'text-[#6e5849] border-transparent hover:text-[#281d16]'
               }`}
             >
-              <Icon className="w-3.5 h-3.5" />
-              <span>{item.label}</span>
+              <Icon className="w-3.5 h-3.5 shrink-0" />
+              <span className="whitespace-nowrap">{item.label}</span>
               {item.hasBadge && (
-                <span className="w-1.5 h-1.5 rounded-full bg-[#92400e]"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#92400e] shrink-0"></span>
               )}
             </button>
           );

@@ -219,22 +219,22 @@ export const DailyReviewView: React.FC<DailyReviewViewProps> = ({ trades, userId
   return (
     <div className="space-y-6">
       {/* Top Banner & Date Selector */}
-      <div className="bg-white border border-[#e8dfd5] rounded-3xl p-5 sm:p-6 shadow-xs">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-[#f5ede4] text-[#78350f] border border-[#debfa8] flex items-center justify-center">
-              <BookOpen className="w-6 h-6" />
+      <div className="bg-white border border-[#e8dfd5] rounded-3xl p-4 sm:p-6 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-start sm:items-center gap-3">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-[#f5ede4] text-[#78350f] border border-[#debfa8] flex items-center justify-center shrink-0">
+              <BookOpen className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-[#281d16] tracking-tight">Daily Prep &amp; EOD Review Suite</h2>
-              <p className="text-xs text-[#7d695b]">
+              <h2 className="text-base sm:text-xl font-bold text-[#281d16] tracking-tight">Daily Prep &amp; EOD Review</h2>
+              <p className="text-[11px] sm:text-xs text-[#7d695b] mt-0.5">
                 Structure your morning preparation, track mental clarity, and grade daily discipline.
               </p>
             </div>
           </div>
 
           {/* Date Navigator */}
-          <div className="flex items-center gap-2 bg-[#fcfaf7] border border-[#e8dfd5] p-1.5 rounded-2xl">
+          <div className="flex items-center justify-between sm:justify-start gap-1.5 sm:gap-2 bg-[#fcfaf7] border border-[#e8dfd5] p-1.5 rounded-2xl w-full sm:w-auto">
             <button
               onClick={() => handleStepDay(-1)}
               className="p-1.5 hover:bg-[#ede6dc] rounded-xl text-[#78350f] transition cursor-pointer"
@@ -246,7 +246,7 @@ export const DailyReviewView: React.FC<DailyReviewViewProps> = ({ trades, userId
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="bg-white border border-[#d5c3b1] rounded-xl px-3 py-1 text-xs font-mono font-bold text-[#281d16] focus:outline-none focus:border-[#78350f]"
+              className="bg-white border border-[#d5c3b1] rounded-xl px-2.5 py-1 text-xs font-mono font-bold text-[#281d16] focus:outline-none focus:border-[#78350f] flex-1 sm:flex-initial text-center"
             />
             <button
               onClick={() => handleStepDay(1)}
@@ -257,7 +257,7 @@ export const DailyReviewView: React.FC<DailyReviewViewProps> = ({ trades, userId
             </button>
             <button
               onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
-              className="px-2.5 py-1 text-xs font-semibold text-[#78350f] hover:bg-[#ede6dc] rounded-xl transition cursor-pointer"
+              className="px-2.5 py-1 text-xs font-semibold text-[#78350f] hover:bg-[#ede6dc] rounded-xl transition cursor-pointer shrink-0"
             >
               Today
             </button>
@@ -265,20 +265,20 @@ export const DailyReviewView: React.FC<DailyReviewViewProps> = ({ trades, userId
         </div>
 
         {/* Day's Trading Link Bar */}
-        <div className="mt-4 pt-4 border-t border-[#ede6dc] flex flex-wrap items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-3">
-            <span className="text-[#8c7462] font-medium">Session Trades:</span>
+        <div className="mt-3.5 pt-3.5 border-t border-[#ede6dc] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+            <span className="text-[#8c7462] font-medium">Session:</span>
             <span className="font-bold text-[#281d16] font-mono">{daysTrades.length} closed</span>
             <span className="text-[#d5c3b1]">•</span>
             <span>
-              Net P&amp;L:{' '}
+              Net:{' '}
               <strong className={daysPnL >= 0 ? 'text-[#1e6b37]' : 'text-[#b93829]'}>
                 {daysPnL >= 0 ? '+' : ''}${daysPnL.toFixed(2)}
               </strong>
             </span>
             <span className="text-[#d5c3b1]">•</span>
             <span>
-              Win Rate:{' '}
+              WR:{' '}
               <strong className="text-[#78350f]">
                 {daysTrades.length > 0 ? ((daysWins / daysTrades.length) * 100).toFixed(0) : 0}%
               </strong>
@@ -286,7 +286,7 @@ export const DailyReviewView: React.FC<DailyReviewViewProps> = ({ trades, userId
           </div>
 
           {currentReview && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 self-start sm:self-auto">
               <span className="text-[#8c7462] text-[11px]">Logged Grade:</span>
               <span
                 className={`px-2.5 py-0.5 rounded-lg text-xs font-bold font-mono border ${

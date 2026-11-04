@@ -126,52 +126,52 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
   return (
     <div className="space-y-6">
       {/* Top Banner */}
-      <div className="bg-white border border-[#e8dfd5] rounded-2xl p-6 shadow-xs relative overflow-hidden">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-[#f5ede4] text-[#78350f] rounded-2xl border border-[#debfa8]">
-              <Calculator className="w-7 h-7" />
+      <div className="bg-white border border-[#e8dfd5] rounded-2xl p-4 sm:p-6 shadow-xs relative overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-start sm:items-center gap-3 sm:gap-4">
+            <div className="p-2 sm:p-3 bg-[#f5ede4] text-[#78350f] rounded-2xl border border-[#debfa8] shrink-0">
+              <Calculator className="w-5 h-5 sm:w-7 sm:h-7" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-xl font-bold text-[#281d16] tracking-tight">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-base sm:text-xl font-bold text-[#281d16] tracking-tight">
                   Position Size &amp; Quantity Calculator
                 </h2>
-                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#edf7ed] text-[#1e6b37] border border-[#c3e6cb]">
-                  Solves for Quantity
+                <span className="px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-[#edf7ed] text-[#1e6b37] border border-[#c3e6cb] shrink-0">
+                  Solves Quantity
                 </span>
               </div>
-              <p className="text-xs text-[#7d695b] mt-1 max-w-2xl">
-                Calculates the <strong>exact quantity (number of shares, contracts, lots, or coins)</strong> to buy or sell so that your total dollar loss is strictly capped if your stop-loss is hit.
+              <p className="text-[11px] sm:text-xs text-[#7d695b] mt-0.5 sm:mt-1 max-w-2xl">
+                Calculates the exact quantity (shares, contracts, or coins) to cap your loss if stopped out.
               </p>
             </div>
           </div>
 
           {/* Quick presets */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs text-[#8c7462] font-mono">Quick Presets:</span>
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap pt-1 sm:pt-0">
+            <span className="text-[11px] sm:text-xs text-[#8c7462] font-mono">Presets:</span>
             <button
               onClick={() => handlePresetSelect('NVDA', 'stocks', 140, 137, 147.5, 1)}
-              className="px-2.5 py-1 text-xs bg-[#faf7f2] hover:bg-[#f2ece2] text-[#4a3b32] rounded-lg border border-[#e2d8cb] transition cursor-pointer"
+              className="px-2 py-1 text-xs bg-[#faf7f2] hover:bg-[#f2ece2] text-[#4a3b32] rounded-lg border border-[#e2d8cb] transition cursor-pointer"
             >
-              NVDA (Stock)
+              NVDA
             </button>
             <button
               onClick={() => handlePresetSelect('BTCUSDT', 'crypto', 68000, 66500, 72000, 1)}
-              className="px-2.5 py-1 text-xs bg-[#faf7f2] hover:bg-[#f2ece2] text-[#4a3b32] rounded-lg border border-[#e2d8cb] transition cursor-pointer"
+              className="px-2 py-1 text-xs bg-[#faf7f2] hover:bg-[#f2ece2] text-[#4a3b32] rounded-lg border border-[#e2d8cb] transition cursor-pointer"
             >
-              BTCUSDT (Spot)
+              BTC (Spot)
             </button>
             <button
               onClick={() => handlePresetSelect('BTCUSDT.P', 'futures', 68500, 67200, 71500, 1)}
-              className="px-2.5 py-1 text-xs bg-[#faf7f2] hover:bg-[#f2ece2] text-[#78350f] font-semibold rounded-lg border border-[#d8bca6] transition cursor-pointer flex items-center gap-1"
+              className="px-2 py-1 text-xs bg-[#faf7f2] hover:bg-[#f2ece2] text-[#78350f] font-semibold rounded-lg border border-[#d8bca6] transition cursor-pointer flex items-center gap-1"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-[#f3ba2f]"></span>
-              <span>BTCUSDT.P</span>
+              <span>BTC.P</span>
             </button>
             <button
               onClick={() => handlePresetSelect('SOLUSDT.P', 'futures', 178.50, 172.00, 195.00, 1)}
-              className="px-2.5 py-1 text-xs bg-[#faf7f2] hover:bg-[#f2ece2] text-[#78350f] font-semibold rounded-lg border border-[#d8bca6] transition cursor-pointer flex items-center gap-1"
+              className="px-2 py-1 text-xs bg-[#faf7f2] hover:bg-[#f2ece2] text-[#78350f] font-semibold rounded-lg border border-[#d8bca6] transition cursor-pointer flex items-center gap-1"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-[#f3ba2f]"></span>
               <span>SOLUSDT.P</span>
@@ -273,19 +273,20 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
                 <span className="absolute right-3 top-2.5 text-[#8c7462] font-mono text-sm">%</span>
               </div>
               {/* Quick Risk Buttons */}
-              <div className="flex gap-1.5 pt-1">
+              <div className="flex gap-1 sm:gap-1.5 pt-1 overflow-x-auto no-scrollbar">
                 {[0.5, 1.0, 1.5, 2.0, 3.0].map((pct) => (
                   <button
                     key={pct}
                     type="button"
                     onClick={() => setRiskPercent(pct)}
-                    className={`flex-1 py-1 text-[11px] font-mono rounded-lg transition cursor-pointer ${
+                    className={`flex-1 min-w-[50px] sm:min-w-0 py-1 text-[11px] font-mono rounded-lg transition cursor-pointer whitespace-nowrap text-center ${
                       riskPercent === pct
                         ? 'bg-[#78350f] text-white shadow-xs font-bold'
                         : 'bg-white text-[#7d695b] hover:text-[#281d16] border border-[#e2d8cb]'
                     }`}
                   >
-                    {pct}% (${((balance * pct) / 100).toFixed(0)})
+                    <span>{pct}%</span>
+                    <span className="hidden sm:inline"> (${((balance * pct) / 100).toFixed(0)})</span>
                   </button>
                 ))}
               </div>
@@ -311,13 +312,13 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
                 />
               </div>
               {/* Quick Dollar Buttons */}
-              <div className="flex gap-1.5 pt-1">
+              <div className="flex gap-1 sm:gap-1.5 pt-1 overflow-x-auto no-scrollbar">
                 {[100, 200, 250, 500, 1000].map((amt) => (
                   <button
                     key={amt}
                     type="button"
                     onClick={() => setFixedDollarRisk(amt)}
-                    className={`flex-1 py-1 text-[11px] font-mono rounded-lg transition cursor-pointer ${
+                    className={`flex-1 min-w-[48px] sm:min-w-0 py-1 text-[11px] font-mono rounded-lg transition cursor-pointer whitespace-nowrap text-center ${
                       fixedDollarRisk === amt
                         ? 'bg-[#78350f] text-white shadow-xs font-bold'
                         : 'bg-white text-[#7d695b] hover:text-[#281d16] border border-[#e2d8cb]'
@@ -584,8 +585,12 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
                     </>
                   ) : (
                     <>
-                      <Copy className="w-3.5 h-3.5 text-[#78350f]" />
-                      <span>Copy Quantity ({formatQuantity(calcResult.positionSize, assetClass)})</span>
+                      <Copy className="w-3.5 h-3.5 text-[#78350f] shrink-0" />
+                      <span>
+                        <span className="hidden sm:inline">Copy Quantity </span>
+                        <span className="sm:hidden">Copy </span>
+                        ({formatQuantity(calcResult.positionSize, assetClass)})
+                      </span>
                     </>
                   )}
                 </button>

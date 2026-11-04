@@ -208,93 +208,97 @@ export const MonthlyTargetTracker: React.FC<MonthlyTargetTrackerProps> = ({
   }, [isTargetAchieved, isCurrentMonth, selectedMonth]);
 
   return (
-    <div className="bg-white border border-[#e8dfd5] rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
+    <div className="bg-white border border-[#e8dfd5] rounded-2xl p-3.5 sm:p-5 shadow-xs space-y-3.5 sm:space-y-4">
       {/* Header Bar: Title, Month Selector, and Target Configuration */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#ede6dc] pb-3.5">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-[#f5ede4] text-[#78350f] rounded-xl border border-[#debfa8]">
-            <Target className="w-5 h-5 text-[#78350f]" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#ede6dc] pb-3.5">
+        <div className="flex items-start sm:items-center gap-2.5 sm:gap-3">
+          <div className="p-2 sm:p-2.5 bg-[#f5ede4] text-[#78350f] rounded-xl border border-[#debfa8] shrink-0">
+            <Target className="w-4 h-4 sm:w-5 sm:h-5 text-[#78350f]" />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-bold text-[#281d16] uppercase tracking-wider">
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+              <h3 className="text-xs sm:text-sm font-bold text-[#281d16] uppercase tracking-wider">
                 Monthly P&amp;L Target
               </h3>
               {isTargetAchieved ? (
-                <span className="px-2 py-0.5 rounded-full bg-[#edf7ed] text-[#1e6b37] text-[10px] font-mono font-bold border border-[#c3e6cb] flex items-center gap-1">
+                <span className="px-2 py-0.5 rounded-full bg-[#edf7ed] text-[#1e6b37] text-[10px] font-mono font-bold border border-[#c3e6cb] flex items-center gap-1 shrink-0">
                   <CheckCircle2 className="w-3 h-3 text-[#1e6b37]" />
-                  <span>GOAL ACHIEVED</span>
+                  <span>ACHIEVED</span>
                 </span>
               ) : monthNetPnL < 0 ? (
-                <span className="px-2 py-0.5 rounded-full bg-[#fef2f2] text-[#b93829] text-[10px] font-mono font-bold border border-[#fecaca]">
+                <span className="px-2 py-0.5 rounded-full bg-[#fef2f2] text-[#b93829] text-[10px] font-mono font-bold border border-[#fecaca] shrink-0">
                   DRAWDOWN
                 </span>
               ) : (
-                <span className="px-2 py-0.5 rounded-full bg-[#fcfaf7] text-[#78350f] text-[10px] font-mono font-bold border border-[#e8dfd5]">
+                <span className="px-2 py-0.5 rounded-full bg-[#fcfaf7] text-[#78350f] text-[10px] font-mono font-bold border border-[#e8dfd5] shrink-0">
                   IN PROGRESS
                 </span>
               )}
             </div>
-            <p className="text-xs text-[#7d695b] mt-0.5">
+            <p className="text-[11px] sm:text-xs text-[#7d695b] mt-0.5 line-clamp-1">
               Goal tracking, monthly run-rate pacing, and execution discipline.
             </p>
           </div>
         </div>
 
         {/* Month Navigation & Edit Target Action */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center justify-between sm:justify-end gap-2 flex-wrap w-full sm:w-auto pt-1 sm:pt-0">
           {/* Month Switcher */}
-          <div className="flex items-center bg-[#fcfaf7] border border-[#e8dfd5] rounded-xl p-0.5 text-xs font-mono">
+          <div className="flex items-center bg-[#fcfaf7] border border-[#e8dfd5] rounded-xl p-0.5 text-xs font-mono flex-1 sm:flex-initial justify-between sm:justify-start">
             <button
               onClick={handlePrevMonth}
               className="p-1.5 text-[#7d695b] hover:text-[#281d16] hover:bg-[#ede6dc] rounded-lg transition cursor-pointer"
               title="Previous Month"
+              aria-label="Previous Month"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
             </button>
-            <span className="px-2.5 py-1 text-xs font-semibold text-[#281d16] min-w-[120px] text-center">
+            <span className="px-2 py-1 text-xs font-semibold text-[#281d16] text-center truncate">
               {monthDisplayLabel}
             </span>
             <button
               onClick={handleNextMonth}
               className="p-1.5 text-[#7d695b] hover:text-[#281d16] hover:bg-[#ede6dc] rounded-lg transition cursor-pointer"
               title="Next Month"
+              aria-label="Next Month"
             >
               <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
 
-          {!isCurrentMonth && (
-            <button
-              onClick={handleResetToCurrentMonth}
-              className="px-2.5 py-1 text-[11px] font-mono text-[#78350f] bg-[#f5ede4] hover:bg-[#ede1d3] border border-[#debfa8] rounded-xl transition cursor-pointer"
-            >
-              Current Month
-            </button>
-          )}
+          <div className="flex items-center gap-1.5">
+            {!isCurrentMonth && (
+              <button
+                onClick={handleResetToCurrentMonth}
+                className="px-2.5 py-1.5 text-[11px] font-mono text-[#78350f] bg-[#f5ede4] hover:bg-[#ede1d3] border border-[#debfa8] rounded-xl transition cursor-pointer shrink-0"
+              >
+                Current
+              </button>
+            )}
 
-          {/* Edit Target Button */}
-          {!isEditing ? (
-            <button
-              onClick={() => {
-                setTempType(targetType);
-                setTempValue(String(targetValue));
-                setIsEditing(true);
-              }}
-              className="px-3 py-1.5 bg-[#fcfaf7] hover:bg-[#f5ede4] text-[#78350f] border border-[#debfa8] rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
-            >
-              <Edit2 className="w-3 h-3 text-[#78350f]" />
-              <span>Set Target</span>
-            </button>
-          ) : (
-            <button
-              onClick={() => setIsEditing(false)}
-              className="p-1.5 text-[#7d695b] hover:text-[#281d16] bg-[#fcfaf7] rounded-xl border border-[#e8dfd5] transition cursor-pointer"
-              title="Cancel Edit"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
+            {/* Edit Target Button */}
+            {!isEditing ? (
+              <button
+                onClick={() => {
+                  setTempType(targetType);
+                  setTempValue(String(targetValue));
+                  setIsEditing(true);
+                }}
+                className="px-3 py-1.5 bg-[#fcfaf7] hover:bg-[#f5ede4] text-[#78350f] border border-[#debfa8] rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shrink-0"
+              >
+                <Edit2 className="w-3 h-3 text-[#78350f]" />
+                <span>Set Target</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => setIsEditing(false)}
+                className="p-1.5 text-[#7d695b] hover:text-[#281d16] bg-[#fcfaf7] rounded-xl border border-[#e8dfd5] transition cursor-pointer shrink-0"
+                title="Cancel Edit"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -407,22 +411,24 @@ export const MonthlyTargetTracker: React.FC<MonthlyTargetTrackerProps> = ({
 
       {/* Progress Bar & Numerical Target Gauge */}
       <div className="space-y-2">
-        <div className="flex flex-wrap items-baseline justify-between gap-2 text-xs">
-          <div className="flex items-baseline gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1.5 text-xs">
+          <div className="flex items-center justify-between sm:justify-start gap-2 flex-wrap">
             <span className="text-xs text-[#7d695b] font-medium">Realized Net Profit:</span>
-            <span
-              className={`text-xl sm:text-2xl font-extrabold font-mono tracking-tight ${
-                monthNetPnL >= 0 ? 'text-[#1e6b37]' : 'text-[#b93829]'
-              }`}
-            >
-              {monthNetPnL >= 0 ? '+' : ''}${monthNetPnL.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </span>
-            <span className="text-xs font-mono text-[#8c7462]">
-              of <strong>${effectiveTargetDollar.toLocaleString('en-US', { minimumFractionDigits: 2 })}</strong> target
-            </span>
+            <div className="flex items-baseline gap-1.5">
+              <span
+                className={`text-xl sm:text-2xl font-extrabold font-mono tracking-tight ${
+                  monthNetPnL >= 0 ? 'text-[#1e6b37]' : 'text-[#b93829]'
+                }`}
+              >
+                {monthNetPnL >= 0 ? '+' : ''}${monthNetPnL.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+              <span className="text-[11px] sm:text-xs font-mono text-[#8c7462]">
+                / <strong>${effectiveTargetDollar.toLocaleString('en-US', { minimumFractionDigits: 2 })}</strong>
+              </span>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-end gap-1.5 self-end sm:self-auto">
             <span className="text-xs font-mono font-bold text-[#78350f]">
               {progressPercent.toFixed(1)}%
             </span>
@@ -455,58 +461,58 @@ export const MonthlyTargetTracker: React.FC<MonthlyTargetTrackerProps> = ({
       </div>
 
       {/* Target Breakdown Statistics Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2 text-xs font-mono">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5 pt-1 sm:pt-2 text-xs font-mono">
         {/* Metric 1: Remaining to Goal */}
-        <div className="p-3 bg-[#fcfaf7] rounded-xl border border-[#ede6dc]">
-          <span className="text-[#8c7462] block text-[10px] uppercase font-sans font-medium">
-            {isTargetAchieved ? 'Surplus Beyond Target' : 'Remaining to Target'}
+        <div className="p-2.5 sm:p-3 bg-[#fcfaf7] rounded-xl border border-[#ede6dc]">
+          <span className="text-[#8c7462] block text-[10px] uppercase font-sans font-medium truncate">
+            {isTargetAchieved ? 'Surplus' : 'Remaining'}
           </span>
-          <span className={`font-bold text-sm sm:text-base ${isTargetAchieved ? 'text-[#1e6b37]' : 'text-[#78350f]'}`}>
+          <span className={`font-bold text-sm sm:text-base block truncate ${isTargetAchieved ? 'text-[#1e6b37]' : 'text-[#78350f]'}`}>
             {isTargetAchieved
               ? `+$${(monthNetPnL - effectiveTargetDollar).toFixed(2)}`
               : `$${remainingDollar.toFixed(2)}`}
           </span>
-          <span className="text-[10px] text-[#8c7462] block mt-0.5 font-sans">
-            {isTargetAchieved ? 'Target surpassed!' : `${(100 - progressCapped).toFixed(1)}% remaining`}
+          <span className="text-[10px] text-[#8c7462] block mt-0.5 font-sans truncate">
+            {isTargetAchieved ? 'Target passed' : `${(100 - progressCapped).toFixed(1)}% to go`}
           </span>
         </div>
 
         {/* Metric 2: Daily Run Rate Required */}
-        <div className="p-3 bg-[#fcfaf7] rounded-xl border border-[#ede6dc]">
-          <span className="text-[#8c7462] block text-[10px] uppercase font-sans font-medium">
-            Daily Required P&amp;L
+        <div className="p-2.5 sm:p-3 bg-[#fcfaf7] rounded-xl border border-[#ede6dc]">
+          <span className="text-[#8c7462] block text-[10px] uppercase font-sans font-medium truncate">
+            Daily Run Rate
           </span>
-          <span className="font-bold text-sm sm:text-base text-[#281d16]">
-            {isTargetAchieved ? '$0.00 / day' : daysRemaining > 0 ? `$${dailyNeeded.toFixed(2)}` : 'Month Ended'}
+          <span className="font-bold text-sm sm:text-base text-[#281d16] block truncate">
+            {isTargetAchieved ? '$0.00 / day' : daysRemaining > 0 ? `$${dailyNeeded.toFixed(2)}/d` : 'Ended'}
           </span>
-          <span className="text-[10px] text-[#8c7462] block mt-0.5 font-sans">
-            {isCurrentMonth ? `${daysRemaining} days remaining` : 'Historical month'}
+          <span className="text-[10px] text-[#8c7462] block mt-0.5 font-sans truncate">
+            {isCurrentMonth ? `${daysRemaining} days left` : 'Past month'}
           </span>
         </div>
 
         {/* Metric 3: Month Executions */}
-        <div className="p-3 bg-[#fcfaf7] rounded-xl border border-[#ede6dc]">
-          <span className="text-[#8c7462] block text-[10px] uppercase font-sans font-medium">
-            Month Win Rate
+        <div className="p-2.5 sm:p-3 bg-[#fcfaf7] rounded-xl border border-[#ede6dc]">
+          <span className="text-[#8c7462] block text-[10px] uppercase font-sans font-medium truncate">
+            Win Rate
           </span>
-          <span className="font-bold text-sm sm:text-base text-[#281d16]">
+          <span className="font-bold text-sm sm:text-base text-[#281d16] block truncate">
             {winRate}%
           </span>
-          <span className="text-[10px] text-[#8c7462] block mt-0.5 font-sans">
-            {winningTrades}W • {losingTrades}L ({closedTrades.length} closed)
+          <span className="text-[10px] text-[#8c7462] block mt-0.5 font-sans truncate">
+            {winningTrades}W • {losingTrades}L ({closedTrades.length})
           </span>
         </div>
 
         {/* Metric 4: Target Return % of Capital */}
-        <div className="p-3 bg-[#fcfaf7] rounded-xl border border-[#ede6dc]">
-          <span className="text-[#8c7462] block text-[10px] uppercase font-sans font-medium">
-            Target Return %
+        <div className="p-2.5 sm:p-3 bg-[#fcfaf7] rounded-xl border border-[#ede6dc]">
+          <span className="text-[#8c7462] block text-[10px] uppercase font-sans font-medium truncate">
+            Target %
           </span>
-          <span className="font-bold text-sm sm:text-base text-[#78350f]">
+          <span className="font-bold text-sm sm:text-base text-[#78350f] block truncate">
             {effectiveTargetPct.toFixed(1)}%
           </span>
-          <span className="text-[10px] text-[#8c7462] block mt-0.5 font-sans">
-            Target mode: {targetType === 'percent' ? 'Percentage' : 'Fixed Dollar'}
+          <span className="text-[10px] text-[#8c7462] block mt-0.5 font-sans truncate">
+            {targetType === 'percent' ? 'Return target' : 'Dollar target'}
           </span>
         </div>
       </div>

@@ -273,9 +273,9 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ trades, stats }) =
             <span>Streaks</span>
             <Zap className="w-4 h-4 text-[#b45309]" />
           </div>
-          <div className="text-xl font-bold font-mono text-[#281d16]">
+          <div className="text-lg sm:text-xl font-bold font-mono text-[#281d16] flex items-center flex-wrap gap-x-1.5 sm:gap-x-2">
             <span className="text-[#1e6b37]">{stats.largestWinStreak}W Max</span>
-            <span className="text-[#8c7462] mx-2">•</span>
+            <span className="text-[#8c7462]">•</span>
             <span className="text-[#b93829]">{stats.largestLossStreak}L Max</span>
           </div>
           <p className="text-[11px] text-[#8c7462] mt-1">

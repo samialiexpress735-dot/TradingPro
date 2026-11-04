@@ -59,50 +59,50 @@ export const Dashboard: React.FC<DashboardProps> = ({
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Top Welcome & Quick Actions Bar */}
-      <div className="bg-white border border-[#e8dfd5] rounded-2xl p-4 sm:p-5 shadow-xs flex flex-wrap items-center justify-between gap-3 sm:gap-4">
+      <div className="bg-white border border-[#e8dfd5] rounded-2xl p-3.5 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-lg sm:text-xl font-bold text-[#281d16] tracking-tight">Trading Dashboard &amp; P&amp;L</h1>
+            <h1 className="text-base sm:text-xl font-bold text-[#281d16] tracking-tight">Trading Dashboard &amp; P&amp;L</h1>
             <span className="px-2 py-0.5 rounded-full bg-[#edf7ed] text-[#1e6b37] text-[10px] font-mono border border-[#c3e6cb] font-bold">
               LIVE
             </span>
           </div>
-          <p className="text-xs text-[#7d695b] mt-0.5 sm:mt-1">
+          <p className="text-[11px] sm:text-xs text-[#7d695b] mt-0.5 sm:mt-1">
             Realized performance across all accounts and execution strategies.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
+        <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
           <button
             onClick={() => onNavigateToTab('review')}
-            className="px-3 py-1.5 sm:py-2 bg-[#fcfaf7] hover:bg-[#f6efe6] text-[#78350f] text-xs font-semibold rounded-xl border border-[#debfa8] flex items-center gap-1.5 transition cursor-pointer"
+            className="px-2.5 sm:px-3 py-1.5 sm:py-2 bg-[#fcfaf7] hover:bg-[#f6efe6] text-[#78350f] text-xs font-semibold rounded-xl border border-[#debfa8] flex items-center justify-center gap-1.5 transition cursor-pointer"
           >
-            <CalendarCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#78350f]" />
-            <span>Daily Debrief</span>
+            <CalendarCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#78350f] shrink-0" />
+            <span className="truncate">Daily Debrief</span>
           </button>
 
           <button
             onClick={onOpenChecklist}
-            className="px-3 py-1.5 sm:py-2 bg-[#faf7f2] hover:bg-[#f2ece2] text-[#4a3b32] text-xs font-semibold rounded-xl border border-[#e2d8cb] flex items-center gap-1.5 transition cursor-pointer"
+            className="px-2.5 sm:px-3 py-1.5 sm:py-2 bg-[#faf7f2] hover:bg-[#f2ece2] text-[#4a3b32] text-xs font-semibold rounded-xl border border-[#e2d8cb] flex items-center justify-center gap-1.5 transition cursor-pointer"
           >
-            <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#1e6b37]" />
-            <span className="hidden sm:inline">Pre-Trade </span><span>Checklist</span>
+            <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#1e6b37] shrink-0" />
+            <span className="truncate">Checklist</span>
           </button>
 
           <button
             onClick={() => onNavigateToTab('calculator')}
-            className="px-3 py-1.5 sm:py-2 bg-[#f5ede4] hover:bg-[#ede1d3] text-[#78350f] text-xs font-semibold rounded-xl border border-[#debfa8] flex items-center gap-1.5 transition cursor-pointer"
+            className="px-2.5 sm:px-3 py-1.5 sm:py-2 bg-[#f5ede4] hover:bg-[#ede1d3] text-[#78350f] text-xs font-semibold rounded-xl border border-[#debfa8] flex items-center justify-center gap-1.5 transition cursor-pointer"
           >
-            <Target className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            <span>Risk Sizer</span>
+            <Target className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="truncate">Risk Sizer</span>
           </button>
 
           <button
             onClick={onAddTrade}
-            className="px-3.5 sm:px-4 py-1.5 sm:py-2 bg-[#78350f] hover:bg-[#632909] text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition shadow-xs cursor-pointer"
+            className="px-3 sm:px-4 py-1.5 sm:py-2 bg-[#78350f] hover:bg-[#632909] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition shadow-xs cursor-pointer"
           >
-            <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            <span>Log Trade</span>
+            <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="truncate">Log Trade</span>
           </button>
         </div>
       </div>
@@ -230,15 +230,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* Right: Recent Trades Quick Stream */}
         <div className="lg:col-span-5 bg-white border border-[#e8dfd5] rounded-2xl p-5 shadow-xs flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between border-b border-[#ede6dc] pb-3 mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#ede6dc] pb-3 mb-4">
               <h3 className="text-xs font-bold uppercase tracking-wider text-[#634832]">
                 Recent Executions
               </h3>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 {onOpenBinanceSync && (
                   <button
                     onClick={onOpenBinanceSync}
-                    className="px-2 py-0.5 text-xs font-bold bg-[#fef3c7] hover:bg-[#fde68a] text-[#92400e] border border-[#fde68a] rounded-lg transition cursor-pointer flex items-center gap-1 shadow-xs"
+                    className="px-2 py-0.5 text-xs font-bold bg-[#fef3c7] hover:bg-[#fde68a] text-[#92400e] border border-[#fde68a] rounded-lg transition cursor-pointer flex items-center gap-1 shadow-xs shrink-0"
                     title="Import or sync from Binance"
                   >
                     <Zap className="w-3 h-3 fill-[#d97706]" />
@@ -247,9 +247,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 )}
                 <button
                   onClick={() => onNavigateToTab('journal')}
-                  className="text-xs text-[#78350f] hover:text-[#50230a] flex items-center gap-1 font-semibold transition cursor-pointer"
+                  className="text-xs text-[#78350f] hover:text-[#50230a] flex items-center gap-1 font-semibold transition cursor-pointer shrink-0"
                 >
-                  <span>View Full Journal</span>
+                  <span>
+                    <span className="hidden sm:inline">View Full </span>Journal
+                  </span>
                   <ArrowRight className="w-3 h-3" />
                 </button>
               </div>

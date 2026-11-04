@@ -126,7 +126,7 @@ export const UserMenu: React.FC<UserMenuProps> = ({
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-64 bg-white border border-[#ddcfbf] rounded-2xl shadow-xl z-50 p-2 text-xs divide-y divide-[#ede6dc] animate-fade-in">
+        <div className="absolute right-0 mt-2 w-64 max-w-[calc(100vw-1.5rem)] bg-white border border-[#ddcfbf] rounded-2xl shadow-xl z-50 p-2 text-xs divide-y divide-[#ede6dc] animate-fade-in">
           {/* User Info */}
           <div className="p-3">
             <div className="font-bold text-[#281d16] text-sm truncate">{displayName}</div>

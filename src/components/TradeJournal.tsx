@@ -206,48 +206,48 @@ export const TradeJournal: React.FC<TradeJournalProps> = ({
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="grid grid-cols-2 sm:flex sm:items-center gap-1.5 sm:gap-2 w-full sm:w-auto">
             {onOpenBinanceSync && (
               <button
                 onClick={onOpenBinanceSync}
-                className="px-2.5 sm:px-3 py-1.5 sm:py-2 bg-[#fef3c7] hover:bg-[#fde68a] text-[#92400e] text-xs font-bold rounded-xl border border-[#fde68a] flex items-center gap-1.5 transition cursor-pointer shadow-xs"
+                className="px-2.5 sm:px-3 py-1.5 sm:py-2 bg-[#fef3c7] hover:bg-[#fde68a] text-[#92400e] text-xs font-bold rounded-xl border border-[#fde68a] flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs"
                 title="Automated Binance Spot &amp; Futures Import"
               >
-                <Zap className="w-3.5 h-3.5 fill-[#d97706]" />
-                <span>Sync Binance</span>
+                <Zap className="w-3.5 h-3.5 fill-[#d97706] shrink-0" />
+                <span className="truncate">Sync Binance</span>
               </button>
             )}
 
             <button
               onClick={() => setIsCsvModalOpen(true)}
-              className="px-2.5 sm:px-3 py-1.5 sm:py-2 bg-[#faf7f2] hover:bg-[#f2ece2] text-[#78350f] text-xs font-semibold rounded-xl border border-[#debfa8] flex items-center gap-1.5 transition cursor-pointer"
+              className="px-2.5 sm:px-3 py-1.5 sm:py-2 bg-[#faf7f2] hover:bg-[#f2ece2] text-[#78350f] text-xs font-semibold rounded-xl border border-[#debfa8] flex items-center justify-center gap-1.5 transition cursor-pointer"
               title="Import trades from broker CSV or statements"
             >
-              <Upload className="w-3.5 h-3.5" />
-              <span>Import Statement</span>
+              <Upload className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">Import CSV</span>
             </button>
 
             <button
               onClick={handleExportCsv}
-              className="px-2.5 sm:px-3 py-1.5 sm:py-2 bg-[#faf7f2] hover:bg-[#f2ece2] text-[#4a3b32] text-xs font-medium rounded-xl border border-[#e2d8cb] flex items-center gap-1.5 transition cursor-pointer"
+              className="px-2.5 sm:px-3 py-1.5 sm:py-2 bg-[#faf7f2] hover:bg-[#f2ece2] text-[#4a3b32] text-xs font-medium rounded-xl border border-[#e2d8cb] flex items-center justify-center gap-1.5 transition cursor-pointer"
               title="Export all trades to CSV"
             >
-              <Download className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Export </span><span>CSV</span>
+              <Download className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">Export CSV</span>
             </button>
 
             <button
               onClick={onAddTrade}
-              className="px-3.5 sm:px-4 py-1.5 sm:py-2 bg-[#78350f] hover:bg-[#632909] text-white text-xs font-bold rounded-xl shadow-xs flex items-center gap-1.5 transition cursor-pointer"
+              className="px-3 sm:px-4 py-1.5 sm:py-2 bg-[#78350f] hover:bg-[#632909] text-white text-xs font-bold rounded-xl shadow-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
             >
-              <Plus className="w-4 h-4" />
-              <span>Log Trade</span>
+              <Plus className="w-4 h-4 shrink-0" />
+              <span className="truncate">Log Trade</span>
             </button>
           </div>
         </div>
 
         {/* Filter Dropdowns row */}
-        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 pt-2 border-t border-[#ede6dc] text-xs">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-1.5 sm:gap-2 pt-2 border-t border-[#ede6dc] text-xs">
           <span className="text-[#8c7462] font-mono text-[10px] sm:text-[11px] flex items-center gap-1 mr-0.5">
             <Filter className="w-3 h-3" /> Filters:
           </span>

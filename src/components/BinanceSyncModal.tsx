@@ -157,29 +157,29 @@ export const BinanceSyncModal: React.FC<BinanceSyncModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/60 backdrop-blur-xs animate-fade-in">
       <div className="bg-[#fcfaf7] border border-[#d8c7b5] rounded-3xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Modal Header */}
-        <div className="bg-[#f4ebe1] px-6 py-4 border-b border-[#e2d4c3] flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#f3ba2f] via-[#e2a21a] to-[#c78b0f] flex items-center justify-center shadow-md">
-              <Zap className="w-5 h-5 text-white stroke-[2.5]" />
+        <div className="bg-[#f4ebe1] px-4 sm:px-6 py-3 sm:py-4 border-b border-[#e2d4c3] flex items-center justify-between">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-tr from-[#f3ba2f] via-[#e2a21a] to-[#c78b0f] flex items-center justify-center shadow-md shrink-0">
+              <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-white stroke-[2.5]" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-extrabold text-[#281d16] text-base tracking-tight">Binance &amp; Crypto Sync</h3>
-                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-[#fef3c7] text-[#92400e] rounded-full border border-[#fde68a]">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                <h3 className="font-extrabold text-[#281d16] text-sm sm:text-base tracking-tight truncate">Binance &amp; Crypto Sync</h3>
+                <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider px-1.5 sm:px-2 py-0.5 bg-[#fef3c7] text-[#92400e] rounded-full border border-[#fde68a] shrink-0">
                   SPOT &amp; FUTURES
                 </span>
-                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-[#e0f2fe] text-[#0369a1] rounded-full border border-[#bae6fd]">
-                  8-DECIMAL PRECISION
+                <span className="hidden sm:inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-[#e0f2fe] text-[#0369a1] rounded-full border border-[#bae6fd] shrink-0">
+                  8-DECIMAL
                 </span>
               </div>
-              <p className="text-xs text-[#7d695b]">
+              <p className="text-[11px] sm:text-xs text-[#7d695b] line-clamp-1">
                 Automated trade import with Satoshi precision and Supabase cloud sync
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-[#7d695b] hover:text-[#281d16] hover:bg-[#ede6dc] rounded-xl transition cursor-pointer"
+            className="p-1.5 text-[#7d695b] hover:text-[#281d16] hover:bg-[#ede6dc] rounded-xl transition cursor-pointer shrink-0 ml-2"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
@@ -187,42 +187,42 @@ export const BinanceSyncModal: React.FC<BinanceSyncModalProps> = ({
         </div>
 
         {/* Security Reassurance Banner */}
-        <div className="bg-[#f8ede3]/70 px-6 py-2 border-b border-[#e8d7c4] flex items-center justify-between text-[11px] text-[#78350f]">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-[#16a34a]" />
-            <span className="font-medium">Client-Side Secure Parser: Your trade data is encrypted &amp; stored directly in your private Supabase account.</span>
+        <div className="bg-[#f8ede3]/70 px-4 sm:px-6 py-2 border-b border-[#e8d7c4] flex items-center justify-between text-[11px] text-[#78350f]">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#16a34a] shrink-0" />
+            <span className="font-medium line-clamp-1 sm:line-clamp-none">Client-Side Secure: Encrypted &amp; stored directly in your Supabase account.</span>
           </div>
-          <span className="font-mono font-bold hidden sm:inline text-[#281d16]">
-            {existingTrades.length} Existing Journal Trades
+          <span className="font-mono font-bold hidden sm:inline text-[#281d16] shrink-0 ml-2">
+            {existingTrades.length} Trades
           </span>
         </div>
 
         {/* Tab Navigation */}
-        <div className="px-6 pt-4 bg-[#fcfaf7]">
+        <div className="px-4 sm:px-6 pt-3 sm:pt-4 bg-[#fcfaf7]">
           <div className="grid grid-cols-2 p-1 bg-[#ede6dc] rounded-2xl border border-[#ddcfbf]">
             <button
               type="button"
               onClick={() => setActiveTab('csv')}
-              className={`py-2 text-xs font-bold rounded-xl transition cursor-pointer flex items-center justify-center gap-2 ${
+              className={`py-1.5 sm:py-2 text-xs font-bold rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2 ${
                 activeTab === 'csv'
                   ? 'bg-white text-[#281d16] shadow-sm'
                   : 'text-[#7d695b] hover:text-[#281d16]'
               }`}
             >
-              <FileSpreadsheet className="w-4 h-4 text-[#78350f]" />
-              <span>Binance CSV Import</span>
+              <FileSpreadsheet className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#78350f] shrink-0" />
+              <span className="truncate">CSV Import</span>
             </button>
             <button
               type="button"
               onClick={() => setActiveTab('api')}
-              className={`py-2 text-xs font-bold rounded-xl transition cursor-pointer flex items-center justify-center gap-2 ${
+              className={`py-1.5 sm:py-2 text-xs font-bold rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2 ${
                 activeTab === 'api'
                   ? 'bg-white text-[#281d16] shadow-sm'
                   : 'text-[#7d695b] hover:text-[#281d16]'
               }`}
             >
-              <Key className="w-4 h-4 text-[#d97706]" />
-              <span>Read-Only API Sync</span>
+              <Key className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#d97706] shrink-0" />
+              <span className="truncate">API Sync</span>
             </button>
           </div>
         </div>
