@@ -39,6 +39,7 @@ interface TradeJournalProps {
   onDuplicateTrade: (trade: Trade) => void;
   onImportCsv: (trades: Trade[]) => void;
   onOpenBinanceSync?: () => void;
+  initialFilterMistake?: string;
 }
 
 export const TradeJournal: React.FC<TradeJournalProps> = ({
@@ -50,12 +51,14 @@ export const TradeJournal: React.FC<TradeJournalProps> = ({
   onDuplicateTrade,
   onImportCsv,
   onOpenBinanceSync,
+  initialFilterMistake,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAsset, setSelectedAsset] = useState<string>('all');
   const [selectedOutcome, setSelectedOutcome] = useState<string>('all');
   const [selectedStrategy, setSelectedStrategy] = useState<string>('all');
   const [selectedEmotion, setSelectedEmotion] = useState<string>('all');
+  const [selectedMistake, setSelectedMistake] = useState<string>(initialFilterMistake || 'all');
   const [sortField, setSortField] = useState<'date' | 'netPnl' | 'roi' | 'realizedRR'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [expandedTradeId, setExpandedTradeId] = useState<string | null>(null);
@@ -76,8 +79,12 @@ export const TradeJournal: React.FC<TradeJournalProps> = ({
         const matchesOutcome = selectedOutcome === 'all' || trade.outcome === selectedOutcome;
         const matchesStrategy = selectedStrategy === 'all' || trade.strategy === selectedStrategy;
         const matchesEmotion = selectedEmotion === 'all' || trade.emotion === selectedEmotion;
+        const matchesMistake =
+          selectedMistake === 'all' ||
+          trade.mistake === selectedMistake ||
+          (selectedMistake === 'Rule Breakers' && trade.mistake && trade.mistake !== 'Followed Plan');
 
-        return matchesSearch && matchesAsset && matchesOutcome && matchesStrategy && matchesEmotion;
+        return matchesSearch && matchesAsset && matchesOutcome && matchesStrategy && matchesEmotion && matchesMistake;
       })
       .sort((a, b) => {
         let diff = 0;
@@ -94,7 +101,7 @@ export const TradeJournal: React.FC<TradeJournalProps> = ({
         }
         return sortOrder === 'desc' ? -diff : diff;
       });
-  }, [trades, searchTerm, selectedAsset, selectedOutcome, selectedStrategy, selectedEmotion, sortField, sortOrder]);
+  }, [trades, searchTerm, selectedAsset, selectedOutcome, selectedStrategy, selectedEmotion, selectedMistake, sortField, sortOrder]);
 
   // Quick statistics for current filtered view
   const filteredStats = useMemo(() => {
@@ -306,6 +313,31 @@ export const TradeJournal: React.FC<TradeJournalProps> = ({
             <option value="Revenge">Revenge</option>
             <option value="Hesitant">Hesitant</option>
             <option value="Greedy">Greedy</option>
+          </select>
+
+          {/* Rule / Mistake filter */}
+          <select
+            value={selectedMistake}
+            onChange={(e) => setSelectedMistake(e.target.value)}
+            className={`border rounded-xl px-2 py-1 sm:px-2.5 sm:py-1.5 text-xs focus:outline-none ${
+              selectedMistake !== 'all'
+                ? 'bg-amber-50 border-amber-400 text-amber-900 font-bold'
+                : 'bg-[#fcfaf7] border-[#e8dfd5] text-[#4a3b32] focus:border-[#78350f]'
+            }`}
+          >
+            <option value="all">All Rules / Mistakes</option>
+            <option value="Rule Breakers">⚠️ Any Rule Violated</option>
+            <option value="Followed Plan">✅ Followed Plan</option>
+            <option value="Chased Entry">Chased Entry</option>
+            <option value="Moved Stop Loss">Moved Stop Loss</option>
+            <option value="Exited Too Early">Exited Too Early</option>
+            <option value="Held Loser Too Long">Held Loser Too Long</option>
+            <option value="Overleveraged">Overleveraged</option>
+            <option value="Ignored HTF Trend">Ignored HTF Trend</option>
+            <option value="News Gamble">News Gamble</option>
+            <option value="No Stop Loss">No Stop Loss</option>
+            <option value="Revenge Trade">Revenge Trade</option>
+            <option value="Flipped Bias">Flipped Bias</option>
           </select>
 
           {/* Summary badge for current filter */}

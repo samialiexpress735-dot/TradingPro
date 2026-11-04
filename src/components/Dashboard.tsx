@@ -3,6 +3,7 @@ import { Trade, PerformanceStats, EquityPoint } from '../types/trade';
 import { EquityChart } from './EquityChart';
 import { CalendarHeatmap } from './CalendarHeatmap';
 import { MonthlyTargetTracker } from './MonthlyTargetTracker';
+import { DisciplineLeakCard } from './DisciplineLeakCard';
 import { formatPnL } from '../utils/formatters';
 import {
   TrendingUp,
@@ -31,7 +32,8 @@ interface DashboardProps {
   onTargetChange?: (type: 'dollar' | 'percent', val: number) => void;
   onAddTrade: () => void;
   onOpenChecklist: () => void;
-  onNavigateToTab: (tab: 'journal' | 'review' | 'calculator' | 'playbook' | 'analytics' | 'news') => void;
+  onNavigateToTab: (tab: 'dashboard' | 'journal' | 'review' | 'calculator' | 'playbook' | 'analytics' | 'news') => void;
+  onNavigateToJournalWithFilter?: (filterMistake: string) => void;
   onSelectDate: (date: string) => void;
   onLoadDemoTrades?: () => void;
   onOpenBinanceSync?: () => void;
@@ -49,6 +51,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onAddTrade,
   onOpenChecklist,
   onNavigateToTab,
+  onNavigateToJournalWithFilter,
   onSelectDate,
   onLoadDemoTrades,
   onOpenBinanceSync,
@@ -219,6 +222,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       {/* Main Row: Equity Curve Chart */}
       <EquityChart data={equityData} startingBalance={startingBalance} />
+
+      {/* Execution Leaks & Behavioral Cost Analysis */}
+      <DisciplineLeakCard
+        trades={trades}
+        onNavigateToTab={onNavigateToTab}
+        onNavigateToJournalWithFilter={onNavigateToJournalWithFilter}
+      />
 
       {/* Row: Calendar Heatmap and Recent Trades side-by-side */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

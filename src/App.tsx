@@ -29,6 +29,7 @@ import { RiskCalculator } from './components/RiskCalculator';
 import { StrategyPlaybook } from './components/StrategyPlaybook';
 import { AnalyticsView } from './components/AnalyticsView';
 import { MarketNewsView } from './components/MarketNewsView';
+import { MarketPulseBar } from './components/MarketPulseBar';
 import { DailyReviewView } from './components/DailyReviewView';
 import { TradeModal } from './components/TradeModal';
 import { PreTradeChecklistModal } from './components/PreTradeChecklistModal';
@@ -41,6 +42,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<
     'dashboard' | 'journal' | 'review' | 'calculator' | 'playbook' | 'analytics' | 'news'
   >('dashboard');
+  const [journalMistakeFilter, setJournalMistakeFilter] = useState<string>('all');
 
   // Supabase / Multi-device Auth & Cloud Sync state
   const [user, setUser] = useState<any | null>(null);
@@ -399,6 +401,9 @@ export default function App() {
         onLoadDemoTrades={handleLoadDemoTrades}
       />
 
+      {/* Global Market Pulse & Binance Perpetual Ticker Bar */}
+      <MarketPulseBar onNavigateToTab={setActiveTab} />
+
       {/* Main View Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 lg:p-8">
         {activeTab === 'dashboard' && (
@@ -415,6 +420,10 @@ export default function App() {
             onOpenChecklist={() => setIsChecklistOpen(true)}
             onOpenBinanceSync={() => setIsBinanceModalOpen(true)}
             onNavigateToTab={setActiveTab}
+            onNavigateToJournalWithFilter={(mistake) => {
+              setJournalMistakeFilter(mistake);
+              setActiveTab('journal');
+            }}
             onSelectDate={() => setActiveTab('journal')}
             onLoadDemoTrades={trades.length === 0 ? handleLoadDemoTrades : undefined}
           />
@@ -430,6 +439,7 @@ export default function App() {
             onDuplicateTrade={handleDuplicateTrade}
             onImportCsv={handleImportCsv}
             onOpenBinanceSync={() => setIsBinanceModalOpen(true)}
+            initialFilterMistake={journalMistakeFilter}
           />
         )}
 
