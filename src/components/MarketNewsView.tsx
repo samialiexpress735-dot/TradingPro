@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   Radio,
   Flame,
@@ -19,6 +19,9 @@ import {
   ShieldCheck,
   CheckCircle2,
   Info,
+  Pause,
+  Play,
+  Bell,
 } from 'lucide-react';
 import { Trade } from '../types/trade';
 import {
@@ -61,7 +64,63 @@ export const MarketNewsView: React.FC<MarketNewsViewProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'crypto' | 'macro' | 'equities' | 'forex'>('all');
   const [selectedImpact, setSelectedImpact] = useState<'all' | 'HIGH' | 'MEDIUM' | 'LOW'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [expandedId, setExpandedId] = useState<string | null>('news-1');
+  const [expandedId, setExpandedId] = useState<string | null>('news-live-1');
+
+  // Continuous Live Auto-Update Streaming State
+  const [isLiveStreaming, setIsLiveStreaming] = useState(true);
+  const [secondsUntilNextPoll, setSecondsUntilNextPoll] = useState(30);
+  const [isFetchingFeed, setIsFetchingFeed] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<string>('Live Connected');
+  const [breakingNotice, setBreakingNotice] = useState<string | null>(null);
+
+  // Fetch live market feed from server
+  const fetchLiveCatalysts = useCallback(async (isManual = false) => {
+    setIsFetchingFeed(true);
+    try {
+      const res = await fetch('/api/news/feed');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.catalysts && Array.isArray(data.catalysts)) {
+          setCatalysts((prev) => {
+            // Check if top headline is new
+            if (prev.length > 0 && data.catalysts.length > 0 && prev[0].id !== data.catalysts[0].id) {
+              setBreakingNotice(data.catalysts[0].headline);
+            }
+            return data.catalysts;
+          });
+          const timeStr = new Date().toISOString().substring(11, 19) + ' UTC';
+          setLastUpdated(`Synced ${timeStr}`);
+        }
+      }
+    } catch (e) {
+      console.warn('Could not refresh live news feed:', e);
+    } finally {
+      setIsFetchingFeed(false);
+      setSecondsUntilNextPoll(30);
+    }
+  }, []);
+
+  // Fetch on mount
+  useEffect(() => {
+    fetchLiveCatalysts();
+  }, [fetchLiveCatalysts]);
+
+  // Continuous 1-second interval countdown for live streaming
+  useEffect(() => {
+    if (!isLiveStreaming) return;
+
+    const interval = setInterval(() => {
+      setSecondsUntilNextPoll((prev) => {
+        if (prev <= 1) {
+          fetchLiveCatalysts();
+          return 30;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isLiveStreaming, fetchLiveCatalysts]);
 
   // AI Analyzer State
   const [customHeadline, setCustomHeadline] = useState('');
@@ -249,6 +308,117 @@ export const MarketNewsView: React.FC<MarketNewsViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Continuous Live Radar & Auto-Update Control Ribbon */}
+      <div className="bg-white border border-[#e8dfd5] rounded-xl p-3 sm:p-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        {/* Left: Streaming Status & Countdown */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-3 w-3">
+              <span
+                className={`absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                  isLiveStreaming ? 'bg-emerald-400 animate-ping' : 'bg-amber-400'
+                }`}
+              />
+              <span
+                className={`relative inline-flex rounded-full h-3 w-3 ${
+                  isLiveStreaming ? 'bg-emerald-500' : 'bg-amber-500'
+                }`}
+              />
+            </span>
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-[#281d16]">
+                <span>{isLiveStreaming ? 'Live Market Radar Active' : 'Live Stream Paused'}</span>
+                <span className="text-[#8c7462]">·</span>
+                <span className="text-[10px] font-mono text-[#78350f] font-semibold">
+                  {isLiveStreaming ? `Auto-updating in ${secondsUntilNextPoll}s` : 'Paused'}
+                </span>
+              </div>
+              <div className="text-[10px] text-[#8c7462] font-mono">
+                {lastUpdated}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right: Controls (Pause/Resume, Manual Refresh) */}
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          {/* Progress bar pill */}
+          {isLiveStreaming && (
+            <div className="hidden md:flex items-center gap-1.5 w-24 bg-[#ede6dc] h-2 rounded-full overflow-hidden">
+              <div
+                className="bg-[#1e6b37] h-full transition-all duration-1000 ease-linear rounded-full"
+                style={{ width: `${((30 - secondsUntilNextPoll) / 30) * 100}%` }}
+              />
+            </div>
+          )}
+
+          <button
+            onClick={() => setIsLiveStreaming(!isLiveStreaming)}
+            className="px-2.5 py-1.5 bg-[#fcfaf7] hover:bg-[#f5ede4] text-[#6b4e3d] border border-[#dac6b3] text-xs font-semibold rounded-lg transition flex items-center gap-1 cursor-pointer"
+            title={isLiveStreaming ? 'Pause continuous auto-updates' : 'Resume continuous auto-updates'}
+          >
+            {isLiveStreaming ? (
+              <>
+                <Pause className="w-3.5 h-3.5 text-[#8c7462]" />
+                <span className="text-[11px]">Pause</span>
+              </>
+            ) : (
+              <>
+                <Play className="w-3.5 h-3.5 text-emerald-600" />
+                <span className="text-[11px]">Resume</span>
+              </>
+            )}
+          </button>
+
+          <button
+            onClick={() => fetchLiveCatalysts(true)}
+            disabled={isFetchingFeed}
+            className="px-3 py-1.5 bg-[#78350f] hover:bg-[#602908] disabled:opacity-50 text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 shadow-xs cursor-pointer"
+            title="Force immediate check for new headlines"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isFetchingFeed ? 'animate-spin' : ''}`} />
+            <span>{isFetchingFeed ? 'Polling...' : 'Refresh Now'}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Breaking News Alert Banner if new top catalyst detected */}
+      {breakingNotice && (
+        <div className="bg-[#fff8e1] border-2 border-amber-400 rounded-xl p-3 sm:p-4 flex items-center justify-between gap-3 shadow-sm animate-in fade-in duration-300">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0">
+              <Bell className="w-4 h-4 animate-bounce" />
+            </div>
+            <div className="truncate">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 block">
+                ⚡ Breaking Market Catalyst Detected Just Now
+              </span>
+              <p className="text-xs font-bold text-[#281d16] truncate">
+                "{breakingNotice}"
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              onClick={() => {
+                setBreakingNotice(null);
+                const el = document.getElementById(catalysts[0]?.id);
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }}
+              className="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-lg transition cursor-pointer"
+            >
+              View Catalyst
+            </button>
+            <button
+              onClick={() => setBreakingNotice(null)}
+              className="p-1 text-[#8c7462] hover:text-[#281d16] transition cursor-pointer"
+            >
+              <span className="text-xs font-mono">✕</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Portfolio Exposure Alert (If trader has trades in affected symbols) */}
       {matchingPortfolioAlerts.length > 0 && (
