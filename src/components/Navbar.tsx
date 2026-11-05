@@ -13,7 +13,6 @@ import {
   Sparkles,
   Radio,
   CalendarCheck,
-  Globe,
 } from 'lucide-react';
 import { PWAInstallButton } from './PWAInstallButton';
 import { UserMenu } from './UserMenu';
@@ -35,7 +34,6 @@ interface NavbarProps {
   trades: Trade[];
   onLoadDemoTrades?: () => void;
   onOpenDepositModal?: () => void;
-  onOpenMonetization?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -54,7 +52,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   trades,
   onLoadDemoTrades,
   onOpenDepositModal,
-  onOpenMonetization,
 }) => {
   const [isEditingBalance, setIsEditingBalance] = useState(false);
   const [tempBalance, setTempBalance] = useState(String(accountBalance));
@@ -193,19 +190,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             onSyncCloud={onSyncCloud}
             isSyncing={isSyncing}
             trades={trades}
-            onOpenMonetization={onOpenMonetization}
           />
-
-          {/* Google Verification & AdSense Monetization trigger */}
-          {onOpenMonetization && (
-            <button
-              onClick={onOpenMonetization}
-              className="p-1.5 sm:p-2 text-[#78350f] hover:text-[#92400e] bg-white hover:bg-[#ede6dc] rounded-xl border border-[#ddcfbf] transition hidden sm:flex items-center gap-1 shadow-xs cursor-pointer"
-              title="Google Verification & AdSense Monetization"
-            >
-              <Globe className="w-4 h-4 text-[#92400e]" />
-            </button>
-          )}
 
           {/* PWA Install Button */}
           <PWAInstallButton compact={true} />

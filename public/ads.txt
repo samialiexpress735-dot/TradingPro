@@ -1,3 +1,2 @@
 # Google AdSense Authorized Digital Sellers (ads.txt)
-# Replace ca-pub-0000000000000000 with your Google AdSense Publisher ID in TradePulse Settings
-google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0
+google.com, pub-1549023438906458, DIRECT, f08c47fec0942fa0

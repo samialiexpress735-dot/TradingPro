@@ -38,7 +38,6 @@ import { OfflineIndicator } from './components/OfflineIndicator';
 import { AuthModal } from './components/AuthModal';
 import { BinanceSyncModal } from './components/BinanceSyncModal';
 import { DepositWithdrawModal } from './components/DepositWithdrawModal';
-import { GoogleMonetizationModal } from './components/GoogleMonetizationModal';
 
 export default function App() {
   // Navigation tab state
@@ -73,16 +72,15 @@ export default function App() {
   const [editingTrade, setEditingTrade] = useState<Partial<Trade> | null>(null);
   const [isChecklistOpen, setIsChecklistOpen] = useState(false);
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
-  const [isMonetizationModalOpen, setIsMonetizationModalOpen] = useState(false);
   const [capitalTransactions, setCapitalTransactions] = useState<CapitalTransaction[]>([]);
 
   // Google Site Verification & AdSense Monetization state
   const [userSettings, setUserSettings] = useState<UserSettings | null>(null);
   const [googleSiteVerification, setGoogleSiteVerification] = useState<string>('5mo-v_3ysJIX1CEAvNmxD9xaAkMawkK9nwMQ-2O0p2o');
-  const [adSensePublisherId, setAdSensePublisherId] = useState<string>('');
+  const [adSensePublisherId, setAdSensePublisherId] = useState<string>('pub-1549023438906458');
   const [adSenseSlotId, setAdSenseSlotId] = useState<string>('');
   const [adSenseAutoAds, setAdSenseAutoAds] = useState<boolean>(true);
-  const [adSenseEnabled, setAdSenseEnabled] = useState<boolean>(false);
+  const [adSenseEnabled, setAdSenseEnabled] = useState<boolean>(true);
 
   // Helper to dynamically inject Google Search Console verification meta tag & AdSense script
   const applyMonetizationToDOM = (settings: Partial<UserSettings>) => {
@@ -502,7 +500,6 @@ export default function App() {
         trades={trades}
         onLoadDemoTrades={handleLoadDemoTrades}
         onOpenDepositModal={() => setIsDepositModalOpen(true)}
-        onOpenMonetization={() => setIsMonetizationModalOpen(true)}
       />
 
       {/* Global Market Pulse & Binance Perpetual Ticker Bar */}
@@ -534,7 +531,6 @@ export default function App() {
             adSensePublisherId={adSensePublisherId}
             adSenseSlotId={adSenseSlotId}
             adSenseEnabled={adSenseEnabled}
-            onOpenMonetization={() => setIsMonetizationModalOpen(true)}
           />
         )}
 
@@ -657,20 +653,6 @@ export default function App() {
         onApplyAdjustment={handleApplyCapitalAdjustment}
         transactions={capitalTransactions}
         onDeleteTransaction={handleDeleteCapitalTransaction}
-      />
-
-      {/* Google Site Verification & AdSense Monetization Modal */}
-      <GoogleMonetizationModal
-        isOpen={isMonetizationModalOpen}
-        onClose={() => setIsMonetizationModalOpen(false)}
-        userId={user?.id || 'default_guest'}
-        initialSettings={userSettings}
-        onSettingsSaved={(newSettings) => {
-          applyLoadedUserSettings({
-            ...userSettings,
-            ...newSettings,
-          });
-        }}
       />
 
       {/* PWA Offline Network Toast */}

@@ -19,8 +19,9 @@
       ]
     },
     "default_guest": {
-      "adSensePublisherId": "",
-      "googleSiteVerification": "5mo-v_3ysJIX1CEAvNmxD9xaAkMawkK9nwMQ-2O0p2o"
+      "adSensePublisherId": "pub-1549023438906458",
+      "googleSiteVerification": "5mo-v_3ysJIX1CEAvNmxD9xaAkMawkK9nwMQ-2O0p2o",
+      "adSenseEnabled": true
     }
   },
   "loginLogs": {}

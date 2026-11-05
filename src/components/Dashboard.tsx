@@ -44,7 +44,6 @@ interface DashboardProps {
   adSensePublisherId?: string;
   adSenseSlotId?: string;
   adSenseEnabled?: boolean;
-  onOpenMonetization?: () => void;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
@@ -67,7 +66,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
   adSensePublisherId,
   adSenseSlotId,
   adSenseEnabled,
-  onOpenMonetization,
 }) => {
   const isNetPositive = stats.netProfit >= 0;
   const recentTrades = trades.slice(0, 5);
@@ -393,10 +391,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       {/* Google AdSense Responsive Leaderboard Display Unit */}
       <AdSenseBanner
-        publisherId={adSensePublisherId}
+        publisherId={adSensePublisherId || 'pub-1549023438906458'}
         slotId={adSenseSlotId}
-        enabled={adSenseEnabled}
-        onOpenSetup={onOpenMonetization}
+        enabled={adSenseEnabled ?? true}
       />
     </div>
   );

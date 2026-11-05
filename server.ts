@@ -343,7 +343,14 @@ app.get('/api/user/settings', (req: Request, res: Response) => {
     return res.status(400).json({ error: 'User identifier required' });
   }
 
-  const settings = db.userSettings[userId] || { startingBalance: 25000, currency: 'USD', riskPct: 1.0 };
+  const settings = db.userSettings[userId] || {
+    startingBalance: 25000,
+    currency: 'USD',
+    riskPct: 1.0,
+    googleSiteVerification: '5mo-v_3ysJIX1CEAvNmxD9xaAkMawkK9nwMQ-2O0p2o',
+    adSensePublisherId: 'pub-1549023438906458',
+    adSenseEnabled: true,
+  };
   res.json({ success: true, settings });
 });
 
@@ -451,7 +458,7 @@ app.get('/ads.txt', (req: Request, res: Response) => {
   }
 
   // Clean publisher ID (ensure pub- format without ca-)
-  let cleanPub = (pubId || 'pub-0000000000000000').trim();
+  let cleanPub = (pubId || 'pub-1549023438906458').trim();
   if (cleanPub.startsWith('ca-')) {
     cleanPub = cleanPub.replace('ca-', '');
   }
@@ -459,6 +466,58 @@ app.get('/ads.txt', (req: Request, res: Response) => {
   res.setHeader('Content-Type', 'text/plain; charset=utf-8');
   res.setHeader('Cache-Control', 'public, max-age=300');
   res.send(`google.com, ${cleanPub}, DIRECT, f08c47fec0942fa0\n`);
+});
+
+// GET /sitemap.xml & /sitemaps.xml - XML Sitemap for Google Search Console
+app.get(['/sitemap.xml', '/sitemaps.xml'], (req: Request, res: Response) => {
+  const host = req.get('host') || 'tradepulse.io';
+  const protocol = req.protocol === 'https' || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
+  const baseUrl = `${protocol}://${host}`;
+  const today = new Date().toISOString().split('T')[0];
+
+  const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>${baseUrl}/</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/#dashboard</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/#news</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/#calculator</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/#playbook</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/#analytics</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+</urlset>`;
+
+  res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.send(sitemapXml);
 });
 
 // GET /api/trades - List trades (global fallback)
