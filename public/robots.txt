@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+# Googlebot and Google AdSense Crawlers
+User-agent: Googlebot
+Allow: /
+
+User-agent: Mediapartners-Google
+Allow: /
+
+User-agent: AdsBot-Google
+Allow: /
+
+Sitemap: https://tradepulse.io/sitemap.xml

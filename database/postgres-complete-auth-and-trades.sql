@@ -54,6 +54,15 @@ CREATE TABLE IF NOT EXISTS user_settings (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+ALTER TABLE user_settings ADD COLUMN IF NOT EXISTS monthly_target_amount NUMERIC(15, 2) DEFAULT 2500.00;
+ALTER TABLE user_settings ADD COLUMN IF NOT EXISTS monthly_target_type VARCHAR(10) DEFAULT 'dollar';
+ALTER TABLE user_settings ADD COLUMN IF NOT EXISTS binance_api_key TEXT;
+ALTER TABLE user_settings ADD COLUMN IF NOT EXISTS google_site_verification TEXT;
+ALTER TABLE user_settings ADD COLUMN IF NOT EXISTS adsense_publisher_id TEXT;
+ALTER TABLE user_settings ADD COLUMN IF NOT EXISTS adsense_slot_id TEXT;
+ALTER TABLE user_settings ADD COLUMN IF NOT EXISTS adsense_auto_ads BOOLEAN DEFAULT TRUE;
+ALTER TABLE user_settings ADD COLUMN IF NOT EXISTS adsense_enabled BOOLEAN DEFAULT FALSE;
+
 -- ==============================================================================
 -- 5. Trades Table (Execution Journal linked to Registered Users)
 -- ==============================================================================

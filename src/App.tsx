@@ -21,6 +21,7 @@ import {
   deleteUserStrategyFromCloud,
   fetchUserSettings,
   saveUserSettings,
+  UserSettings,
 } from './lib/supabase';
 import { Navbar } from './components/Navbar';
 import { Dashboard } from './components/Dashboard';
@@ -37,6 +38,7 @@ import { OfflineIndicator } from './components/OfflineIndicator';
 import { AuthModal } from './components/AuthModal';
 import { BinanceSyncModal } from './components/BinanceSyncModal';
 import { DepositWithdrawModal } from './components/DepositWithdrawModal';
+import { GoogleMonetizationModal } from './components/GoogleMonetizationModal';
 
 export default function App() {
   // Navigation tab state
@@ -71,7 +73,80 @@ export default function App() {
   const [editingTrade, setEditingTrade] = useState<Partial<Trade> | null>(null);
   const [isChecklistOpen, setIsChecklistOpen] = useState(false);
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
+  const [isMonetizationModalOpen, setIsMonetizationModalOpen] = useState(false);
   const [capitalTransactions, setCapitalTransactions] = useState<CapitalTransaction[]>([]);
+
+  // Google Site Verification & AdSense Monetization state
+  const [userSettings, setUserSettings] = useState<UserSettings | null>(null);
+  const [googleSiteVerification, setGoogleSiteVerification] = useState<string>('5mo-v_3ysJIX1CEAvNmxD9xaAkMawkK9nwMQ-2O0p2o');
+  const [adSensePublisherId, setAdSensePublisherId] = useState<string>('');
+  const [adSenseSlotId, setAdSenseSlotId] = useState<string>('');
+  const [adSenseAutoAds, setAdSenseAutoAds] = useState<boolean>(true);
+  const [adSenseEnabled, setAdSenseEnabled] = useState<boolean>(false);
+
+  // Helper to dynamically inject Google Search Console verification meta tag & AdSense script
+  const applyMonetizationToDOM = (settings: Partial<UserSettings>) => {
+    if (typeof document === 'undefined') return;
+    if (settings.googleSiteVerification !== undefined) {
+      let meta = document.querySelector('meta[name="google-site-verification"]');
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.setAttribute('name', 'google-site-verification');
+        document.head.appendChild(meta);
+      }
+      meta.setAttribute('content', settings.googleSiteVerification);
+    }
+    if (settings.adSenseEnabled && settings.adSensePublisherId) {
+      let pub = settings.adSensePublisherId.trim();
+      if (!pub.startsWith('ca-')) pub = `ca-${pub}`;
+      const scriptId = 'google-adsense-script';
+      let script = document.getElementById(scriptId) as HTMLScriptElement | null;
+      if (!script) {
+        script = document.createElement('script');
+        script.id = scriptId;
+        script.async = true;
+        script.crossOrigin = 'anonymous';
+        document.head.appendChild(script);
+      }
+      script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${pub}`;
+    }
+  };
+
+  // Load and apply all user settings
+  const applyLoadedUserSettings = useCallback((settings: UserSettings) => {
+    setUserSettings(settings);
+    if (settings.startingBalance !== undefined && settings.startingBalance !== null) {
+      setStartingBalance(settings.startingBalance);
+    }
+    if (settings.monthlyTargetAmount !== undefined && settings.monthlyTargetAmount !== null) {
+      setMonthlyTargetAmount(settings.monthlyTargetAmount);
+    }
+    if (settings.monthlyTargetType) {
+      setMonthlyTargetType(settings.monthlyTargetType);
+    }
+    if (settings.binanceApiKey) {
+      setBinanceApiKey(settings.binanceApiKey);
+    }
+    if (settings.capitalTransactions && Array.isArray(settings.capitalTransactions)) {
+      setCapitalTransactions(settings.capitalTransactions);
+    }
+    if (settings.googleSiteVerification !== undefined) {
+      setGoogleSiteVerification(settings.googleSiteVerification);
+    }
+    if (settings.adSensePublisherId !== undefined) {
+      setAdSensePublisherId(settings.adSensePublisherId);
+    }
+    if (settings.adSenseSlotId !== undefined) {
+      setAdSenseSlotId(settings.adSenseSlotId);
+    }
+    if (settings.adSenseAutoAds !== undefined) {
+      setAdSenseAutoAds(settings.adSenseAutoAds);
+    }
+    if (settings.adSenseEnabled !== undefined) {
+      setAdSenseEnabled(settings.adSenseEnabled);
+    }
+    applyMonetizationToDOM(settings);
+  }, []);
 
   // Sync state with Supabase Cloud Database when user logs in
   const syncWithCloud = useCallback(
@@ -96,24 +171,10 @@ export default function App() {
           setStrategies(cloudStrategies);
         }
 
-        // 3. Fetch user settings (balance, monthly target, binance api key, capital adjustments) from Supabase
+        // 3. Fetch user settings (balance, monthly target, binance api key, capital adjustments, monetization) from Supabase
         const settings = await fetchUserSettings(currentUser.id);
         if (settings) {
-          if (settings.startingBalance !== undefined && settings.startingBalance !== null) {
-            setStartingBalance(settings.startingBalance);
-          }
-          if (settings.monthlyTargetAmount !== undefined && settings.monthlyTargetAmount !== null) {
-            setMonthlyTargetAmount(settings.monthlyTargetAmount);
-          }
-          if (settings.monthlyTargetType) {
-            setMonthlyTargetType(settings.monthlyTargetType);
-          }
-          if (settings.binanceApiKey) {
-            setBinanceApiKey(settings.binanceApiKey);
-          }
-          if (settings.capitalTransactions && Array.isArray(settings.capitalTransactions)) {
-            setCapitalTransactions(settings.capitalTransactions);
-          }
+          applyLoadedUserSettings(settings);
         }
       } catch (err) {
         console.error('Error synchronizing with Supabase:', err);
@@ -121,7 +182,7 @@ export default function App() {
         setIsSyncing(false);
       }
     },
-    [trades]
+    [trades, applyLoadedUserSettings]
   );
 
   // Manual sync triggered from UserMenu
@@ -147,10 +208,7 @@ export default function App() {
           } else {
             fetchUserSettings('default_guest').then((settings) => {
               if (settings) {
-                if (settings.startingBalance) setStartingBalance(settings.startingBalance);
-                if (settings.capitalTransactions && Array.isArray(settings.capitalTransactions)) {
-                  setCapitalTransactions(settings.capitalTransactions);
-                }
+                applyLoadedUserSettings(settings);
               }
             });
           }
@@ -179,15 +237,12 @@ export default function App() {
       } else {
         fetchUserSettings('default_guest').then((settings) => {
           if (settings) {
-            if (settings.startingBalance) setStartingBalance(settings.startingBalance);
-            if (settings.capitalTransactions && Array.isArray(settings.capitalTransactions)) {
-              setCapitalTransactions(settings.capitalTransactions);
-            }
+            applyLoadedUserSettings(settings);
           }
         });
       }
     }
-  }, [syncWithCloud]);
+  }, [syncWithCloud, applyLoadedUserSettings]);
 
   // Background server sync for trades
   useEffect(() => {
@@ -447,6 +502,7 @@ export default function App() {
         trades={trades}
         onLoadDemoTrades={handleLoadDemoTrades}
         onOpenDepositModal={() => setIsDepositModalOpen(true)}
+        onOpenMonetization={() => setIsMonetizationModalOpen(true)}
       />
 
       {/* Global Market Pulse & Binance Perpetual Ticker Bar */}
@@ -475,6 +531,10 @@ export default function App() {
             }}
             onSelectDate={() => setActiveTab('journal')}
             onLoadDemoTrades={trades.length === 0 ? handleLoadDemoTrades : undefined}
+            adSensePublisherId={adSensePublisherId}
+            adSenseSlotId={adSenseSlotId}
+            adSenseEnabled={adSenseEnabled}
+            onOpenMonetization={() => setIsMonetizationModalOpen(true)}
           />
         )}
 
@@ -597,6 +657,20 @@ export default function App() {
         onApplyAdjustment={handleApplyCapitalAdjustment}
         transactions={capitalTransactions}
         onDeleteTransaction={handleDeleteCapitalTransaction}
+      />
+
+      {/* Google Site Verification & AdSense Monetization Modal */}
+      <GoogleMonetizationModal
+        isOpen={isMonetizationModalOpen}
+        onClose={() => setIsMonetizationModalOpen(false)}
+        userId={user?.id || 'default_guest'}
+        initialSettings={userSettings}
+        onSettingsSaved={(newSettings) => {
+          applyLoadedUserSettings({
+            ...userSettings,
+            ...newSettings,
+          });
+        }}
       />
 
       {/* PWA Offline Network Toast */}

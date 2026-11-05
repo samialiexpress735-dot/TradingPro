@@ -17,6 +17,10 @@
           "date": "2026-11-04T17:00:00Z"
         }
       ]
+    },
+    "default_guest": {
+      "adSensePublisherId": "",
+      "googleSiteVerification": "5mo-v_3ysJIX1CEAvNmxD9xaAkMawkK9nwMQ-2O0p2o"
     }
   },
   "loginLogs": {}

@@ -11,6 +11,7 @@ import {
   Check,
   ChevronDown,
   Database,
+  Globe,
 } from 'lucide-react';
 import { isSupabaseConfigured, signOutUser, fetchUserLoginHistory } from '../lib/supabase';
 import { Trade } from '../types/trade';
@@ -22,6 +23,7 @@ interface UserMenuProps {
   onSyncCloud: () => Promise<void>;
   isSyncing: boolean;
   trades: Trade[];
+  onOpenMonetization?: () => void;
 }
 
 export const UserMenu: React.FC<UserMenuProps> = ({
@@ -31,6 +33,7 @@ export const UserMenu: React.FC<UserMenuProps> = ({
   onSyncCloud,
   isSyncing,
   trades,
+  onOpenMonetization,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [syncSuccess, setSyncSuccess] = useState(false);
@@ -163,6 +166,24 @@ export const UserMenu: React.FC<UserMenuProps> = ({
                 <span>Login History & Security</span>
               </div>
             </button>
+
+            {onOpenMonetization && (
+              <button
+                onClick={() => {
+                  onOpenMonetization();
+                  setIsOpen(false);
+                }}
+                className="w-full text-left px-3 py-2 rounded-xl text-[#281d16] hover:bg-[#faf5ee] transition flex items-center justify-between cursor-pointer"
+              >
+                <div className="flex items-center gap-2">
+                  <Globe className="w-3.5 h-3.5 text-[#92400e]" />
+                  <span>Google &amp; AdSense Setup</span>
+                </div>
+                <span className="text-[9px] font-mono uppercase bg-[#e8f5e9] text-[#2e7d32] font-bold px-1.5 py-0.5 rounded">
+                  Earn
+                </span>
+              </button>
+            )}
 
             <button
               onClick={handleExportJson}

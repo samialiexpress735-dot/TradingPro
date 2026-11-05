@@ -5,6 +5,7 @@ import { CalendarHeatmap } from './CalendarHeatmap';
 import { MonthlyTargetTracker } from './MonthlyTargetTracker';
 import { DisciplineLeakCard } from './DisciplineLeakCard';
 import { formatPnL } from '../utils/formatters';
+import { AdSenseBanner } from './AdSenseBanner';
 import {
   TrendingUp,
   TrendingDown,
@@ -20,6 +21,7 @@ import {
   Sparkles,
   CalendarCheck,
   Wallet,
+  Globe,
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -39,6 +41,10 @@ interface DashboardProps {
   onLoadDemoTrades?: () => void;
   onOpenBinanceSync?: () => void;
   onOpenDepositModal?: () => void;
+  adSensePublisherId?: string;
+  adSenseSlotId?: string;
+  adSenseEnabled?: boolean;
+  onOpenMonetization?: () => void;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
@@ -58,6 +64,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onLoadDemoTrades,
   onOpenBinanceSync,
   onOpenDepositModal,
+  adSensePublisherId,
+  adSenseSlotId,
+  adSenseEnabled,
+  onOpenMonetization,
 }) => {
   const isNetPositive = stats.netProfit >= 0;
   const recentTrades = trades.slice(0, 5);
@@ -380,6 +390,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Google AdSense Responsive Leaderboard Display Unit */}
+      <AdSenseBanner
+        publisherId={adSensePublisherId}
+        slotId={adSenseSlotId}
+        enabled={adSenseEnabled}
+        onOpenSetup={onOpenMonetization}
+      />
     </div>
   );
 };

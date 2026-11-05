@@ -76,6 +76,11 @@ ALTER TABLE public.user_settings ADD COLUMN IF NOT EXISTS monthly_target_amount 
 ALTER TABLE public.user_settings ADD COLUMN IF NOT EXISTS monthly_target_type TEXT DEFAULT 'dollar';
 ALTER TABLE public.user_settings ADD COLUMN IF NOT EXISTS binance_api_key TEXT;
 ALTER TABLE public.user_settings ADD COLUMN IF NOT EXISTS capital_adjustments JSONB DEFAULT '[]'::JSONB;
+ALTER TABLE public.user_settings ADD COLUMN IF NOT EXISTS google_site_verification TEXT;
+ALTER TABLE public.user_settings ADD COLUMN IF NOT EXISTS adsense_publisher_id TEXT;
+ALTER TABLE public.user_settings ADD COLUMN IF NOT EXISTS adsense_slot_id TEXT;
+ALTER TABLE public.user_settings ADD COLUMN IF NOT EXISTS adsense_auto_ads BOOLEAN DEFAULT TRUE;
+ALTER TABLE public.user_settings ADD COLUMN IF NOT EXISTS adsense_enabled BOOLEAN DEFAULT FALSE;
 
 -- ==============================================================================
 -- 5. Strategies Table (Trader's playbook setups)

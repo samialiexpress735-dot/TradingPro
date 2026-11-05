@@ -724,6 +724,11 @@ export interface UserSettings {
   riskPerTradePct?: number;
   theme?: string;
   capitalTransactions?: CapitalTransaction[];
+  googleSiteVerification?: string;
+  adSensePublisherId?: string;
+  adSenseSlotId?: string;
+  adSenseAutoAds?: boolean;
+  adSenseEnabled?: boolean;
 }
 
 export async function fetchUserSettings(userId: string): Promise<UserSettings | null> {
@@ -745,6 +750,11 @@ export async function fetchUserSettings(userId: string): Promise<UserSettings | 
           riskPerTradePct: data.risk_per_trade_pct !== null && data.risk_per_trade_pct !== undefined ? Number(data.risk_per_trade_pct) : 1.0,
           theme: data.theme || 'light',
           capitalTransactions: Array.isArray(data.capital_adjustments) ? data.capital_adjustments : [],
+          googleSiteVerification: data.google_site_verification || '',
+          adSensePublisherId: data.adsense_publisher_id || '',
+          adSenseSlotId: data.adsense_slot_id || '',
+          adSenseAutoAds: data.adsense_auto_ads ?? true,
+          adSenseEnabled: data.adsense_enabled ?? false,
         };
       }
     } catch (e) {
@@ -786,12 +796,21 @@ export async function saveUserSettings(
       if (payloadData.riskPerTradePct !== undefined) dbPayload.risk_per_trade_pct = payloadData.riskPerTradePct;
       if (payloadData.theme !== undefined) dbPayload.theme = payloadData.theme;
       if (payloadData.capitalTransactions !== undefined) dbPayload.capital_adjustments = payloadData.capitalTransactions;
+      if (payloadData.googleSiteVerification !== undefined) dbPayload.google_site_verification = payloadData.googleSiteVerification;
+      if (payloadData.adSensePublisherId !== undefined) dbPayload.adsense_publisher_id = payloadData.adSensePublisherId;
+      if (payloadData.adSenseSlotId !== undefined) dbPayload.adsense_slot_id = payloadData.adSenseSlotId;
+      if (payloadData.adSenseAutoAds !== undefined) dbPayload.adsense_auto_ads = payloadData.adSenseAutoAds;
+      if (payloadData.adSenseEnabled !== undefined) dbPayload.adsense_enabled = payloadData.adSenseEnabled;
 
       const { error } = await supabase.from('user_settings').upsert(dbPayload, { onConflict: 'user_id' });
-      // If error occurred (e.g. column capital_adjustments not present in user's Supabase yet), retry without it
-      if (error && dbPayload.capital_adjustments) {
-        delete dbPayload.capital_adjustments;
-        await supabase.from('user_settings').upsert(dbPayload, { onConflict: 'user_id' });
+      // If error occurred (e.g. some new columns not present in user's Supabase yet), retry with core fields
+      if (error) {
+        const corePayload = {
+          user_id: userId,
+          starting_balance: dbPayload.starting_balance,
+          updated_at: dbPayload.updated_at,
+        };
+        await supabase.from('user_settings').upsert(corePayload, { onConflict: 'user_id' });
       }
     } catch (e) {
       console.warn('Error saving user settings to Supabase:', e);

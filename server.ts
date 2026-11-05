@@ -34,12 +34,28 @@ interface UserRecord {
   lastLoginAt: string;
 }
 
+interface PersistentUserSettings {
+  startingBalance?: number;
+  currency?: string;
+  riskPct?: number;
+  monthlyTargetAmount?: number;
+  monthlyTargetType?: 'dollar' | 'percent';
+  binanceApiKey?: string;
+  capitalTransactions?: any[];
+  googleSiteVerification?: string;
+  adSensePublisherId?: string;
+  adSenseSlotId?: string;
+  adSenseAutoAds?: boolean;
+  adSenseEnabled?: boolean;
+  [key: string]: any;
+}
+
 interface PersistentDB {
   users: UserRecord[];
   userTrades: Record<string, any[]>;
   userStrategies: Record<string, any[]>;
   userReviews: Record<string, any[]>;
-  userSettings: Record<string, { startingBalance: number; currency: string; riskPct: number }>;
+  userSettings: Record<string, PersistentUserSettings>;
   loginLogs: Record<string, Array<{ id: string; timestamp: string; userAgent: string; status: string }>>;
 }
 
@@ -409,6 +425,40 @@ app.get('/api/health', (_req: Request, res: Response) => {
     totalRegisteredUsers: db.users.length,
     hasGeminiSupport: !!process.env.GEMINI_API_KEY,
   });
+});
+
+// GET /ads.txt - Google AdSense Authorized Digital Sellers verification
+app.get('/ads.txt', (req: Request, res: Response) => {
+  const userId = getUserIdFromReq(req);
+  let pubId = '';
+
+  // 1. Try requested user if authenticated
+  if (userId && db.userSettings[userId]?.adSensePublisherId) {
+    pubId = db.userSettings[userId].adSensePublisherId;
+  }
+  // 2. Check default guest
+  else if (db.userSettings['default_guest']?.adSensePublisherId) {
+    pubId = db.userSettings['default_guest'].adSensePublisherId;
+  }
+  // 3. Search across all accounts for the configured AdSense publisher ID (for Googlebot crawlers)
+  else {
+    for (const u of Object.keys(db.userSettings)) {
+      if (db.userSettings[u]?.adSensePublisherId) {
+        pubId = db.userSettings[u].adSensePublisherId;
+        break;
+      }
+    }
+  }
+
+  // Clean publisher ID (ensure pub- format without ca-)
+  let cleanPub = (pubId || 'pub-0000000000000000').trim();
+  if (cleanPub.startsWith('ca-')) {
+    cleanPub = cleanPub.replace('ca-', '');
+  }
+
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.setHeader('Cache-Control', 'public, max-age=300');
+  res.send(`google.com, ${cleanPub}, DIRECT, f08c47fec0942fa0\n`);
 });
 
 // GET /api/trades - List trades (global fallback)
