@@ -1129,6 +1129,17 @@ app.get('/api/news/feed', async (req: Request, res: Response) => {
   });
 });
 
+// Kick off live news warm-up immediately on server start
+fetchRealTimeLiveNews()
+  .then((items) => {
+    if (items && items.length > 0) {
+      cachedLiveNewsCatalysts = items;
+      lastNewsFetchTimestamp = Date.now();
+      console.log(`[NewsWire] Pre-warmed ${items.length} real-time live articles.`);
+    }
+  })
+  .catch((err) => console.warn('[NewsWire] Warmup warning:', err));
+
 // -------------------------------------------------------------
 // POST /api/news/analyze - AI Market News & Catalyst Trading Impact Analyzer
 // -------------------------------------------------------------

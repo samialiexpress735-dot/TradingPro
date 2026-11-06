@@ -24,11 +24,7 @@ import {
   Bell,
 } from 'lucide-react';
 import { Trade } from '../types/trade';
-import {
-  INITIAL_NEWS_CATALYSTS,
-  PRESET_ANALYSIS_PROMPTS,
-  NewsCatalyst,
-} from '../data/marketCatalysts';
+import { NewsCatalyst } from '../data/marketCatalysts';
 
 interface MarketNewsViewProps {
   trades: Trade[];
@@ -60,11 +56,11 @@ export const MarketNewsView: React.FC<MarketNewsViewProps> = ({
   trades,
   onNavigateToTab,
 }) => {
-  const [catalysts, setCatalysts] = useState<NewsCatalyst[]>(INITIAL_NEWS_CATALYSTS);
+  const [catalysts, setCatalysts] = useState<NewsCatalyst[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'crypto' | 'macro' | 'equities' | 'forex'>('all');
   const [selectedImpact, setSelectedImpact] = useState<'all' | 'HIGH' | 'MEDIUM' | 'LOW'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [expandedId, setExpandedId] = useState<string | null>('news-live-1');
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   // Continuous Live Auto-Update Streaming State
   const [isLiveStreaming, setIsLiveStreaming] = useState(true);
@@ -515,22 +511,25 @@ export const MarketNewsView: React.FC<MarketNewsViewProps> = ({
             </button>
           </div>
 
-          {/* Quick Presets */}
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-[11px] text-[#8c7462] font-semibold mr-1">Trending Test Headlines:</span>
-            {PRESET_ANALYSIS_PROMPTS.map((prompt, idx) => (
-              <button
-                key={idx}
-                onClick={() => {
-                  setCustomHeadline(prompt.text);
-                  handleAnalyzeNews(prompt.text);
-                }}
-                className="text-[11px] bg-white hover:bg-[#f5ede4] text-[#6b4e3d] border border-[#e8dfd5] hover:border-[#b45309] px-2.5 py-1 rounded-md transition cursor-pointer font-medium"
-              >
-                {prompt.label}
-              </button>
-            ))}
-          </div>
+          {/* Quick Presets from Live Wire */}
+          {catalysts.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-[11px] text-[#8c7462] font-semibold mr-1">Quick-Analyze from Live Wire:</span>
+              {catalysts.slice(0, 4).map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setCustomHeadline(item.headline);
+                    handleAnalyzeNews(item.headline);
+                  }}
+                  className="text-[11px] bg-white hover:bg-[#f5ede4] text-[#6b4e3d] border border-[#e8dfd5] hover:border-[#b45309] px-2.5 py-1 rounded-md transition cursor-pointer font-medium truncate max-w-[210px]"
+                  title={item.headline}
+                >
+                  {item.affectedSymbols[0] ? `[${item.affectedSymbols[0]}] ` : ''}{item.headline.slice(0, 26)}...
+                </button>
+              ))}
+            </div>
+          )}
 
           {analyzerError && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 flex items-center gap-2">
@@ -697,7 +696,13 @@ export const MarketNewsView: React.FC<MarketNewsViewProps> = ({
 
       {/* Catalyst Feed List */}
       <div className="space-y-3.5">
-        {filteredCatalysts.length === 0 ? (
+        {catalysts.length === 0 && isFetchingFeed ? (
+          <div className="bg-[#fcfaf7] border border-[#e8dfd5] rounded-xl p-12 text-center space-y-3">
+            <div className="w-8 h-8 rounded-full border-2 border-amber-600 border-t-transparent animate-spin mx-auto" />
+            <h3 className="text-sm font-bold text-[#281d16]">Connecting Real-Time Financial Wire Feeds...</h3>
+            <p className="text-xs text-[#8c7462]">Streaming live breaking catalysts from Bloomberg, Reuters, CNBC, CoinDesk &amp; Binance.</p>
+          </div>
+        ) : filteredCatalysts.length === 0 ? (
           <div className="bg-[#fcfaf7] border border-[#e8dfd5] rounded-xl p-10 text-center space-y-2">
             <Info className="w-8 h-8 text-[#8c7462] mx-auto" />
             <h3 className="text-sm font-bold text-[#281d16]">No catalysts found matching your filters</h3>
