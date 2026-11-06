@@ -695,26 +695,59 @@ app.get('/api/binance/market-pulse', async (_req: Request, res: Response) => {
   // NY AM Killzone: 13:30 to 16:30 (810 to 990)
   // London Close: 15:00 to 16:30 (900 to 990)
 
-  let activeSessionName = 'Asian Session (Tokyo)';
+  let activeSessionName = 'Tokyo / Asian Session';
   let activeKillZone = 'Standard Asian Range';
   let sessionStateNote = 'Asian range consolidation; monitor key highs and lows for London sweeps.';
+  let isOverlap = false;
 
-  if (currentTotalMins >= 810 && currentTotalMins < 990) {
-    activeSessionName = 'New York AM Session';
-    activeKillZone = '🔥 NY AM Peak Volume Killzone';
-    sessionStateNote = 'Maximum institutional liquidity overlap. Best execution window for ORB and VWAP setups.';
-  } else if (currentTotalMins >= 990 && currentTotalMins < 1200) {
+  // 12:00 to 15:30 UTC = London & NY overlap (peak daily volume)
+  if (currentTotalMins >= 720 && currentTotalMins < 930) {
+    activeSessionName = 'London / New York Overlap';
+    activeKillZone = currentTotalMins >= 810 ? '🔥 NY AM Peak Volume Killzone' : '⚡ London & NY Overlap';
+    sessionStateNote = 'Maximum global liquidity. Institutional order blocks, highest daily volatility.';
+    isOverlap = true;
+  }
+  // 15:30 to 16:30 UTC = London Close & NY AM
+  else if (currentTotalMins >= 930 && currentTotalMins < 990) {
+    activeSessionName = 'London Close / NY Session';
+    activeKillZone = '⚡ London Fixing / Close';
+    sessionStateNote = 'European traders square daily books; institutional rebalancing flows.';
+  }
+  // 16:30 to 18:30 UTC = NY Mid-Day
+  else if (currentTotalMins >= 990 && currentTotalMins < 1110) {
+    activeSessionName = 'New York Mid-Day';
+    activeKillZone = 'NY Lunch Consolidation';
+    sessionStateNote = 'Volume thins out during NY lunch. Beware chop and false breakouts.';
+  }
+  // 18:30 to 20:00 UTC = NY Power Hour (14:30 - 16:00 EST)
+  else if (currentTotalMins >= 1110 && currentTotalMins < 1200) {
     activeSessionName = 'New York PM Session';
-    activeKillZone = '⚡ NY PM / Power Hour';
-    sessionStateNote = 'Afternoon drift and closing institutional imbalance orders.';
-  } else if (currentTotalMins >= 420 && currentTotalMins < 600) {
+    activeKillZone = '⚡ Power Hour / Cash Close';
+    sessionStateNote = 'Heavy volume into market on-close imbalances (MOC). Trend continuations.';
+  }
+  // 20:00 to 22:00 UTC = After Hours / Pacific Pre-Market
+  else if (currentTotalMins >= 1200 && currentTotalMins < 1320) {
+    activeSessionName = 'After-Hours / Pacific Open';
+    activeKillZone = 'Sydney Opening Session';
+    sessionStateNote = 'Australian/NZ liquidity entering. Crypto and forex transition.';
+  }
+  // 22:00 to 00:00 UTC = Sydney Session
+  else if (currentTotalMins >= 1320 || currentTotalMins < 0) {
+    activeSessionName = 'Sydney / Asian Pre-Market';
+    activeKillZone = 'Sydney Active Session';
+    sessionStateNote = 'Pacing picks up as Tokyo interbank desks prepare for 00:00 UTC open.';
+  }
+  // 00:00 to 07:00 UTC = Tokyo / Asian Session
+  else if (currentTotalMins >= 0 && currentTotalMins < 420) {
+    activeSessionName = 'Tokyo / Asian Session';
+    activeKillZone = currentTotalMins < 120 ? '⚡ Tokyo Open Killzone' : 'Standard Asian Range';
+    sessionStateNote = 'Consolidation and range-building; ideal for defining liquidity sweeps.';
+  }
+  // 07:00 to 12:00 UTC = London Morning Session (08:00 - 13:00 London time)
+  else if (currentTotalMins >= 420 && currentTotalMins < 720) {
     activeSessionName = 'London Morning Session';
-    activeKillZone = '⚡ London Open Killzone';
-    sessionStateNote = 'High expansion volatility; frequently sweeps previous day Asian high/low.';
-  } else if (currentTotalMins >= 600 && currentTotalMins < 810) {
-    activeSessionName = 'London Mid-Day';
-    activeKillZone = 'Pre-NY Consolidation';
-    sessionStateNote = 'Pacing slows ahead of US economic data releases (13:30 UTC / 08:30 EST).';
+    activeKillZone = currentTotalMins < 600 ? '⚡ London Open Killzone' : 'London European Mid-Day';
+    sessionStateNote = 'High expansion volatility. Frequently triggers breakout rallies or liquidity runs.';
   }
 
   const sessionClock = {
@@ -722,7 +755,7 @@ app.get('/api/binance/market-pulse', async (_req: Request, res: Response) => {
     activeSession: activeSessionName,
     activeKillZone,
     sessionStateNote,
-    isOverlap: currentTotalMins >= 810 && currentTotalMins <= 930, // London + NY overlap
+    isOverlap,
   };
 
   const symbolsToTrack = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'DOGEUSDT', 'XRPUSDT'];

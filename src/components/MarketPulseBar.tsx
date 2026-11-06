@@ -12,6 +12,7 @@ import {
   Zap,
   Info,
 } from 'lucide-react';
+import { getDetailedSessionClock, DetailedSessionClock } from '../utils/sessionHelper';
 
 export interface BinanceTicker {
   symbol: string;
@@ -48,9 +49,19 @@ export const MarketPulseBar: React.FC<MarketPulseBarProps> = ({
     sessionClock: SessionClock;
     updatedAt: string;
   } | null>(null);
+  const [clientClock, setClientClock] = useState<DetailedSessionClock>(() => getDetailedSessionClock());
+  const [timeMode, setTimeMode] = useState<'local' | 'utc' | 'ny'>('local');
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedTicker, setSelectedTicker] = useState<BinanceTicker | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Live 1-second client-side clock (guaranteed zero latency, never falls back to static string)
+  useEffect(() => {
+    const clockInterval = setInterval(() => {
+      setClientClock(getDetailedSessionClock());
+    }, 1000);
+    return () => clearInterval(clockInterval);
+  }, []);
 
   const fetchPulse = async () => {
     try {
@@ -72,19 +83,43 @@ export const MarketPulseBar: React.FC<MarketPulseBarProps> = ({
     return () => clearInterval(interval);
   }, []);
 
-  if (isLoading && !pulseData) {
-    return (
-      <div className="bg-[#281d16] text-[#b8a292] text-xs py-1.5 px-4 flex items-center justify-between border-b border-[#3d2b20]">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-          <span className="font-mono text-[11px]">Connecting Binance Futures Feed &amp; Market Clock...</span>
-        </div>
-      </div>
-    );
-  }
-
-  const session = pulseData?.sessionClock;
   const tickers = pulseData?.tickers || [];
+
+  // Active session and killzone: clientClock ensures instantaneous, 100% accurate, continuous real-time calculation
+  const activeKillZone = clientClock.activeKillZone;
+  const isOverlap = clientClock.isOverlap;
+
+  const renderActiveTime = () => {
+    if (timeMode === 'local') {
+      return (
+        <span title={`Local timezone: ${clientClock.localTimezone} (Click to switch to UTC)`} className="cursor-pointer hover:text-white flex items-center gap-1">
+          <Clock className="w-3 h-3 text-amber-400" />
+          <span>{clientClock.localTime}</span>
+          <span className="text-[9px] uppercase tracking-wider text-[#9f8572] bg-[#332218] px-1 py-0.5 rounded">Local</span>
+        </span>
+      );
+    }
+    if (timeMode === 'ny') {
+      return (
+        <span title="New York Market Time (Click to switch to Local)" className="cursor-pointer hover:text-white flex items-center gap-1">
+          <Clock className="w-3 h-3 text-amber-400" />
+          <span>{clientClock.nyTime}</span>
+          <span className="text-[9px] uppercase tracking-wider text-[#9f8572] bg-[#332218] px-1 py-0.5 rounded">NY</span>
+        </span>
+      );
+    }
+    return (
+      <span title="UTC Time (Click to switch to NY)" className="cursor-pointer hover:text-white flex items-center gap-1">
+        <Clock className="w-3 h-3 text-amber-400" />
+        <span>{clientClock.utcTime}</span>
+        <span className="text-[9px] uppercase tracking-wider text-[#9f8572] bg-[#332218] px-1 py-0.5 rounded">UTC</span>
+      </span>
+    );
+  };
+
+  const cycleTimeMode = () => {
+    setTimeMode((prev) => (prev === 'local' ? 'utc' : prev === 'utc' ? 'ny' : 'local'));
+  };
 
   return (
     <div className="bg-[#1f1610] text-[#ded3c8] border-b border-[#35261c] text-xs transition select-none">
@@ -92,21 +127,27 @@ export const MarketPulseBar: React.FC<MarketPulseBarProps> = ({
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2 flex items-center justify-between gap-3 overflow-hidden">
         {/* Left: Global Session Clock Indicator */}
         <div className="flex items-center gap-2.5 shrink-0">
-          <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex items-center gap-1.5 hover:opacity-90 transition cursor-pointer"
+            title="Click to view all 4 Global Financial Hubs & Sessions"
+          >
             <span
               className={`w-2 h-2 rounded-full ${
-                session?.isOverlap ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'
+                isOverlap ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'
               }`}
             />
             <span className="font-bold text-white text-[11px] sm:text-xs tracking-tight">
-              {session?.activeKillZone || 'Global Market Session'}
+              {activeKillZone}
             </span>
-          </div>
+          </button>
           <span className="text-[#8c7462] hidden sm:inline" aria-hidden="true">·</span>
-          <span className="font-mono text-[11px] text-[#bda798] hidden sm:inline flex items-center gap-1">
-            <Clock className="w-3 h-3 text-[#8c7462]" />
-            {session?.utcTime || 'UTC'}
-          </span>
+          <button
+            onClick={cycleTimeMode}
+            className="font-mono text-[11px] text-[#bda798] hidden sm:inline-flex items-center gap-1 bg-[#281b13] hover:bg-[#34241a] px-1.5 py-0.5 rounded transition cursor-pointer"
+          >
+            {renderActiveTime()}
+          </button>
         </div>
 
         {/* Center: Live Binance Perpetuals Carousel */}
@@ -165,14 +206,56 @@ export const MarketPulseBar: React.FC<MarketPulseBarProps> = ({
 
       {/* Expanded Quick Action / Session Intel Drawer */}
       {(isExpanded || selectedTicker) && (
-        <div className="border-t border-[#35261c] bg-[#17100b] px-3 sm:px-6 lg:px-8 py-3 animate-in fade-in duration-150">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-3">
-            {/* Session Details */}
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 text-xs">
-                <span className="text-amber-400 font-bold">{session?.activeSession}</span>
+        <div className="border-t border-[#35261c] bg-[#17100b] px-3 sm:px-6 lg:px-8 py-3 animate-in fade-in duration-150 space-y-3">
+          {/* Global Financial Hubs Status Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {clientClock.hubs.map((hub) => (
+              <div
+                key={hub.city}
+                className={`p-2 rounded border transition text-left ${
+                  hub.isOpen
+                    ? 'bg-[#241a13] border-amber-500/40 shadow-sm'
+                    : 'bg-[#1a120c] border-[#2e2017] opacity-80'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-semibold text-white text-xs flex items-center gap-1.5">
+                    <span>{hub.flag}</span>
+                    <span>{hub.city}</span>
+                  </span>
+                  <span
+                    className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full uppercase tracking-wider ${
+                      hub.isOpen
+                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                        : 'bg-zinc-800 text-zinc-400'
+                    }`}
+                  >
+                    {hub.statusText}
+                  </span>
+                </div>
+                <div className="flex items-baseline justify-between text-[11px] font-mono text-[#a89382]">
+                  <span>Local:</span>
+                  <span className="text-white font-medium">{hub.localTimeFormatted}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-1 border-t border-[#2a1d15]">
+            {/* Session Context */}
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2 text-xs flex-wrap">
+                <span className="text-amber-400 font-bold flex items-center gap-1">
+                  <Zap className="w-3.5 h-3.5 text-amber-400" />
+                  {clientClock.activeSession}
+                </span>
                 <span className="text-[#8c7462]">·</span>
-                <span className="text-[#bda798]">{session?.sessionStateNote}</span>
+                <span className="text-[#d5c3b4] text-[11px]">{clientClock.sessionStateNote}</span>
+              </div>
+              <div className="text-[10px] text-[#8c7462] flex items-center gap-2 font-mono">
+                <span>Local Timezone: {clientClock.localTimezone}</span>
+                <span>•</span>
+                <span>NY Market Time: {clientClock.nyTime}</span>
               </div>
             </div>
 
@@ -180,7 +263,7 @@ export const MarketPulseBar: React.FC<MarketPulseBarProps> = ({
             {selectedTicker ? (
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-xs text-white font-mono font-bold mr-1">
-                  Selected: {selectedTicker.symbol} (${selectedTicker.lastPrice})
+                  Selected: {selectedTicker.symbol} (${selectedTicker.lastPrice > 10 ? selectedTicker.lastPrice.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 2 }) : selectedTicker.lastPrice.toFixed(4)})
                 </span>
                 <button
                   onClick={() => {
@@ -214,7 +297,7 @@ export const MarketPulseBar: React.FC<MarketPulseBarProps> = ({
             ) : (
               <div className="text-[11px] text-[#8c7462] flex items-center gap-1.5">
                 <Info className="w-3.5 h-3.5 text-amber-500" />
-                <span>Click any Binance perpetual coin above for one-click Risk Sizing or Catalyst checks.</span>
+                <span>Click any Binance perpetual ticker in the bar above for instant Risk Sizing or Catalyst checks.</span>
               </div>
             )}
           </div>

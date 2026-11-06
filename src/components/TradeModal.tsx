@@ -10,6 +10,7 @@ import {
   Strategy,
 } from '../types/trade';
 import { calculateTradeMetrics } from '../utils/calculations';
+import { detectAutoMarketSession } from '../utils/sessionHelper';
 import confetti from 'canvas-confetti';
 import {
   X,
@@ -59,11 +60,11 @@ export const TradeModal: React.FC<TradeModalProps> = ({
   const [rating, setRating] = useState<number>(5);
   const [emotion, setEmotion] = useState<EmotionalState>('Disciplined');
   const [mistake, setMistake] = useState<TradeMistake>('Followed Plan');
-  const [marketSession, setMarketSession] = useState<MarketSession>('Market Open (NY)');
+  const [marketSession, setMarketSession] = useState<MarketSession>(() => detectAutoMarketSession());
   const [notes, setNotes] = useState('');
   const [chartUrl, setChartUrl] = useState('');
 
-  // Populate when editing or pre-filled from Risk Calculator
+  // Populate when editing or pre-filled from Risk Calculator / Auto-detect session on open
   useEffect(() => {
     if (initialTrade) {
       if (initialTrade.symbol) setSymbol(initialTrade.symbol);
@@ -87,6 +88,11 @@ export const TradeModal: React.FC<TradeModalProps> = ({
       if (initialTrade.marketSession) setMarketSession(initialTrade.marketSession);
       if (initialTrade.notes) setNotes(initialTrade.notes);
       if (initialTrade.chartUrl) setChartUrl(initialTrade.chartUrl);
+    } else if (isOpen) {
+      // Auto-detect session in real time for new trade
+      setMarketSession(detectAutoMarketSession());
+      const now = new Date();
+      setTime(`${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`);
     }
   }, [initialTrade, isOpen]);
 
@@ -549,7 +555,10 @@ export const TradeModal: React.FC<TradeModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[#7d695b] mb-1">Market Session</label>
+              <label className="block text-xs font-medium text-[#7d695b] mb-1 flex items-center justify-between">
+                <span>Market Session</span>
+                <span className="text-[10px] text-amber-750 bg-amber-100/80 px-1.5 py-0.5 rounded font-mono font-medium">Auto-detected</span>
+              </label>
               <select
                 value={marketSession}
                 onChange={(e) => setMarketSession(e.target.value as MarketSession)}
