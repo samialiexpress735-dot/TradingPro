@@ -849,208 +849,283 @@ app.get('/api/binance/market-pulse', async (_req: Request, res: Response) => {
 });
 
 // -------------------------------------------------------------
-// GET /api/news/feed - Continuous Live Market News & Catalyst Feed
+// GET /api/news/feed - Continuous Real-Time Live Financial News & Catalyst Feed
 // -------------------------------------------------------------
-app.get('/api/news/feed', (req: Request, res: Response) => {
-  const now = Date.now();
-  const categoryFilter = req.query.category as string | undefined;
+let cachedLiveNewsCatalysts: any[] = [];
+let lastNewsFetchTimestamp = 0;
+const NEWS_CACHE_TTL_MS = 45000; // 45s cache to ensure freshness and high performance
 
-  // Helper for computing dynamic relative human-readable time
-  const formatTimeAgo = (diffMs: number): string => {
-    const mins = Math.floor(diffMs / (60 * 1000));
-    if (mins < 1) return 'Just now';
-    if (mins === 1) return '1m ago';
-    if (mins < 60) return `${mins}m ago`;
-    const hours = Math.floor(mins / 60);
-    if (hours === 1) return '1h ago';
-    if (hours < 24) return `${hours}h ago`;
-    const days = Math.floor(hours / 24);
-    return `${days}d ago`;
-  };
+function unescapeHtmlEntities(str: string): string {
+  if (!str) return '';
+  return str
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&#8216;/g, "'")
+    .replace(/&#8217;/g, "'")
+    .replace(/&#8220;/g, '"')
+    .replace(/&#8221;/g, '"')
+    .replace(/&#8211;/g, '-')
+    .replace(/&#8212;/g, '--');
+}
 
-  // Base institutional catalysts with dynamic timestamps relative to real-time clock
-  const baseCatalysts = [
+function calculateRelativeTime(dateStr: string): string {
+  const diffMs = Math.max(0, Date.now() - new Date(dateStr).getTime());
+  const mins = Math.floor(diffMs / (60 * 1000));
+  if (mins < 1) return 'Just now';
+  if (mins === 1) return '1m ago';
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours === 1) return '1h ago';
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
+async function fetchRealTimeLiveNews(): Promise<any[]> {
+  const feeds = [
     {
-      id: 'news-live-1',
-      headline: 'Binance Futures Funding Rate Surges to +0.038% on BTCUSDT.P; Long Squeeze Invalidation Alert',
-      source: 'Binance Perpetual Funding Monitor',
-      offsetMins: 3,
-      category: 'crypto',
-      impactLevel: 'HIGH',
-      sentiment: 'VOLATILE_CHOP',
-      affectedSymbols: ['BTCUSDT.P', 'ETHUSDT.P', 'SOLUSDT.P'],
-      summary: 'Perpetual contract open interest reached new session highs while funding rates spiked. Over-leveraged long clusters are exposed to sudden wick flushes down toward the 1-hour 50 EMA.',
-      tradingTakeaway: 'Avoid chasing green momentum at daily highs; wait for funding reset or high-volume sweep of resting stops.',
-      tacticalAdvice: {
-        recommendedAction: 'Cut margin leverage to < 5x or wait for a 15-minute liquidity flush into demand before entering longs.',
-        stopLossGuidance: 'Place stops strictly outside recent 4-hour swing lows to avoid long-squeeze sweeps.',
-        bestSetup: 'Mean-reversion sweep fade or post-flush VWAP reclamation.',
-        volatilityWarning: 'High risk of cascade liquidations if BTC drops below session VWAP.',
-      },
+      url: 'https://news.google.com/rss/search?q=crypto+OR+bitcoin+OR+ethereum+OR+binance+when:2d&hl=en-US&gl=US&ceid=US:en',
+      defaultCategory: 'crypto',
     },
     {
-      id: 'news-live-2',
-      headline: 'US Core CPI Inflation Prints Cooler at 2.8% YoY vs 3.0% Consensus; Rate Cut Odds Surge to 82%',
-      source: 'Bureau of Labor Statistics / Bloomberg Macro',
-      offsetMins: 14,
-      category: 'macro',
-      impactLevel: 'HIGH',
-      sentiment: 'BULLISH',
-      affectedSymbols: ['BTCUSDT.P', 'ETHUSDT.P', 'SPY', 'QQQ', 'DXY'],
-      summary: 'Core CPI came in lower than Wall Street estimates across both monthly and annualized prints. The US Dollar Index (DXY) slipped 0.6%, triggering an immediate liquidity injection into risk assets and perpetual futures.',
-      tradingTakeaway: 'DXY weakness provides a strong tailwind for Bitcoin and tech equities. High probability of continuation above the opening range high.',
-      tacticalAdvice: {
-        recommendedAction: 'Favor Long trend-following on retests of the 15-minute Opening Range Breakout.',
-        stopLossGuidance: 'Place stops below the pre-release consolidation low rather than chasing the initial wick.',
-        bestSetup: 'Pullback to 5-min VWAP on BTCUSDT.P with positive delta confirmation.',
-        volatilityWarning: 'Spreads widen 2x in the first 3 minutes; avoid market orders during release seconds.',
-      },
-      keyMetrics: {
-        expected: '3.0%',
-        previous: '3.1%',
-        actual: '2.8%',
-      },
+      url: 'https://news.google.com/rss/search?q=%22stock+market%22+OR+Nasdaq+OR+%22S%26P+500%22+OR+%22Wall+Street%22+when:2d&hl=en-US&gl=US&ceid=US:en',
+      defaultCategory: 'equities',
     },
     {
-      id: 'news-live-3',
-      headline: 'Binance Futures Expands Leverage Tiers & Zero Maker Fees for New Perpetual Listings',
-      source: 'Binance Exchange Official Feed',
-      offsetMins: 32,
-      category: 'crypto',
-      impactLevel: 'HIGH',
-      sentiment: 'VOLATILE_CHOP',
-      affectedSymbols: ['BTCUSDT.P', 'SOLUSDT.P', 'BNBUSDT.P'],
-      summary: 'Binance is expanding its perpetual contracts suite with zero maker fees for the first 30 days. Historically, perpetual listings trigger massive speculative open interest followed by severe funding rate skew and liquidation cascades.',
-      tradingTakeaway: 'Anticipate extreme intraday volatility and erratic wick rejections on altcoin perpetuals. High chance of false breakouts at initial listing highs.',
-      tacticalAdvice: {
-        recommendedAction: 'Wait for the first 4-hour cycle before entering swing positions. Monitor funding rate; if > +0.05%, beware of long squeezes.',
-        stopLossGuidance: 'Use wider stop losses (minimum 2.5% to 3.5%) or cut position sizing by 50% to prevent sweep liquidations.',
-        bestSetup: 'Mean-reversion short from overheated premium, or breakout only after 1-hour volume consolidation.',
-        volatilityWarning: 'Perpetual contract funding volatility can cause slippage on stop-market triggers.',
-      },
+      url: 'https://news.google.com/rss/search?q=%22Federal+Reserve%22+OR+inflation+OR+%22interest+rates%22+OR+CPI+when:3d&hl=en-US&gl=US&ceid=US:en',
+      defaultCategory: 'macro',
     },
     {
-      id: 'news-live-4',
-      headline: 'Federal Reserve FOMC Minutes: Governors Emphasize Measured Pace, Resisting Rapid Easing Cycles',
-      source: 'Federal Reserve Board / FOMC Release',
-      offsetMins: 68,
-      category: 'macro',
-      impactLevel: 'HIGH',
-      sentiment: 'BEARISH',
-      affectedSymbols: ['SPY', 'QQQ', 'BTCUSDT.P', 'USDJPY', 'DXY'],
-      summary: 'Fed Chair emphasized that while inflation is moderating, the labor market remains resilient enough that the committee feels no urgency to cut rapidly. Treasury yields rebounded 7 bps across the 10-year curve.',
-      tradingTakeaway: 'Bond yields firming puts downward pressure on growth valuations and high-multiple assets. Risk-on momentum faces immediate overhead resistance.',
-      tacticalAdvice: {
-        recommendedAction: 'Exercise caution on long breakout trades near multi-week highs. Look for failed breakout traps.',
-        stopLossGuidance: 'Tighten trailing stops on existing profit-taking runners. Do not hold unprotected naked futures.',
-        bestSetup: 'Liquidity sweep reversal short when price tests major liquidity pool and creates a bearish market structure shift (MSS).',
-        volatilityWarning: 'Two-way whipsaw risk remains elevated for 90 minutes following Fed speeches.',
-      },
-    },
-    {
-      id: 'news-live-5',
-      headline: 'Institutional Spot Bitcoin ETFs Register $840M Net Inflows in Single Session led by BlackRock & Fidelity',
-      source: 'Farside Investors / SEC ETF Flow Data',
-      offsetMins: 110,
-      category: 'crypto',
-      impactLevel: 'HIGH',
-      sentiment: 'BULLISH',
-      affectedSymbols: ['BTCUSDT.P', 'ETHUSDT.P', 'IBIT'],
-      summary: 'Net institutional demand absorbed more than 12x the daily newly minted Bitcoin supply. OTC desk inventories are depleting rapidly, transferring spot dominance back into regulated custody channels.',
-      tradingTakeaway: 'Dips into structural support are consistently being bought aggressively by institutional TWAP algorithms during US market hours.',
-      tacticalAdvice: {
-        recommendedAction: 'Buy dips into key 1-hour / 4-hour order blocks during New York cash session opens (09:30 - 11:30 EST).',
-        stopLossGuidance: 'Place stops below the prior daily swing low; high institutional backing minimizes sustained structural breakdowns.',
-        bestSetup: 'VWAP anchor bounce from previous day New York close.',
-        volatilityWarning: 'Weekend liquidity gap risk: futures basis premium might compress on Sundays.',
-      },
-    },
-    {
-      id: 'news-live-6',
-      headline: 'Nvidia Unveils Next-Gen AI Silicon Architecture with 3x Inference Efficiency; Datacenter Orders Booked through Q4',
-      source: 'Semiconductor Industry Daily / Reuters',
-      offsetMins: 190,
-      category: 'equities',
-      impactLevel: 'MEDIUM',
-      sentiment: 'BULLISH',
-      affectedSymbols: ['NVDA', 'QQQ', 'AMD', 'MSFT'],
-      summary: 'Surpassing supplier estimates, major cloud hyperscalers committed capital expenditure increases for AI hardware pipelines. Semiconductor supply chain equities rallied across Asian and European sessions.',
-      tradingTakeaway: 'Tech sector beta remains exceptionally strong. Pullbacks in semiconductor leaders are prime trend-continuation candidates.',
-      tacticalAdvice: {
-        recommendedAction: 'Focus on relative strength leaders. When QQQ pulls back, identify semiconductor tickers that hold intraday VWAP.',
-        stopLossGuidance: 'Anchor risk to 1.5R with stop loss under the 30-minute consolidation shelf.',
-        bestSetup: 'Break of pre-market high with high relative volume (RVOL > 2.0).',
-        volatilityWarning: 'Option gamma pinning near round strike prices ($130, $140) may cause afternoon consolidation.',
-      },
-    },
-    {
-      id: 'news-live-7',
-      headline: 'Crude Oil Surges 4.2% on Red Sea Shipping Disruption; Inflation Expectations Tick Higher',
-      source: 'Energy Information Administration / Platts',
-      offsetMins: 310,
-      category: 'macro',
-      impactLevel: 'MEDIUM',
-      sentiment: 'BEARISH',
-      affectedSymbols: ['XOM', 'USO', 'SPY', 'DXY'],
-      summary: 'Rerouted tanker fleets and higher maritime insurance premiums sparked an immediate supply premium spike in Brent and WTI crude contracts. Inflation breakevens widened by 9 basis points.',
-      tradingTakeaway: 'Rising energy costs threaten consumer discretionary spending and compress profit margins across transport and retail sectors.',
-      tacticalAdvice: {
-        recommendedAction: 'Rotate risk exposure away from retail/consumer staples into energy and cash reserves.',
-        stopLossGuidance: 'Strict 1% portfolio risk rule; energy spikes historically increase intraday correlation across unrelated equities.',
-        bestSetup: 'Breakout pullback on energy ETF or commodity futures long.',
-        volatilityWarning: 'Sudden diplomatic headlines can trigger sharp 3% reversals in oil futures.',
-      },
-    },
-    {
-      id: 'news-live-8',
-      headline: 'European Central Bank (ECB) Holds Benchmark Interest Rate Steady at 3.25%, Hints at Data-Dependent Path',
-      source: 'European Central Bank Press Release',
-      offsetMins: 520,
-      category: 'forex',
-      impactLevel: 'LOW',
-      sentiment: 'NEUTRAL',
-      affectedSymbols: ['EURUSD', 'DXY', 'DAX'],
-      summary: 'As widely anticipated, Christine Lagarde reaffirmed that policy decisions remain strictly meeting-by-meeting and data-dependent. Euro traded in a tight 20-pip range.',
-      tradingTakeaway: 'Non-event for global equities and crypto. Standard range-bound liquidity behavior without trend expansion.',
-      tacticalAdvice: {
-        recommendedAction: 'Stick to range-bound scalping between session high and session low.',
-        stopLossGuidance: 'Standard tight stops outside previous 4-hour highs/lows.',
-        bestSetup: 'Failed auction fade back toward the 1.0850 median point of control (POC).',
-        volatilityWarning: 'Low volatility environment — beware of sudden thin liquidity slippage outside London hours.',
-      },
+      url: 'https://cointelegraph.com/rss',
+      defaultCategory: 'crypto',
     },
   ];
 
-  // Process dynamic timestamps
-  const processedCatalysts = baseCatalysts
-    .filter((c) => !categoryFilter || categoryFilter === 'all' || c.category === categoryFilter)
-    .map((c) => {
-      const itemTimestamp = new Date(now - c.offsetMins * 60 * 1000).toISOString();
-      const diffMs = now - new Date(itemTimestamp).getTime();
-      return {
-        id: c.id,
-        headline: c.headline,
-        source: c.source,
-        timestamp: itemTimestamp,
-        timeAgo: formatTimeAgo(diffMs),
-        category: c.category,
-        impactLevel: c.impactLevel,
-        sentiment: c.sentiment,
-        affectedSymbols: c.affectedSymbols,
-        summary: c.summary,
-        tradingTakeaway: c.tradingTakeaway,
-        tacticalAdvice: c.tacticalAdvice,
-        keyMetrics: (c as any).keyMetrics,
-      };
+  try {
+    const feedResults = await Promise.allSettled(
+      feeds.map((f) =>
+        fetch(f.url, {
+          signal: AbortSignal.timeout(4500),
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+        }).then((r) => r.text())
+      )
+    );
+
+    const parsedArticles: any[] = [];
+    const seenHeadlines = new Set<string>();
+
+    feedResults.forEach((res, feedIdx) => {
+      if (res.status !== 'fulfilled' || !res.value) return;
+      const xml = res.value;
+      const defaultCategory = feeds[feedIdx].defaultCategory;
+
+      const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+      let match;
+      let countFromFeed = 0;
+
+      while ((match = itemRegex.exec(xml)) !== null && countFromFeed < 12) {
+        const itemContent = match[1];
+        const titleMatch = /<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/.exec(itemContent);
+        const linkMatch = /<link>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/link>/.exec(itemContent);
+        const pubDateMatch = /<pubDate>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/pubDate>/.exec(itemContent);
+        const sourceMatch = /<source[^>]*>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/source>/.exec(itemContent);
+        const descMatch = /<description>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/.exec(itemContent);
+
+        if (!titleMatch) continue;
+
+        let rawTitle = unescapeHtmlEntities(titleMatch[1].trim());
+        let sourceName = sourceMatch ? unescapeHtmlEntities(sourceMatch[1].trim()) : '';
+
+        if (!sourceName && rawTitle.includes(' - ')) {
+          const parts = rawTitle.split(' - ');
+          sourceName = parts[parts.length - 1].trim();
+          rawTitle = parts.slice(0, -1).join(' - ').trim();
+        } else if (rawTitle.includes(' - ') && sourceName) {
+          rawTitle = rawTitle.substring(0, rawTitle.lastIndexOf(' - ')).trim();
+        }
+
+        if (!sourceName) sourceName = defaultCategory === 'crypto' ? 'Crypto Wire' : 'Financial Markets Wire';
+
+        // Filter out empty or placeholder/meta strings
+        if (!rawTitle || rawTitle.includes('META_TITLE') || rawTitle.length < 15) continue;
+
+        const normalizedHeadline = rawTitle.toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (seenHeadlines.has(normalizedHeadline)) continue;
+        seenHeadlines.add(normalizedHeadline);
+
+        const pubDateStr = pubDateMatch ? pubDateMatch[1].trim() : new Date().toUTCString();
+        const articleDate = new Date(pubDateStr);
+        const timestamp = isNaN(articleDate.getTime()) ? new Date().toISOString() : articleDate.toISOString();
+
+        // Categorize
+        const lower = rawTitle.toLowerCase();
+        let category: 'crypto' | 'macro' | 'equities' | 'forex' = defaultCategory as any;
+        if (/bitcoin|btc|eth|crypto|binance|solana|altcoin|blockchain|token|stablecoin|coindesk|cointelegraph/.test(lower)) {
+          category = 'crypto';
+        } else if (/fed|federal reserve|powell|inflation|cpi|ppi|interest rate|rates|gdp|central bank|treasury|yield/.test(lower)) {
+          category = 'macro';
+        } else if (/dollar|dxy|eurusd|usdjpy|gbpusd|forex|currency/.test(lower)) {
+          category = 'forex';
+        } else if (/stock|nasdaq|s&p|dow|shares|earnings|ai|chip|tech|wall street|nvidia|nvda|tesla|tsla|apple|aapl/.test(lower)) {
+          category = 'equities';
+        }
+
+        // Affected Symbols
+        const symbols: string[] = [];
+        if (/bitcoin|btc/.test(lower)) symbols.push('BTCUSDT.P');
+        if (/ethereum|eth/.test(lower)) symbols.push('ETHUSDT.P');
+        if (/solana|sol\b/.test(lower)) symbols.push('SOLUSDT.P');
+        if (/binance|bnb/.test(lower)) symbols.push('BNBUSDT.P');
+        if (/nvidia|nvda|chip|gpu|semiconductor/.test(lower)) symbols.push('NVDA');
+        if (/tesla|tsla|ev/.test(lower)) symbols.push('TSLA');
+        if (/apple|aapl/.test(lower)) symbols.push('AAPL');
+        if (/microsoft|msft/.test(lower)) symbols.push('MSFT');
+        if (/amd/.test(lower)) symbols.push('AMD');
+        if (/nasdaq|tech/.test(lower)) symbols.push('QQQ');
+        if (/s&p|stock market|wall street/.test(lower)) symbols.push('SPY');
+        if (/dollar|yield|rates|fed/.test(lower)) symbols.push('DXY');
+        if (/euro|eur/.test(lower)) symbols.push('EURUSD');
+
+        if (symbols.length === 0) {
+          if (category === 'crypto') symbols.push('BTCUSDT.P', 'ETHUSDT.P');
+          else if (category === 'macro') symbols.push('SPY', 'QQQ', 'DXY');
+          else if (category === 'forex') symbols.push('DXY', 'EURUSD');
+          else symbols.push('SPY', 'QQQ', 'NVDA');
+        }
+
+        // Sentiment
+        let sentiment: 'BULLISH' | 'BEARISH' | 'VOLATILE_CHOP' | 'NEUTRAL' = 'NEUTRAL';
+        const isBullish = /rally|surge|soar|jump|gain|bounce|climb|bullish|rise|support|high|record|cut|recovery|stabilize/.test(lower);
+        const isBearish = /plunge|drop|slump|fall|sink|slide|rout|bloodbath|crash|selloff|fear|bearish|loss|losses|hack|lawsuit|probe|down|crackdown|panic/.test(lower);
+        const isVolatile = /whipsaw|pause|mixed|wobble|volatile|uncertain|swings|divide|rebound|tension/.test(lower);
+
+        if (isBullish && !isBearish) sentiment = 'BULLISH';
+        else if (isBearish && !isBullish) sentiment = 'BEARISH';
+        else if (isVolatile || (isBullish && isBearish)) sentiment = 'VOLATILE_CHOP';
+        else sentiment = 'NEUTRAL';
+
+        // Impact level
+        let impactLevel: 'HIGH' | 'MEDIUM' | 'LOW' = 'MEDIUM';
+        if (/hack|crash|plunge|fed|inflation|cpi|rate cut|record|rout|bloodbath|ban|sec|investigation/.test(lower)) {
+          impactLevel = 'HIGH';
+        } else if (/shares|earnings|meeting|analyst|forecast|review/.test(lower)) {
+          impactLevel = 'LOW';
+        }
+
+        // Dynamic Tactical Advice & Actionable Trading Plan
+        let recommendedAction = '';
+        let stopLossGuidance = '';
+        let bestSetup = '';
+        let volatilityWarning = '';
+        let tradingTakeaway = '';
+
+        if (sentiment === 'BULLISH') {
+          tradingTakeaway = `Bullish expansion catalyst from ${sourceName}. Institutional bids entering on intraday pullbacks into VWAP and key liquidity pools.`;
+          recommendedAction = `Look for long continuation setups on 5m/15m retests of structural support or VWAP. Avoid chasing extended green candles.`;
+          stopLossGuidance = `Place stop loss strictly behind the session breakout anchor or lower 15-minute swing low.`;
+          bestSetup = `Opening Range Breakout (ORB) retest or high-volume pullback to VWAP.`;
+          volatilityWarning = `Monitor funding rates and open interest spikes; watch out for mean-reversion pullbacks at major daily resistance.`;
+        } else if (sentiment === 'BEARISH') {
+          tradingTakeaway = `Bearish headwind reported by ${sourceName}. Elevated selling pressure and risk-off rotation active across key market leaders.`;
+          recommendedAction = `Protect open profits by tightening trailing stops. Avoid front-running knife catches until a clear bullish market structure shift (MSS) occurs.`;
+          stopLossGuidance = `Keep stop loss tight above intraday lower-high rejections; do not widen stops during adverse volatility.`;
+          bestSetup = `Bearish breakdown retest of broken support flipped into resistance, or fade of weak relief bounces.`;
+          volatilityWarning = `Cascade liquidation and slippage risk elevated during active flush cycles. Cut position leverage.`;
+        } else if (sentiment === 'VOLATILE_CHOP') {
+          tradingTakeaway = `Two-sided market reaction from ${sourceName} catalyst. Conflicting institutional order flow creating wide whipsaws between key range boundaries.`;
+          recommendedAction = `Reduce position sizing by 50% or wait on sidelines for directional resolution above or below the opening range.`;
+          stopLossGuidance = `Widen stop loss beyond local swing extremes or wait for confirmation closes outside the chop zone.`;
+          bestSetup = `Range-bound liquidity sweep fade: buy the false breakdown at range low, sell the false breakout at range high.`;
+          volatilityWarning = `False breakouts and stop hunts are frequent in chop environments. Never chase breakouts without high relative volume (RVOL).`;
+        } else {
+          tradingTakeaway = `Market digest catalyst from ${sourceName}. Baseline liquidity tracking normal session distribution.`;
+          recommendedAction = `Trade standard technical setups (Order Blocks, FVG, VWAP) adhering strictly to defined risk parameters.`;
+          stopLossGuidance = `Standard 1% to 1.5% fixed trade risk stop loss.`;
+          bestSetup = `Standard trend-following pullback entry on confirmed momentum.`;
+          volatilityWarning = `Watch for unexpected breaking headlines into session close or killzone transitions.`;
+        }
+
+        let summaryText = '';
+        if (descMatch && descMatch[1]) {
+          summaryText = unescapeHtmlEntities(descMatch[1].replace(/<[^>]*>/g, '').trim());
+          if (summaryText.length > 250) summaryText = summaryText.substring(0, 247) + '...';
+        }
+        if (!summaryText || summaryText.length < 20) {
+          summaryText = `${sourceName} reports: ${rawTitle}. Real-time market catalyst monitored by TradeJournal institutional feed.`;
+        }
+
+        parsedArticles.push({
+          id: `live-${parsedArticles.length + 1}-${Date.now().toString(36)}`,
+          headline: rawTitle,
+          source: sourceName,
+          link: linkMatch ? linkMatch[1].trim() : '',
+          timestamp,
+          timeAgo: calculateRelativeTime(timestamp),
+          category,
+          impactLevel,
+          sentiment,
+          affectedSymbols: symbols,
+          summary: summaryText,
+          tradingTakeaway,
+          tacticalAdvice: {
+            recommendedAction,
+            stopLossGuidance,
+            bestSetup,
+            volatilityWarning,
+          },
+        });
+
+        countFromFeed++;
+      }
     });
+
+    if (parsedArticles.length > 0) {
+      // Sort newest first
+      parsedArticles.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      return parsedArticles;
+    }
+  } catch (err) {
+    console.warn('Real-time live news fetch error, using resilient cache/backup:', err);
+  }
+
+  return [];
+}
+
+app.get('/api/news/feed', async (req: Request, res: Response) => {
+  const now = Date.now();
+  const categoryFilter = req.query.category as string | undefined;
+
+  // Refresh live feed if cache is expired or empty
+  if (now - lastNewsFetchTimestamp > NEWS_CACHE_TTL_MS || cachedLiveNewsCatalysts.length === 0) {
+    const liveItems = await fetchRealTimeLiveNews();
+    if (liveItems && liveItems.length > 0) {
+      cachedLiveNewsCatalysts = liveItems;
+      lastNewsFetchTimestamp = now;
+    }
+  }
+
+  // Calculate fresh timeAgo for each item relative to current moment
+  let catalystsToReturn = cachedLiveNewsCatalysts.map((c) => ({
+    ...c,
+    timeAgo: calculateRelativeTime(c.timestamp),
+  }));
+
+  if (categoryFilter && categoryFilter !== 'all') {
+    catalystsToReturn = catalystsToReturn.filter((c) => c.category === categoryFilter);
+  }
 
   res.json({
     success: true,
     feedStatus: 'LIVE_STREAMING',
+    source: 'google-news-rss-live',
     lastUpdated: new Date().toISOString(),
     pollIntervalMs: 30000,
-    count: processedCatalysts.length,
-    catalysts: processedCatalysts,
+    count: catalystsToReturn.length,
+    catalysts: catalystsToReturn,
   });
 });
 

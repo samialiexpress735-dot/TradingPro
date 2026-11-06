@@ -21,6 +21,7 @@ export interface NewsCatalyst {
     previous?: string;
     actual?: string;
   };
+  link?: string;
 }
 
 export const INITIAL_NEWS_CATALYSTS: NewsCatalyst[] = [

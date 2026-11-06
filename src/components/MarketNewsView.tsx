@@ -881,9 +881,22 @@ export const MarketNewsView: React.FC<MarketNewsViewProps> = ({
 
                     {/* Interactive Action Footer */}
                     <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-[#ede1d3]">
-                      <span className="text-[11px] text-[#8c7462] font-mono">
-                        Source: {catalyst.source}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] text-[#8c7462] font-mono">
+                          Source: {catalyst.source}
+                        </span>
+                        {catalyst.link && (
+                          <a
+                            href={catalyst.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 hover:text-amber-800 hover:underline cursor-pointer"
+                          >
+                            <span>Read Article</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        )}
+                      </div>
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => {
