@@ -155,55 +155,55 @@ export const CalendarHeatmap: React.FC<CalendarHeatmapProps> = ({ trades, onSele
   }, [currentYear, currentMonth, dailyMap]);
 
   return (
-    <div className="bg-white border border-[#e8dfd5] rounded-2xl p-5 shadow-xs">
+    <div className="bg-surface border border-line rounded-2xl p-5 shadow-xs">
       {/* Month Navigator & Summary */}
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-5 border-b border-[#ede6dc] pb-4">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-5 border-b border-line-soft pb-4">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-[#f5ede4] text-[#78350f] rounded-xl border border-[#debfa8]">
+          <div className="p-2 bg-sunken text-brand rounded-xl border border-line-brand">
             <CalendarIcon className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-[#281d16] flex items-center gap-2">
+            <h3 className="text-base font-bold text-ink flex items-center gap-2">
               <span>{monthNames[currentMonth]} {currentYear}</span>
             </h3>
-            <p className="text-xs text-[#7d695b]">Daily Trading Performance &amp; Heatmap</p>
+            <p className="text-xs text-muted">Daily Trading Performance &amp; Heatmap</p>
           </div>
         </div>
 
         {/* Month metrics */}
         <div className="flex items-center gap-4 text-xs font-mono">
-          <div className="bg-[#fcfaf7] px-3 py-1.5 rounded-xl border border-[#ede6dc]">
-            <span className="text-[#8c7462] block text-[10px] uppercase font-sans">Month P&amp;L</span>
-            <span className={`font-bold text-sm ${monthTotalPnl >= 0 ? 'text-[#1e6b37]' : 'text-[#b93829]'}`}>
-              {monthTotalPnl >= 0 ? '+' : ''}${monthTotalPnl.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+          <div className="bg-surface-alt px-3 py-1.5 rounded-xl border border-line-soft">
+            <span className="text-faint block text-[10px] uppercase font-sans">Month P&amp;L</span>
+            <span className={`font-bold text-sm ${monthTotalPnl >= 0 ? 'text-profit' : 'text-loss'}`}>
+              {monthTotalPnl >= 0 ? '+' : '-'}${Math.abs(monthTotalPnl).toLocaleString('en-US', { minimumFractionDigits: 2 })}
             </span>
           </div>
-          <div className="bg-[#fcfaf7] px-3 py-1.5 rounded-xl border border-[#ede6dc] hidden sm:block">
-            <span className="text-[#8c7462] block text-[10px] uppercase font-sans">Green / Red Days</span>
-            <span className="font-bold text-sm text-[#281d16]">
-              <span className="text-[#1e6b37]">{winningDays}W</span> / <span className="text-[#b93829]">{losingDays}L</span>
+          <div className="bg-surface-alt px-3 py-1.5 rounded-xl border border-line-soft hidden sm:block">
+            <span className="text-faint block text-[10px] uppercase font-sans">Green / Red Days</span>
+            <span className="font-bold text-sm text-ink">
+              <span className="text-profit">{winningDays}W</span> / <span className="text-loss">{losingDays}L</span>
             </span>
           </div>
 
           {/* Month buttons */}
-          <div className="flex items-center gap-1 bg-[#faf7f2] p-1 rounded-xl border border-[#e2d8cb]">
+          <div className="flex items-center gap-1 bg-canvas p-1 rounded-xl border border-line">
             <button
               onClick={handlePrevMonth}
-              className="p-1 text-[#7d695b] hover:text-[#281d16] hover:bg-[#ede6dc] rounded-lg transition cursor-pointer"
+              className="p-1 text-muted hover:text-ink hover:bg-sunken-strong rounded-lg transition cursor-pointer"
               title="Previous Month"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
               onClick={handleJumpToCurrentMonth}
-              className="px-2 py-0.5 text-[11px] font-bold text-[#78350f] hover:bg-[#ede6dc] rounded-md transition cursor-pointer font-sans"
+              className="px-2 py-0.5 text-[11px] font-bold text-brand hover:bg-sunken-strong rounded-md transition cursor-pointer font-sans"
               title="Jump to current month"
             >
               Today
             </button>
             <button
               onClick={handleNextMonth}
-              className="p-1 text-[#7d695b] hover:text-[#281d16] hover:bg-[#ede6dc] rounded-lg transition cursor-pointer"
+              className="p-1 text-muted hover:text-ink hover:bg-sunken-strong rounded-lg transition cursor-pointer"
               title="Next Month"
             >
               <ChevronRight className="w-4 h-4" />
@@ -213,7 +213,7 @@ export const CalendarHeatmap: React.FC<CalendarHeatmapProps> = ({ trades, onSele
       </div>
 
       {/* Weekday headers */}
-      <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-2 text-center text-[10px] sm:text-xs font-semibold text-[#8c7462] uppercase tracking-wider">
+      <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-2 text-center text-[10px] sm:text-xs font-semibold text-faint uppercase tracking-wider">
         <span><span className="sm:hidden">S</span><span className="hidden sm:inline">Sun</span></span>
         <span><span className="sm:hidden">M</span><span className="hidden sm:inline">Mon</span></span>
         <span><span className="sm:hidden">T</span><span className="hidden sm:inline">Tue</span></span>
@@ -230,9 +230,9 @@ export const CalendarHeatmap: React.FC<CalendarHeatmapProps> = ({ trades, onSele
             return (
               <div
                 key={`empty-${idx}`}
-                className="h-14 sm:h-20 rounded-lg sm:rounded-xl border border-[#ede6dc]/60 bg-[#faf8f5] p-1 sm:p-2 opacity-40 select-none"
+                className="h-14 sm:h-20 rounded-lg sm:rounded-xl border border-line-soft/60 bg-surface-alt p-1 sm:p-2 opacity-40 select-none"
               >
-                <span className="text-[10px] sm:text-xs text-[#bdae9f] font-mono">{cell.dayNum}</span>
+                <span className="text-[10px] sm:text-xs text-faint font-mono">{cell.dayNum}</span>
               </div>
             );
           }
@@ -243,27 +243,27 @@ export const CalendarHeatmap: React.FC<CalendarHeatmapProps> = ({ trades, onSele
           const isLoss = pnl < 0;
 
           // Compute color intensity in white & brown aesthetic
-          let bgClass = 'bg-white border-[#ede6dc] hover:border-[#cbbaaa]';
-          let textPnlClass = 'text-[#7d695b]';
+          let bgClass = 'bg-surface border-line-soft hover:border-line-brand';
+          let textPnlClass = 'text-muted';
 
           if (hasTrades) {
             if (isWin) {
               if (pnl > 500) {
-                bgClass = 'bg-[#edf7ed] border-[#a3d9af] hover:border-[#67b579] shadow-xs';
+                bgClass = 'bg-profit-bg border-profit-line hover:border-[#67b579] shadow-xs';
               } else {
-                bgClass = 'bg-[#f4faf4] border-[#c3e6cb] hover:border-[#a3d9af]';
+                bgClass = 'bg-profit-bg-soft border-profit-line hover:border-profit-solid/40';
               }
-              textPnlClass = 'text-[#1e6b37] font-bold';
+              textPnlClass = 'text-profit font-bold';
             } else if (isLoss) {
               if (pnl < -200) {
-                bgClass = 'bg-[#fdf2f2] border-[#fca5a5] hover:border-[#f87171] shadow-xs';
+                bgClass = 'bg-loss-bg border-loss-line hover:border-[#f87171] shadow-xs';
               } else {
-                bgClass = 'bg-[#fff8f8] border-[#fecaca] hover:border-[#fca5a5]';
+                bgClass = 'bg-loss-bg-soft border-loss-line hover:border-loss-solid/40';
               }
-              textPnlClass = 'text-[#b93829] font-bold';
+              textPnlClass = 'text-loss font-bold';
             } else {
-              bgClass = 'bg-[#f5ede4] border-[#debfa8]';
-              textPnlClass = 'text-[#78350f] font-bold';
+              bgClass = 'bg-sunken border-line-brand';
+              textPnlClass = 'text-brand font-bold';
             }
           }
 
@@ -279,11 +279,11 @@ export const CalendarHeatmap: React.FC<CalendarHeatmapProps> = ({ trades, onSele
               className={`h-14 sm:h-20 rounded-lg sm:rounded-xl border p-1 sm:p-2 flex flex-col justify-between transition-all cursor-pointer relative group ${bgClass}`}
             >
               <div className="flex items-center justify-between">
-                <span className="text-[10px] sm:text-xs font-mono font-semibold text-[#5c4a3e] group-hover:text-[#281d16]">
+                <span className="text-[10px] sm:text-xs font-mono font-semibold text-ink-soft group-hover:text-ink">
                   {cell.dayNum}
                 </span>
                 {hasTrades && (
-                  <span className="text-[9px] sm:text-[10px] font-mono px-1 py-0.2 rounded bg-[#f5ede4] text-[#78350f] border border-[#debfa8]">
+                  <span className="text-[9px] sm:text-[10px] font-mono px-1 py-0.2 rounded bg-sunken text-brand border border-line-brand">
                     {cell.data!.tradeCount}t
                   </span>
                 )}
@@ -294,14 +294,14 @@ export const CalendarHeatmap: React.FC<CalendarHeatmapProps> = ({ trades, onSele
                   <div className={`text-[10px] sm:text-xs font-mono tracking-tight truncate ${textPnlClass}`}>
                     {isWin ? '+' : ''}${Math.abs(pnl) >= 1000 ? `${(pnl / 1000).toFixed(1)}k` : pnl.toFixed(0)}
                   </div>
-                  <div className="hidden sm:flex text-[10px] text-[#8c7462] font-mono mt-0.5 items-center gap-1">
-                    <span className="text-[#1e6b37]">{cell.data!.winCount}W</span>
+                  <div className="hidden sm:flex text-[10px] text-faint font-mono mt-0.5 items-center gap-1">
+                    <span className="text-profit">{cell.data!.winCount}W</span>
                     <span>-</span>
-                    <span className="text-[#b93829]">{cell.data!.lossCount}L</span>
+                    <span className="text-loss">{cell.data!.lossCount}L</span>
                   </div>
                 </div>
               ) : (
-                <div className="hidden sm:block text-[10px] text-[#bdae9f] italic">No trades</div>
+                <div className="hidden sm:block text-[10px] text-faint italic">No trades</div>
               )}
             </div>
           );
@@ -310,31 +310,31 @@ export const CalendarHeatmap: React.FC<CalendarHeatmapProps> = ({ trades, onSele
 
       {/* Day details modal if clicked */}
       {selectedDayTrades && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#281d16]/50 backdrop-blur-xs">
-          <div className="bg-white border border-[#e8dfd5] rounded-2xl max-w-lg w-full p-6 shadow-2xl relative text-left">
-            <div className="flex items-center justify-between border-b border-[#ede6dc] pb-3 mb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-inverse/50 backdrop-blur-xs">
+          <div className="bg-surface border border-line rounded-2xl max-w-lg w-full p-6 shadow-2xl relative text-left">
+            <div className="flex items-center justify-between border-b border-line-soft pb-3 mb-4">
               <div>
-                <h4 className="text-lg font-bold text-[#281d16] flex items-center gap-2">
+                <h4 className="text-lg font-bold text-ink flex items-center gap-2">
                   <span>Trades for {selectedDayTrades.date}</span>
                   <span
                     className={`text-xs font-mono font-bold px-2 py-0.5 rounded-full ${
                       selectedDayTrades.pnl >= 0
-                        ? 'bg-[#edf7ed] text-[#1e6b37] border border-[#c3e6cb]'
-                        : 'bg-[#fef2f2] text-[#b93829] border border-[#fecaca]'
+                        ? 'bg-profit-bg text-profit border border-profit-line'
+                        : 'bg-loss-bg text-loss border border-loss-line'
                     }`}
                   >
-                    {selectedDayTrades.pnl >= 0 ? '+' : ''}${selectedDayTrades.pnl.toFixed(2)}
+                    {selectedDayTrades.pnl >= 0 ? '+' : '-'}${Math.abs(selectedDayTrades.pnl).toFixed(2)}
                   </span>
                 </h4>
-                <p className="text-xs text-[#7d695b]">
+                <p className="text-xs text-muted">
                   {selectedDayTrades.tradeCount} trade{selectedDayTrades.tradeCount > 1 ? 's' : ''} logged •{' '}
-                  <span className="text-[#1e6b37] font-semibold">{selectedDayTrades.winCount} Wins</span>,{' '}
-                  <span className="text-[#b93829] font-semibold">{selectedDayTrades.lossCount} Losses</span>
+                  <span className="text-profit font-semibold">{selectedDayTrades.winCount} Wins</span>,{' '}
+                  <span className="text-loss font-semibold">{selectedDayTrades.lossCount} Losses</span>
                 </p>
               </div>
               <button
                 onClick={() => setSelectedDayTrades(null)}
-                className="text-[#7d695b] hover:text-[#281d16] p-1 rounded-lg hover:bg-[#f5ede4] transition cursor-pointer"
+                className="text-muted hover:text-ink p-1 rounded-lg hover:bg-sunken transition cursor-pointer"
               >
                 ✕
               </button>
@@ -344,23 +344,23 @@ export const CalendarHeatmap: React.FC<CalendarHeatmapProps> = ({ trades, onSele
               {selectedDayTrades.trades.map((t) => (
                 <div
                   key={t.id}
-                  className="p-3 rounded-xl bg-[#fcfaf7] border border-[#ede6dc] flex items-center justify-between gap-3 text-xs"
+                  className="p-3 rounded-xl bg-surface-alt border border-line-soft flex items-center justify-between gap-3 text-xs"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-[#281d16] font-mono text-sm">{t.symbol}</span>
+                      <span className="font-bold text-ink font-mono text-sm">{t.symbol}</span>
                       <span
                         className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${
                           t.direction === 'long'
-                            ? 'bg-[#edf7ed] text-[#1e6b37] border border-[#c3e6cb]'
-                            : 'bg-[#fef2f2] text-[#b93829] border border-[#fecaca]'
+                            ? 'bg-profit-bg text-profit border border-profit-line'
+                            : 'bg-loss-bg text-loss border border-loss-line'
                         }`}
                       >
                         {t.direction}
                       </span>
-                      <span className="text-[#8c7462] font-mono text-[11px]">{t.time}</span>
+                      <span className="text-faint font-mono text-[11px]">{t.time}</span>
                     </div>
-                    <div className="text-[#7d695b] text-[11px]">
+                    <div className="text-muted text-[11px]">
                       {t.strategy} • In: {formatPrice(t.entryPrice)} → Out: {formatPrice(t.exitPrice)}
                     </div>
                   </div>
@@ -368,12 +368,12 @@ export const CalendarHeatmap: React.FC<CalendarHeatmapProps> = ({ trades, onSele
                   <div className="text-right">
                     <div
                       className={`font-mono font-bold text-sm ${
-                        t.netPnl >= 0 ? 'text-[#1e6b37]' : 'text-[#b93829]'
+                        t.netPnl >= 0 ? 'text-profit' : 'text-loss'
                       }`}
                     >
                       {formatPnL(t.netPnl)}
                     </div>
-                    <div className="text-[10px] text-[#8c7462] font-mono">
+                    <div className="text-[10px] text-faint font-mono">
                       {t.roi >= 0 ? '+' : ''}{t.roi}% ROI ({t.realizedRR}R)
                     </div>
                   </div>
@@ -381,10 +381,10 @@ export const CalendarHeatmap: React.FC<CalendarHeatmapProps> = ({ trades, onSele
               ))}
             </div>
 
-            <div className="mt-4 pt-3 border-t border-[#ede6dc] flex justify-end">
+            <div className="mt-4 pt-3 border-t border-line-soft flex justify-end">
               <button
                 onClick={() => setSelectedDayTrades(null)}
-                className="px-4 py-2 bg-[#78350f] hover:bg-[#632909] text-white text-xs font-semibold rounded-xl transition cursor-pointer"
+                className="px-4 py-2 bg-brand-solid hover:bg-brand-solid-hover text-white text-xs font-semibold rounded-xl transition cursor-pointer"
               >
                 Close
               </button>

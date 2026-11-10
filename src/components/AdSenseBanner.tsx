@@ -95,17 +95,17 @@ export const AdSenseBanner: React.FC<AdSenseBannerProps> = ({
   return (
     <aside
       aria-label="Advertisement Banner"
-      className={`w-full my-4 overflow-hidden rounded-xl bg-white border border-[#ddcfbf] p-3 text-center transition ${className}`}
+      className={`w-full my-4 overflow-hidden rounded-xl bg-surface border border-line-strong p-3 text-center transition ${className}`}
     >
-      <div className="flex items-center justify-between px-1 pb-2 border-b border-[#f4eee6] mb-2 text-[10px] text-[#8c7462] font-mono uppercase tracking-wider">
+      <div className="flex items-center justify-between px-1 pb-2 border-b border-line-soft mb-2 text-[10px] text-faint font-mono uppercase tracking-wider">
         <span>Advertisement Unit</span>
-        <span className="text-[10px] text-[#78350f] font-semibold flex items-center gap-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#2e7d32]"></span>
+        <span className="text-[10px] text-brand font-semibold flex items-center gap-1">
+          <span className="w-1.5 h-1.5 rounded-full bg-profit-solid"></span>
           Google AdSense ({formattedClient})
         </span>
       </div>
 
-      <div className="min-h-[90px] flex items-center justify-center relative">
+      <div className="min-h-[90px] flex flex-col items-center justify-center relative">
         <ins
           ref={insRef}
           className="adsbygoogle"
@@ -118,27 +118,27 @@ export const AdSenseBanner: React.FC<AdSenseBannerProps> = ({
 
         {/* Informative fallback shown while Google finishes domain review or if ad-blocker is active */}
         {adStatus !== 'filled' && (
-          <div className="w-full py-4 px-3.5 bg-[#faf6f0] border border-dashed border-[#ddcfbf] rounded-xl text-left flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-fade-in">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-[#f0e6db] text-[#92400e] flex items-center justify-center shrink-0 border border-[#ddcfbf]">
-                <Clock className="w-4 h-4 text-[#92400e]" />
+          <div className="w-full py-4 px-3.5 bg-canvas border border-dashed border-line-strong rounded-xl text-left flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-fade-in">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-8 h-8 rounded-lg bg-sunken-strong text-brand flex items-center justify-center shrink-0 border border-line-strong">
+                <Clock className="w-4 h-4 text-brand" />
               </div>
               <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-xs text-[#281d16]">
+                <div className="flex items-center gap-x-2 gap-y-1 flex-wrap">
+                  <span className="font-bold text-xs text-ink">
                     Google AdSense Slot Active
                   </span>
-                  <span className="text-[10px] font-mono font-bold bg-[#fef3c7] text-[#92400e] px-2 py-0.5 rounded-full border border-[#fde68a]">
+                  <span className="text-[10px] font-mono font-bold bg-warn-bg text-brand px-2 py-0.5 rounded-full border border-warn-line">
                     Pending Google Review
                   </span>
                 </div>
-                <p className="text-[11px] text-[#7d695b] mt-0.5">
-                  Connected to <strong className="font-mono text-[#281d16]">{formattedClient}</strong>. Google takes 24–48 hours to approve new sites and start serving live commercial ads.
+                <p className="text-[11px] text-muted mt-0.5 break-words">
+                  Connected to <strong className="font-mono text-ink">{formattedClient}</strong>. Google takes 24–48 hours to approve new sites and start serving live commercial ads.
                 </p>
               </div>
             </div>
 
-            <div className="text-[10px] text-[#8c7462] font-mono shrink-0 bg-white px-2.5 py-1 rounded-lg border border-[#e2d8cb]">
+            <div className="text-[10px] text-faint font-mono shrink-0 bg-surface px-2.5 py-1 rounded-lg border border-line">
               ads.txt: Verified ✓
             </div>
           </div>

@@ -31,8 +31,8 @@ export const OfflineIndicator: React.FC = () => {
 
   if (showReconnected) {
     return (
-      <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2 rounded-xl bg-white border border-[#c3e6cb] px-3.5 py-2 text-xs font-medium text-[#1e6b37] shadow-xl animate-fade-in">
-        <Wifi className="w-3.5 h-3.5 text-[#1e6b37]" />
+      <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2 rounded-xl bg-surface border border-profit-line px-3.5 py-2 text-xs font-medium text-profit shadow-xl animate-fade-in">
+        <Wifi className="w-3.5 h-3.5 text-profit" />
         <span>Connected — Syncing journal data...</span>
       </div>
     );
@@ -41,9 +41,9 @@ export const OfflineIndicator: React.FC = () => {
   if (isOnline) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2 rounded-xl bg-white border border-[#e8dfd5] px-3.5 py-2 text-xs font-medium text-[#78350f] shadow-xl animate-fade-in">
-      <span className="h-2 w-2 rounded-full bg-[#b45309] animate-pulse" />
-      <WifiOff className="w-3.5 h-3.5 text-[#78350f]" />
+    <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2 rounded-xl bg-surface border border-line px-3.5 py-2 text-xs font-medium text-brand shadow-xl animate-fade-in">
+      <span className="h-2 w-2 rounded-full bg-accent animate-pulse" />
+      <WifiOff className="w-3.5 h-3.5 text-brand" />
       <span>Offline Mode — Cached local data in use</span>
     </div>
   );

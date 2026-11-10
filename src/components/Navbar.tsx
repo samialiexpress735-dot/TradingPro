@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   TrendingUp,
   BookOpen,
@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { PWAInstallButton } from './PWAInstallButton';
 import { UserMenu } from './UserMenu';
+import { ThemeToggle } from './ThemeToggle';
 import { Trade } from '../types/trade';
 
 interface NavbarProps {
@@ -53,6 +54,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onLoadDemoTrades,
   onOpenDepositModal,
 }) => {
+  const tabsRef = useRef<HTMLDivElement>(null);
   const [isEditingBalance, setIsEditingBalance] = useState(false);
   const [tempBalance, setTempBalance] = useState(String(accountBalance));
 
@@ -73,6 +75,13 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'news', label: 'Market News', icon: Radio, hasBadge: true },
   ];
 
+  // Keep the active tab visible when the tab row is scrolled (e.g. navigating from a dashboard shortcut on mobile)
+  useEffect(() => {
+    tabsRef.current
+      ?.querySelector<HTMLElement>('[aria-current="page"]')
+      ?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+  }, [activeTab]);
+
   const handleSaveBalance = () => {
     const parsed = parseFloat(tempBalance);
     if (!isNaN(parsed) && parsed > 0) {
@@ -82,70 +91,46 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-[#fcfaf7]/95 backdrop-blur-xl border-b border-[#e8dfd5] px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 transition">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
-        {/* Left: Brand Identity */}
-        <div
+    <header className="sticky top-0 z-40 bg-surface-alt/95 backdrop-blur-xl border-b border-line">
+      {/* Row 1: brand + account actions */}
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4 px-3 sm:px-6 lg:px-8 pt-2.5 sm:pt-3 pb-2">
+        <button
+          type="button"
           onClick={() => onSelectTab('dashboard')}
-          className="flex items-center gap-2 cursor-pointer group select-none shrink-0"
+          aria-label="TradePulse - go to dashboard"
+          className="flex items-center gap-2 cursor-pointer group select-none shrink-0 text-left"
         >
-          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-[#78350f] via-[#92400e] to-[#b45309] flex items-center justify-center shadow-md shadow-[#78350f]/20 group-hover:scale-105 transition">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-brand-solid via-brand-solid-2 to-accent flex items-center justify-center shadow-md shadow-brand-solid/20 group-hover:scale-105 transition">
             <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-white stroke-[2.5]" />
           </div>
           <div>
             <div className="flex items-center gap-1">
-              <span className="text-sm sm:text-base font-extrabold text-[#281d16] tracking-tight">Trade</span>
-              <span className="text-sm sm:text-base font-extrabold bg-gradient-to-r from-[#78350f] to-[#b45309] bg-clip-text text-transparent tracking-tight">
-                Pulse
-              </span>
+              <span className="text-sm sm:text-base font-extrabold text-ink tracking-tight">Trade</span>
+              <span className="text-sm sm:text-base font-extrabold text-brand tracking-tight">Pulse</span>
             </div>
-            <span className="text-[9px] sm:text-[10px] text-[#8c7462] uppercase tracking-widest font-mono block -mt-1 font-semibold">
+            <span className="text-[9px] sm:text-[10px] text-faint uppercase tracking-widest font-mono block -mt-1 font-semibold">
               PRO JOURNAL
             </span>
           </div>
-        </div>
+        </button>
 
-        {/* Center: Main Navigation Tabs (Desktop) */}
-        <nav className="hidden md:flex items-center gap-1 bg-[#ede6dc] p-1 rounded-2xl border border-[#ddcfbf]">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => onSelectTab(item.id)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 relative ${
-                  isActive
-                    ? 'bg-white text-[#281d16] shadow-sm border border-[#d2c0ad]'
-                    : 'text-[#6e5849] hover:text-[#281d16] hover:bg-[#e4d9cc]'
-                }`}
-              >
-                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[#92400e]' : 'text-[#8c7462]'}`} />
-                <span>{item.label}</span>
-                {item.hasBadge && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#92400e]"></span>
-                )}
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* Right: Account Balance & Quick Actions */}
-        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-          {/* Account Balance Widget with Simulated Deposit Action */}
-          <div className="bg-white border border-[#ddcfbf] px-2.5 sm:px-3 py-1.5 rounded-xl hidden sm:flex items-center gap-2 font-mono text-xs shadow-xs">
+        <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
+          {/* Paper balance */}
+          <div className="bg-surface border border-line-strong px-2.5 sm:px-3 py-1.5 rounded-xl hidden sm:flex items-center gap-2 font-mono text-xs shadow-xs">
             <button
+              type="button"
               onClick={onOpenDepositModal}
-              className="flex items-center gap-1.5 text-[#281d16] hover:text-[#92400e] font-bold transition cursor-pointer"
+              className="flex items-center gap-1.5 text-ink hover:text-brand font-bold transition cursor-pointer"
               title="Deposit or withdraw simulated paper capital"
             >
-              <Wallet className="w-3.5 h-3.5 text-[#8c7462]" />
+              <Wallet className="w-3.5 h-3.5 text-faint" />
               <span>${accountBalance.toLocaleString()}</span>
             </button>
             {onOpenDepositModal && (
               <button
+                type="button"
                 onClick={onOpenDepositModal}
-                className="px-1.5 py-0.5 text-[10px] bg-[#f5ede4] hover:bg-[#ebd5c3] text-[#78350f] rounded font-bold border border-[#dac6b3] transition cursor-pointer"
+                className="px-1.5 py-0.5 text-[10px] bg-sunken hover:bg-sunken-strong text-brand rounded font-bold border border-line-brand transition cursor-pointer"
                 title="Deposit / Withdraw Paper Funds"
               >
                 + Cash
@@ -153,36 +138,40 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
           </div>
 
-          {/* Pre-trade checklist button */}
           <button
+            type="button"
             onClick={onOpenChecklistModal}
-            className="p-1.5 sm:p-2 text-[#6e5849] hover:text-[#281d16] bg-white hover:bg-[#ede6dc] rounded-xl border border-[#ddcfbf] transition hidden lg:flex items-center gap-1 shadow-xs"
+            aria-label="Open pre-trade checklist"
+            className="p-1.5 sm:p-2 text-muted hover:text-ink bg-surface hover:bg-sunken-strong rounded-xl border border-line-strong transition hidden md:flex items-center shadow-xs cursor-pointer"
             title="Pre-trade checklist"
           >
-            <ShieldCheck className="w-4 h-4 text-[#2e7d32]" />
+            <ShieldCheck className="w-4 h-4 text-profit" />
           </button>
 
-          {/* Reset or Load Demo Data */}
           {trades.length === 0 && onLoadDemoTrades ? (
             <button
+              type="button"
               onClick={onLoadDemoTrades}
-              className="px-2.5 py-1.5 text-[11px] font-bold text-[#78350f] bg-[#f8ede3] hover:bg-[#ebd5c3] border border-[#d8bca6] rounded-xl transition shadow-xs hidden sm:flex items-center gap-1 cursor-pointer"
+              className="px-2.5 py-1.5 text-[11px] font-bold text-brand bg-sunken hover:bg-sunken-strong border border-line-brand rounded-xl transition shadow-xs hidden lg:flex items-center gap-1 cursor-pointer"
               title="Load demo sample trades"
             >
-              <RotateCcw className="w-3 h-3 text-[#78350f]" />
+              <RotateCcw className="w-3 h-3" />
               <span>Load Demo Data</span>
             </button>
           ) : (
             <button
+              type="button"
               onClick={onResetData}
-              className="p-1.5 sm:p-2 text-[#8c7462] hover:text-[#281d16] bg-white hover:bg-[#ede6dc] rounded-xl border border-[#ddcfbf] transition shadow-xs"
+              aria-label={trades.length > 0 ? 'Clear all trades from journal' : 'Reset sample trades'}
+              className="p-1.5 sm:p-2 text-faint hover:text-loss bg-surface hover:bg-loss-bg rounded-xl border border-line-strong transition shadow-xs cursor-pointer"
               title={trades.length > 0 ? 'Clear all trades from journal' : 'Reset sample trades'}
             >
               <RotateCcw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
           )}
 
-          {/* User Auth & Cloud Sync Menu */}
+          <ThemeToggle />
+
           <UserMenu
             user={user}
             onOpenAuth={onOpenAuth}
@@ -192,13 +181,12 @@ export const Navbar: React.FC<NavbarProps> = ({
             trades={trades}
           />
 
-          {/* PWA Install Button */}
           <PWAInstallButton compact={true} />
 
-          {/* New Trade Primary CTA */}
           <button
+            type="button"
             onClick={onOpenTradeModal}
-            className="px-3 sm:px-3.5 py-1.5 sm:py-2 bg-[#78350f] hover:bg-[#632909] text-white text-xs font-bold rounded-xl flex items-center gap-1 sm:gap-1.5 transition shadow-sm active:scale-95"
+            className="px-3 sm:px-3.5 py-1.5 sm:py-2 bg-brand-solid hover:bg-brand-solid-hover text-white text-xs font-bold rounded-xl flex items-center gap-1 sm:gap-1.5 transition shadow-sm active:scale-95 shrink-0 cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <span>Log Trade</span>
@@ -206,30 +194,35 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
-      {/* Mobile subnav - horizontally scrollable with smooth touch scrolling */}
-      <div className="flex md:hidden items-center gap-1.5 mt-2 pt-2 border-t border-[#e8dfd5] overflow-x-auto no-scrollbar pb-1 text-[11px] px-0.5">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = activeTab === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => onSelectTab(item.id)}
-              className={`px-3 py-1.5 rounded-xl font-medium transition shrink-0 whitespace-nowrap flex items-center gap-1.5 border ${
-                isActive
-                  ? 'bg-white text-[#78350f] font-bold border-[#d2c0ad] shadow-xs'
-                  : 'text-[#6e5849] border-transparent hover:text-[#281d16]'
-              }`}
-            >
-              <Icon className="w-3.5 h-3.5 shrink-0" />
-              <span className="whitespace-nowrap">{item.label}</span>
-              {item.hasBadge && (
-                <span className="w-1.5 h-1.5 rounded-full bg-[#92400e] shrink-0"></span>
-              )}
-            </button>
-          );
-        })}
-      </div>
+      {/* Row 2: tabs. Always labelled, scrolls sideways on small screens, never wraps or clips. */}
+      <nav aria-label="Main" className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div
+          ref={tabsRef}
+          className="flex items-center gap-1 overflow-x-auto no-scrollbar -mb-px [mask-image:linear-gradient(to_right,black_calc(100%-28px),transparent)] md:[mask-image:none]"
+        >
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => onSelectTab(item.id)}
+                aria-current={isActive ? 'page' : undefined}
+                className={`relative shrink-0 whitespace-nowrap flex items-center gap-1.5 px-3 sm:px-3.5 py-2.5 text-xs font-semibold border-b-2 transition cursor-pointer ${
+                  isActive
+                    ? 'text-brand border-brand'
+                    : 'text-muted border-transparent hover:text-ink hover:border-line-strong'
+                }`}
+              >
+                <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-brand' : 'text-faint'}`} />
+                <span>{item.label}</span>
+                {item.hasBadge && <span className="w-1.5 h-1.5 rounded-full bg-accent shrink-0" aria-hidden="true"></span>}
+              </button>
+            );
+          })}
+        </div>
+      </nav>
     </header>
   );
 };

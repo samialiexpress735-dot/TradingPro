@@ -208,34 +208,34 @@ export const MonthlyTargetTracker: React.FC<MonthlyTargetTrackerProps> = ({
   }, [isTargetAchieved, isCurrentMonth, selectedMonth]);
 
   return (
-    <div className="bg-white border border-[#e8dfd5] rounded-2xl p-3.5 sm:p-5 shadow-xs space-y-3.5 sm:space-y-4">
+    <div className="bg-surface border border-line rounded-2xl p-3.5 sm:p-5 shadow-xs space-y-3.5 sm:space-y-4">
       {/* Header Bar: Title, Month Selector, and Target Configuration */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#ede6dc] pb-3.5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-line-soft pb-3.5">
         <div className="flex items-start sm:items-center gap-2.5 sm:gap-3">
-          <div className="p-2 sm:p-2.5 bg-[#f5ede4] text-[#78350f] rounded-xl border border-[#debfa8] shrink-0">
-            <Target className="w-4 h-4 sm:w-5 sm:h-5 text-[#78350f]" />
+          <div className="p-2 sm:p-2.5 bg-sunken text-brand rounded-xl border border-line-brand shrink-0">
+            <Target className="w-4 h-4 sm:w-5 sm:h-5 text-brand" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-              <h3 className="text-xs sm:text-sm font-bold text-[#281d16] uppercase tracking-wider">
+              <h3 className="text-xs sm:text-sm font-bold text-ink uppercase tracking-wider">
                 Monthly P&amp;L Target
               </h3>
               {isTargetAchieved ? (
-                <span className="px-2 py-0.5 rounded-full bg-[#edf7ed] text-[#1e6b37] text-[10px] font-mono font-bold border border-[#c3e6cb] flex items-center gap-1 shrink-0">
-                  <CheckCircle2 className="w-3 h-3 text-[#1e6b37]" />
+                <span className="px-2 py-0.5 rounded-full bg-profit-bg text-profit text-[10px] font-mono font-bold border border-profit-line flex items-center gap-1 shrink-0">
+                  <CheckCircle2 className="w-3 h-3 text-profit" />
                   <span>ACHIEVED</span>
                 </span>
               ) : monthNetPnL < 0 ? (
-                <span className="px-2 py-0.5 rounded-full bg-[#fef2f2] text-[#b93829] text-[10px] font-mono font-bold border border-[#fecaca] shrink-0">
+                <span className="px-2 py-0.5 rounded-full bg-loss-bg text-loss text-[10px] font-mono font-bold border border-loss-line shrink-0">
                   DRAWDOWN
                 </span>
               ) : (
-                <span className="px-2 py-0.5 rounded-full bg-[#fcfaf7] text-[#78350f] text-[10px] font-mono font-bold border border-[#e8dfd5] shrink-0">
+                <span className="px-2 py-0.5 rounded-full bg-surface-alt text-brand text-[10px] font-mono font-bold border border-line shrink-0">
                   IN PROGRESS
                 </span>
               )}
             </div>
-            <p className="text-[11px] sm:text-xs text-[#7d695b] mt-0.5 line-clamp-1">
+            <p className="text-[11px] sm:text-xs text-muted mt-0.5 line-clamp-1">
               Goal tracking, monthly run-rate pacing, and execution discipline.
             </p>
           </div>
@@ -244,21 +244,21 @@ export const MonthlyTargetTracker: React.FC<MonthlyTargetTrackerProps> = ({
         {/* Month Navigation & Edit Target Action */}
         <div className="flex items-center justify-between sm:justify-end gap-2 flex-wrap w-full sm:w-auto pt-1 sm:pt-0">
           {/* Month Switcher */}
-          <div className="flex items-center bg-[#fcfaf7] border border-[#e8dfd5] rounded-xl p-0.5 text-xs font-mono flex-1 sm:flex-initial justify-between sm:justify-start">
+          <div className="flex items-center bg-surface-alt border border-line rounded-xl p-0.5 text-xs font-mono flex-1 sm:flex-initial justify-between sm:justify-start">
             <button
               onClick={handlePrevMonth}
-              className="p-1.5 text-[#7d695b] hover:text-[#281d16] hover:bg-[#ede6dc] rounded-lg transition cursor-pointer"
+              className="p-1.5 text-muted hover:text-ink hover:bg-sunken-strong rounded-lg transition cursor-pointer"
               title="Previous Month"
               aria-label="Previous Month"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
             </button>
-            <span className="px-2 py-1 text-xs font-semibold text-[#281d16] text-center truncate">
+            <span className="px-2 py-1 text-xs font-semibold text-ink text-center truncate">
               {monthDisplayLabel}
             </span>
             <button
               onClick={handleNextMonth}
-              className="p-1.5 text-[#7d695b] hover:text-[#281d16] hover:bg-[#ede6dc] rounded-lg transition cursor-pointer"
+              className="p-1.5 text-muted hover:text-ink hover:bg-sunken-strong rounded-lg transition cursor-pointer"
               title="Next Month"
               aria-label="Next Month"
             >
@@ -270,7 +270,7 @@ export const MonthlyTargetTracker: React.FC<MonthlyTargetTrackerProps> = ({
             {!isCurrentMonth && (
               <button
                 onClick={handleResetToCurrentMonth}
-                className="px-2.5 py-1.5 text-[11px] font-mono text-[#78350f] bg-[#f5ede4] hover:bg-[#ede1d3] border border-[#debfa8] rounded-xl transition cursor-pointer shrink-0"
+                className="px-2.5 py-1.5 text-[11px] font-mono text-brand bg-sunken hover:bg-line border border-line-brand rounded-xl transition cursor-pointer shrink-0"
               >
                 Current
               </button>
@@ -284,15 +284,15 @@ export const MonthlyTargetTracker: React.FC<MonthlyTargetTrackerProps> = ({
                   setTempValue(String(targetValue));
                   setIsEditing(true);
                 }}
-                className="px-3 py-1.5 bg-[#fcfaf7] hover:bg-[#f5ede4] text-[#78350f] border border-[#debfa8] rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shrink-0"
+                className="px-3 py-1.5 bg-surface-alt hover:bg-sunken text-brand border border-line-brand rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shrink-0"
               >
-                <Edit2 className="w-3 h-3 text-[#78350f]" />
+                <Edit2 className="w-3 h-3 text-brand" />
                 <span>Set Target</span>
               </button>
             ) : (
               <button
                 onClick={() => setIsEditing(false)}
-                className="p-1.5 text-[#7d695b] hover:text-[#281d16] bg-[#fcfaf7] rounded-xl border border-[#e8dfd5] transition cursor-pointer shrink-0"
+                className="p-1.5 text-muted hover:text-ink bg-surface-alt rounded-xl border border-line transition cursor-pointer shrink-0"
                 title="Cancel Edit"
               >
                 <X className="w-4 h-4" />
@@ -304,20 +304,20 @@ export const MonthlyTargetTracker: React.FC<MonthlyTargetTrackerProps> = ({
 
       {/* Inline Target Configuration Drawer when editing */}
       {isEditing && (
-        <div className="p-3.5 bg-[#faf7f2] border border-[#debfa8] rounded-xl space-y-3 animate-fade-in">
+        <div className="p-3.5 bg-canvas border border-line-brand rounded-xl space-y-3 animate-fade-in">
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
-            <span className="font-bold text-[#634832] flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-[#78350f]" />
+            <span className="font-bold text-ink-soft flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-brand" />
               <span>Define Monthly Target Benchmark</span>
             </span>
-            <span className="text-[#8c7462] font-mono text-[11px]">
+            <span className="text-faint font-mono text-[11px]">
               Base Balance: ${startingBalance.toLocaleString()}
             </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
             {/* Mode Selector */}
-            <div className="sm:col-span-4 grid grid-cols-2 gap-1.5 bg-white p-1 rounded-xl border border-[#e2d8cb]">
+            <div className="sm:col-span-4 grid grid-cols-2 gap-1.5 bg-surface p-1 rounded-xl border border-line">
               <button
                 type="button"
                 onClick={() => {
@@ -328,8 +328,8 @@ export const MonthlyTargetTracker: React.FC<MonthlyTargetTrackerProps> = ({
                 }}
                 className={`py-1.5 text-xs font-bold rounded-lg transition cursor-pointer flex items-center justify-center gap-1 ${
                   tempType === 'dollar'
-                    ? 'bg-[#78350f] text-white shadow-xs'
-                    : 'text-[#7d695b] hover:text-[#281d16]'
+                    ? 'bg-brand-solid text-white shadow-xs'
+                    : 'text-muted hover:text-ink'
                 }`}
               >
                 <DollarSign className="w-3.5 h-3.5" />
@@ -345,8 +345,8 @@ export const MonthlyTargetTracker: React.FC<MonthlyTargetTrackerProps> = ({
                 }}
                 className={`py-1.5 text-xs font-bold rounded-lg transition cursor-pointer flex items-center justify-center gap-1 ${
                   tempType === 'percent'
-                    ? 'bg-[#78350f] text-white shadow-xs'
-                    : 'text-[#7d695b] hover:text-[#281d16]'
+                    ? 'bg-brand-solid text-white shadow-xs'
+                    : 'text-muted hover:text-ink'
                 }`}
               >
                 <Percent className="w-3.5 h-3.5" />
@@ -356,7 +356,7 @@ export const MonthlyTargetTracker: React.FC<MonthlyTargetTrackerProps> = ({
 
             {/* Input Value */}
             <div className="sm:col-span-5 relative">
-              <span className="absolute left-3 top-2 text-[#8c7462] font-mono text-sm">
+              <span className="absolute left-3 top-2 text-faint font-mono text-sm">
                 {tempType === 'dollar' ? '$' : '%'}
               </span>
               <input
@@ -367,7 +367,7 @@ export const MonthlyTargetTracker: React.FC<MonthlyTargetTrackerProps> = ({
                 onChange={(e) => setTempValue(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSaveTarget()}
                 placeholder={tempType === 'dollar' ? '2500' : '10'}
-                className="w-full bg-white border border-[#debfa8] rounded-xl pl-8 pr-3 py-1.5 text-sm font-mono text-[#281d16] focus:outline-none focus:border-[#78350f]"
+                className="w-full bg-surface border border-line-brand rounded-xl pl-8 pr-3 py-1.5 text-sm font-mono text-ink focus:outline-none focus:border-brand"
                 autoFocus
               />
             </div>
@@ -377,7 +377,7 @@ export const MonthlyTargetTracker: React.FC<MonthlyTargetTrackerProps> = ({
               <button
                 type="button"
                 onClick={handleSaveTarget}
-                className="w-full py-1.5 px-3 bg-[#78350f] hover:bg-[#632909] text-white text-xs font-bold rounded-xl transition cursor-pointer shadow-xs flex items-center justify-center gap-1"
+                className="w-full py-1.5 px-3 bg-brand-solid hover:bg-brand-solid-hover text-white text-xs font-bold rounded-xl transition cursor-pointer shadow-xs flex items-center justify-center gap-1"
               >
                 <Check className="w-3.5 h-3.5" />
                 <span>Save Target</span>
@@ -387,7 +387,7 @@ export const MonthlyTargetTracker: React.FC<MonthlyTargetTrackerProps> = ({
 
           {/* Quick Preset Buttons */}
           <div className="flex items-center gap-1.5 flex-wrap pt-1 text-[11px] font-mono">
-            <span className="text-[#8c7462] text-[10px] uppercase font-sans font-medium">Quick Presets:</span>
+            <span className="text-faint text-[10px] uppercase font-sans font-medium">Quick Presets:</span>
             {[
               { type: 'percent' as const, val: 5, label: '5% ($' + Math.round(startingBalance * 0.05).toLocaleString() + ')' },
               { type: 'percent' as const, val: 10, label: '10% ($' + Math.round(startingBalance * 0.10).toLocaleString() + ')' },
@@ -400,7 +400,7 @@ export const MonthlyTargetTracker: React.FC<MonthlyTargetTrackerProps> = ({
                 key={p.label}
                 type="button"
                 onClick={() => handleSelectPreset(p.type, p.val)}
-                className="px-2 py-0.5 bg-white text-[#634832] hover:text-[#281d16] hover:bg-[#f2ece2] border border-[#e2d8cb] rounded-md transition cursor-pointer"
+                className="px-2 py-0.5 bg-surface text-ink-soft hover:text-ink hover:bg-sunken border border-line rounded-md transition cursor-pointer"
               >
                 {p.label}
               </button>
@@ -413,105 +413,105 @@ export const MonthlyTargetTracker: React.FC<MonthlyTargetTrackerProps> = ({
       <div className="space-y-2">
         <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1.5 text-xs">
           <div className="flex items-center justify-between sm:justify-start gap-2 flex-wrap">
-            <span className="text-xs text-[#7d695b] font-medium">Realized Net Profit:</span>
+            <span className="text-xs text-muted font-medium">Realized Net Profit:</span>
             <div className="flex items-baseline gap-1.5">
               <span
                 className={`text-xl sm:text-2xl font-extrabold font-mono tracking-tight ${
-                  monthNetPnL >= 0 ? 'text-[#1e6b37]' : 'text-[#b93829]'
+                  monthNetPnL >= 0 ? 'text-profit' : 'text-loss'
                 }`}
               >
-                {monthNetPnL >= 0 ? '+' : ''}${monthNetPnL.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {monthNetPnL >= 0 ? '+' : '-'}${Math.abs(monthNetPnL).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
-              <span className="text-[11px] sm:text-xs font-mono text-[#8c7462]">
+              <span className="text-[11px] sm:text-xs font-mono text-faint">
                 / <strong>${effectiveTargetDollar.toLocaleString('en-US', { minimumFractionDigits: 2 })}</strong>
               </span>
             </div>
           </div>
 
           <div className="flex items-center justify-end gap-1.5 self-end sm:self-auto">
-            <span className="text-xs font-mono font-bold text-[#78350f]">
+            <span className="text-xs font-mono font-bold text-brand">
               {progressPercent.toFixed(1)}%
             </span>
-            <span className="text-xs text-[#8c7462] font-sans">achieved</span>
+            <span className="text-xs text-faint font-sans">achieved</span>
           </div>
         </div>
 
         {/* Visual Progress Bar with Threshold Milestones */}
-        <div className="relative w-full bg-[#f2ece2] rounded-full h-3.5 overflow-hidden border border-[#e2d8cb]">
+        <div className="relative w-full bg-sunken rounded-full h-3.5 overflow-hidden border border-line">
           <div
             className={`h-full transition-all duration-700 ease-out rounded-full ${
               isTargetAchieved
-                ? 'bg-gradient-to-r from-[#2e7d32] to-[#1e6b37]'
+                ? 'bg-gradient-to-r from-profit-solid to-profit-solid'
                 : monthNetPnL < 0
-                ? 'bg-[#b93829]'
-                : 'bg-gradient-to-r from-[#a06235] to-[#78350f]'
+                ? 'bg-loss-solid'
+                : 'bg-gradient-to-r from-accent to-brand-solid'
             }`}
             style={{ width: `${monthNetPnL < 0 ? Math.min(100, Math.abs(progressPercent)) : progressCapped}%` }}
           />
         </div>
 
         {/* Milestone Threshold Indicators */}
-        <div className="flex justify-between text-[10px] font-mono text-[#8c7462] px-1">
+        <div className="flex justify-between text-[10px] font-mono text-faint px-1">
           <span>$0 (0%)</span>
           <span className="hidden sm:inline">25% (${(effectiveTargetDollar * 0.25).toFixed(0)})</span>
           <span>50% (${(effectiveTargetDollar * 0.5).toFixed(0)})</span>
           <span className="hidden sm:inline">75% (${(effectiveTargetDollar * 0.75).toFixed(0)})</span>
-          <span className="font-bold text-[#78350f]">100% (${effectiveTargetDollar.toFixed(0)})</span>
+          <span className="font-bold text-brand">100% (${effectiveTargetDollar.toFixed(0)})</span>
         </div>
       </div>
 
       {/* Target Breakdown Statistics Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5 pt-1 sm:pt-2 text-xs font-mono">
         {/* Metric 1: Remaining to Goal */}
-        <div className="p-2.5 sm:p-3 bg-[#fcfaf7] rounded-xl border border-[#ede6dc]">
-          <span className="text-[#8c7462] block text-[10px] uppercase font-sans font-medium truncate">
+        <div className="p-2.5 sm:p-3 bg-surface-alt rounded-xl border border-line-soft">
+          <span className="text-faint block text-[10px] uppercase font-sans font-medium truncate">
             {isTargetAchieved ? 'Surplus' : 'Remaining'}
           </span>
-          <span className={`font-bold text-sm sm:text-base block truncate ${isTargetAchieved ? 'text-[#1e6b37]' : 'text-[#78350f]'}`}>
+          <span className={`font-bold text-sm sm:text-base block truncate ${isTargetAchieved ? 'text-profit' : 'text-brand'}`}>
             {isTargetAchieved
               ? `+$${(monthNetPnL - effectiveTargetDollar).toFixed(2)}`
               : `$${remainingDollar.toFixed(2)}`}
           </span>
-          <span className="text-[10px] text-[#8c7462] block mt-0.5 font-sans truncate">
+          <span className="text-[10px] text-faint block mt-0.5 font-sans truncate">
             {isTargetAchieved ? 'Target passed' : `${(100 - progressCapped).toFixed(1)}% to go`}
           </span>
         </div>
 
         {/* Metric 2: Daily Run Rate Required */}
-        <div className="p-2.5 sm:p-3 bg-[#fcfaf7] rounded-xl border border-[#ede6dc]">
-          <span className="text-[#8c7462] block text-[10px] uppercase font-sans font-medium truncate">
+        <div className="p-2.5 sm:p-3 bg-surface-alt rounded-xl border border-line-soft">
+          <span className="text-faint block text-[10px] uppercase font-sans font-medium truncate">
             Daily Run Rate
           </span>
-          <span className="font-bold text-sm sm:text-base text-[#281d16] block truncate">
+          <span className="font-bold text-sm sm:text-base text-ink block truncate">
             {isTargetAchieved ? '$0.00 / day' : daysRemaining > 0 ? `$${dailyNeeded.toFixed(2)}/d` : 'Ended'}
           </span>
-          <span className="text-[10px] text-[#8c7462] block mt-0.5 font-sans truncate">
+          <span className="text-[10px] text-faint block mt-0.5 font-sans truncate">
             {isCurrentMonth ? `${daysRemaining} days left` : 'Past month'}
           </span>
         </div>
 
         {/* Metric 3: Month Executions */}
-        <div className="p-2.5 sm:p-3 bg-[#fcfaf7] rounded-xl border border-[#ede6dc]">
-          <span className="text-[#8c7462] block text-[10px] uppercase font-sans font-medium truncate">
+        <div className="p-2.5 sm:p-3 bg-surface-alt rounded-xl border border-line-soft">
+          <span className="text-faint block text-[10px] uppercase font-sans font-medium truncate">
             Win Rate
           </span>
-          <span className="font-bold text-sm sm:text-base text-[#281d16] block truncate">
+          <span className="font-bold text-sm sm:text-base text-ink block truncate">
             {winRate}%
           </span>
-          <span className="text-[10px] text-[#8c7462] block mt-0.5 font-sans truncate">
+          <span className="text-[10px] text-faint block mt-0.5 font-sans truncate">
             {winningTrades}W • {losingTrades}L ({closedTrades.length})
           </span>
         </div>
 
         {/* Metric 4: Target Return % of Capital */}
-        <div className="p-2.5 sm:p-3 bg-[#fcfaf7] rounded-xl border border-[#ede6dc]">
-          <span className="text-[#8c7462] block text-[10px] uppercase font-sans font-medium truncate">
+        <div className="p-2.5 sm:p-3 bg-surface-alt rounded-xl border border-line-soft">
+          <span className="text-faint block text-[10px] uppercase font-sans font-medium truncate">
             Target %
           </span>
-          <span className="font-bold text-sm sm:text-base text-[#78350f] block truncate">
+          <span className="font-bold text-sm sm:text-base text-brand block truncate">
             {effectiveTargetPct.toFixed(1)}%
           </span>
-          <span className="text-[10px] text-[#8c7462] block mt-0.5 font-sans truncate">
+          <span className="text-[10px] text-faint block mt-0.5 font-sans truncate">
             {targetType === 'percent' ? 'Return target' : 'Dollar target'}
           </span>
         </div>

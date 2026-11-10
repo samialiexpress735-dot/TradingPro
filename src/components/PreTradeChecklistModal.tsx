@@ -63,20 +63,20 @@ export const PreTradeChecklistModal: React.FC<PreTradeChecklistModalProps> = ({
   const checkedCount = items.filter((i) => i.checked).length;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#281d16]/60 backdrop-blur-xs animate-fade-in">
-      <div className="bg-white border border-[#e8dfd5] rounded-2xl max-w-lg w-full p-6 shadow-2xl relative text-left">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-inverse/60 backdrop-blur-xs animate-fade-in">
+      <div className="bg-surface border border-line rounded-2xl max-w-lg w-full p-6 shadow-2xl relative text-left">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#e8dfd5] pb-3 mb-4">
+        <div className="flex items-center justify-between border-b border-line pb-3 mb-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-[#edf7ed] text-[#1e6b37] rounded-xl border border-[#c3e6cb]">
+            <div className="p-2 bg-profit-bg text-profit rounded-xl border border-profit-line">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-[#281d16]">Pre-Flight Trading Discipline Checklist</h3>
-              <p className="text-xs text-[#7d695b]">Enforce consistency before risking capital</p>
+              <h3 className="text-base font-bold text-ink">Pre-Flight Trading Discipline Checklist</h3>
+              <p className="text-xs text-muted">Enforce consistency before risking capital</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-[#7d695b] hover:text-[#281d16] p-1 transition cursor-pointer">
+          <button onClick={onClose} className="text-muted hover:text-ink p-1 transition cursor-pointer">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -84,14 +84,14 @@ export const PreTradeChecklistModal: React.FC<PreTradeChecklistModalProps> = ({
         {/* Progress bar */}
         <div className="mb-4">
           <div className="flex justify-between items-center text-xs mb-1 font-mono">
-            <span className="text-[#7d695b]">Rules Verified:</span>
-            <span className={allChecked ? 'text-[#1e6b37] font-bold' : 'text-[#78350f] font-semibold'}>
+            <span className="text-muted">Rules Verified:</span>
+            <span className={allChecked ? 'text-profit font-bold' : 'text-brand font-semibold'}>
               {checkedCount} of {items.length} ({Math.round((checkedCount / items.length) * 100)}%)
             </span>
           </div>
-          <div className="w-full h-1.5 bg-[#f0e9df] rounded-full overflow-hidden">
+          <div className="w-full h-1.5 bg-sunken-strong rounded-full overflow-hidden">
             <div
-              className={`h-full transition-all duration-300 ${allChecked ? 'bg-[#1e6b37]' : 'bg-[#78350f]'}`}
+              className={`h-full transition-all duration-300 ${allChecked ? 'bg-profit-solid' : 'bg-brand-solid'}`}
               style={{ width: `${(checkedCount / items.length) * 100}%` }}
             />
           </div>
@@ -105,33 +105,33 @@ export const PreTradeChecklistModal: React.FC<PreTradeChecklistModalProps> = ({
               onClick={() => toggleItem(item.id)}
               className={`p-3 rounded-xl border cursor-pointer transition select-none flex items-start gap-3 ${
                 item.checked
-                  ? 'bg-[#edf7ed] border-[#c3e6cb]'
-                  : 'bg-[#fcfaf7] border-[#ede6dc] hover:border-[#c7b5a3]'
+                  ? 'bg-profit-bg border-profit-line'
+                  : 'bg-surface-alt border-line-soft hover:border-line-brand'
               }`}
             >
               <div className="mt-0.5">
                 {item.checked ? (
-                  <CheckSquare className="w-4 h-4 text-[#1e6b37]" />
+                  <CheckSquare className="w-4 h-4 text-profit" />
                 ) : (
-                  <Square className="w-4 h-4 text-[#a89585]" />
+                  <Square className="w-4 h-4 text-faint" />
                 )}
               </div>
               <div className="text-xs">
-                <span className={`font-bold block ${item.checked ? 'text-[#1e6b37]' : 'text-[#281d16]'}`}>
+                <span className={`font-bold block ${item.checked ? 'text-profit' : 'text-ink'}`}>
                   {item.title}
                 </span>
-                <span className="text-[#7d695b] leading-snug mt-0.5 block">{item.desc}</span>
+                <span className="text-muted leading-snug mt-0.5 block">{item.desc}</span>
               </div>
             </div>
           ))}
         </div>
 
         {/* Actions */}
-        <div className="mt-5 pt-3 border-t border-[#e8dfd5] flex items-center justify-between">
+        <div className="mt-5 pt-3 border-t border-line flex items-center justify-between">
           <button
             type="button"
             onClick={() => setItems((prev) => prev.map((i) => ({ ...i, checked: true })))}
-            className="text-xs text-[#78350f] hover:text-[#522306] hover:underline font-mono cursor-pointer"
+            className="text-xs text-brand hover:text-ink hover:underline font-mono cursor-pointer"
           >
             Check all
           </button>
@@ -139,7 +139,7 @@ export const PreTradeChecklistModal: React.FC<PreTradeChecklistModalProps> = ({
           <div className="flex items-center gap-2">
             <button
               onClick={onClose}
-              className="px-3.5 py-2 bg-[#f0e9df] hover:bg-[#e4dacd] text-[#4a3b32] text-xs font-semibold rounded-xl transition cursor-pointer"
+              className="px-3.5 py-2 bg-sunken-strong hover:bg-line text-ink-soft text-xs font-semibold rounded-xl transition cursor-pointer"
             >
               Cancel
             </button>
@@ -151,8 +151,8 @@ export const PreTradeChecklistModal: React.FC<PreTradeChecklistModalProps> = ({
               disabled={!allChecked}
               className={`px-4 py-2 text-xs font-bold rounded-xl flex items-center gap-1.5 transition ${
                 allChecked
-                  ? 'bg-[#78350f] hover:bg-[#632909] text-white shadow-md shadow-[#78350f]/20 cursor-pointer'
-                  : 'bg-[#ede6dc] text-[#a89585] cursor-not-allowed'
+                  ? 'bg-brand-solid hover:bg-brand-solid-hover text-white shadow-md shadow-brand-solid/20 cursor-pointer'
+                  : 'bg-sunken-strong text-faint cursor-not-allowed'
               }`}
             >
               <span>Ready to Execute</span>

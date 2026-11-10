@@ -155,31 +155,31 @@ export const BinanceSyncModal: React.FC<BinanceSyncModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/60 backdrop-blur-xs animate-fade-in">
-      <div className="bg-[#fcfaf7] border border-[#d8c7b5] rounded-3xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="bg-surface-alt border border-line-brand rounded-3xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Modal Header */}
-        <div className="bg-[#f4ebe1] px-4 sm:px-6 py-3 sm:py-4 border-b border-[#e2d4c3] flex items-center justify-between">
+        <div className="bg-sunken px-4 sm:px-6 py-3 sm:py-4 border-b border-line-strong flex items-center justify-between">
           <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-tr from-[#f3ba2f] via-[#e2a21a] to-[#c78b0f] flex items-center justify-center shadow-md shrink-0">
               <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-white stroke-[2.5]" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                <h3 className="font-extrabold text-[#281d16] text-sm sm:text-base tracking-tight truncate">Binance &amp; Crypto Sync</h3>
-                <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider px-1.5 sm:px-2 py-0.5 bg-[#fef3c7] text-[#92400e] rounded-full border border-[#fde68a] shrink-0">
+                <h3 className="font-extrabold text-ink text-sm sm:text-base tracking-tight truncate">Binance &amp; Crypto Sync</h3>
+                <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider px-1.5 sm:px-2 py-0.5 bg-warn-bg text-brand rounded-full border border-warn-line shrink-0">
                   SPOT &amp; FUTURES
                 </span>
-                <span className="hidden sm:inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-[#e0f2fe] text-[#0369a1] rounded-full border border-[#bae6fd] shrink-0">
+                <span className="hidden sm:inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-[#e0f2fe] dark:bg-[#0c2a3a] text-[#0369a1] dark:text-[#62c5f0] rounded-full border border-[#bae6fd] dark:border-[#1c4a63] shrink-0">
                   8-DECIMAL
                 </span>
               </div>
-              <p className="text-[11px] sm:text-xs text-[#7d695b] line-clamp-1">
+              <p className="text-[11px] sm:text-xs text-muted line-clamp-1">
                 Automated trade import with Satoshi precision and Supabase cloud sync
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-[#7d695b] hover:text-[#281d16] hover:bg-[#ede6dc] rounded-xl transition cursor-pointer shrink-0 ml-2"
+            className="p-1.5 text-muted hover:text-ink hover:bg-sunken-strong rounded-xl transition cursor-pointer shrink-0 ml-2"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
@@ -187,29 +187,29 @@ export const BinanceSyncModal: React.FC<BinanceSyncModalProps> = ({
         </div>
 
         {/* Security Reassurance Banner */}
-        <div className="bg-[#f8ede3]/70 px-4 sm:px-6 py-2 border-b border-[#e8d7c4] flex items-center justify-between text-[11px] text-[#78350f]">
+        <div className="bg-sunken/70 px-4 sm:px-6 py-2 border-b border-line-strong flex items-center justify-between text-[11px] text-brand">
           <div className="flex items-center gap-1.5 sm:gap-2">
             <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#16a34a] shrink-0" />
             <span className="font-medium line-clamp-1 sm:line-clamp-none">Client-Side Secure: Encrypted &amp; stored directly in your Supabase account.</span>
           </div>
-          <span className="font-mono font-bold hidden sm:inline text-[#281d16] shrink-0 ml-2">
+          <span className="font-mono font-bold hidden sm:inline text-ink shrink-0 ml-2">
             {existingTrades.length} Trades
           </span>
         </div>
 
         {/* Tab Navigation */}
-        <div className="px-4 sm:px-6 pt-3 sm:pt-4 bg-[#fcfaf7]">
-          <div className="grid grid-cols-2 p-1 bg-[#ede6dc] rounded-2xl border border-[#ddcfbf]">
+        <div className="px-4 sm:px-6 pt-3 sm:pt-4 bg-surface-alt">
+          <div className="grid grid-cols-2 p-1 bg-sunken-strong rounded-2xl border border-line-strong">
             <button
               type="button"
               onClick={() => setActiveTab('csv')}
               className={`py-1.5 sm:py-2 text-xs font-bold rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2 ${
                 activeTab === 'csv'
-                  ? 'bg-white text-[#281d16] shadow-sm'
-                  : 'text-[#7d695b] hover:text-[#281d16]'
+                  ? 'bg-surface text-ink shadow-sm'
+                  : 'text-muted hover:text-ink'
               }`}
             >
-              <FileSpreadsheet className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#78350f] shrink-0" />
+              <FileSpreadsheet className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand shrink-0" />
               <span className="truncate">CSV Import</span>
             </button>
             <button
@@ -217,11 +217,11 @@ export const BinanceSyncModal: React.FC<BinanceSyncModalProps> = ({
               onClick={() => setActiveTab('api')}
               className={`py-1.5 sm:py-2 text-xs font-bold rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2 ${
                 activeTab === 'api'
-                  ? 'bg-white text-[#281d16] shadow-sm'
-                  : 'text-[#7d695b] hover:text-[#281d16]'
+                  ? 'bg-surface text-ink shadow-sm'
+                  : 'text-muted hover:text-ink'
               }`}
             >
-              <Key className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#d97706] shrink-0" />
+              <Key className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accent shrink-0" />
               <span className="truncate">API Sync</span>
             </button>
           </div>
@@ -230,14 +230,14 @@ export const BinanceSyncModal: React.FC<BinanceSyncModalProps> = ({
         {/* Modal Body Content */}
         <div className="p-6 overflow-y-auto space-y-5">
           {errorMsg && (
-            <div className="p-3 bg-[#fef2f2] border border-[#fecaca] rounded-xl flex items-center gap-2 text-xs text-[#b93829]">
+            <div className="p-3 bg-loss-bg border border-loss-line rounded-xl flex items-center gap-2 text-xs text-loss">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{errorMsg}</span>
             </div>
           )}
 
           {successMsg && (
-            <div className="p-3 bg-[#edf7ed] border border-[#c3e6cb] rounded-xl flex items-center gap-2 text-xs text-[#1e6b37]">
+            <div className="p-3 bg-profit-bg border border-profit-line rounded-xl flex items-center gap-2 text-xs text-profit">
               <CheckCircle2 className="w-4 h-4 shrink-0" />
               <span>{successMsg}</span>
             </div>
@@ -257,8 +257,8 @@ export const BinanceSyncModal: React.FC<BinanceSyncModalProps> = ({
                 onClick={() => fileInputRef.current?.click()}
                 className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition flex flex-col items-center justify-center gap-3 ${
                   dragActive
-                    ? 'border-[#78350f] bg-[#f5ede4]'
-                    : 'border-[#debfa8] hover:border-[#78350f] bg-[#faf7f2]'
+                    ? 'border-brand bg-sunken'
+                    : 'border-line-brand hover:border-brand bg-canvas'
                 }`}
               >
                 <input
@@ -268,22 +268,22 @@ export const BinanceSyncModal: React.FC<BinanceSyncModalProps> = ({
                   onChange={handleFileChange}
                   className="hidden"
                 />
-                <div className="w-12 h-12 rounded-2xl bg-[#f4ebe1] flex items-center justify-center text-[#78350f] shadow-xs">
+                <div className="w-12 h-12 rounded-2xl bg-sunken flex items-center justify-center text-brand shadow-xs">
                   <Upload className="w-6 h-6 stroke-[2]" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-[#281d16] text-sm">
+                  <h4 className="font-bold text-ink text-sm">
                     Drop your Binance export file here, or click to browse
                   </h4>
-                  <p className="text-xs text-[#7d695b] mt-1">
+                  <p className="text-xs text-muted mt-1">
                     Supports <strong>Binance Spot Trade History</strong> and <strong>USDT-M Futures Order History</strong> (.csv)
                   </p>
                 </div>
               </div>
 
               {/* Sample Buttons for Instant Testing */}
-              <div className="flex items-center justify-between p-3 bg-[#f5ede4] rounded-2xl border border-[#debfa8] text-xs">
-                <div className="flex items-center gap-2 text-[#78350f]">
+              <div className="flex items-center justify-between p-3 bg-sunken rounded-2xl border border-line-brand text-xs">
+                <div className="flex items-center gap-2 text-brand">
                   <Sparkles className="w-4 h-4" />
                   <span className="font-semibold">Don't have a Binance file handy?</span>
                 </div>
@@ -291,14 +291,14 @@ export const BinanceSyncModal: React.FC<BinanceSyncModalProps> = ({
                   <button
                     type="button"
                     onClick={() => handleLoadSample('spot')}
-                    className="px-3 py-1.5 bg-white hover:bg-[#faf7f2] text-[#78350f] font-semibold rounded-xl border border-[#debfa8] transition shadow-xs cursor-pointer"
+                    className="px-3 py-1.5 bg-surface hover:bg-canvas text-brand font-semibold rounded-xl border border-line-brand transition shadow-xs cursor-pointer"
                   >
                     Load Spot Sample (BTC, ETH, PEPE)
                   </button>
                   <button
                     type="button"
                     onClick={() => handleLoadSample('futures')}
-                    className="px-3 py-1.5 bg-white hover:bg-[#faf7f2] text-[#78350f] font-semibold rounded-xl border border-[#debfa8] transition shadow-xs cursor-pointer"
+                    className="px-3 py-1.5 bg-surface hover:bg-canvas text-brand font-semibold rounded-xl border border-line-brand transition shadow-xs cursor-pointer"
                   >
                     Load Futures Sample (USDT-M)
                   </button>
@@ -310,31 +310,31 @@ export const BinanceSyncModal: React.FC<BinanceSyncModalProps> = ({
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-bold text-[#281d16] text-sm">
+                      <h4 className="font-bold text-ink text-sm">
                         Import Staging Preview ({parsedResult.trades.length} Trades)
                       </h4>
-                      <p className="text-xs text-[#7d695b]">
-                        Format: <span className="capitalize font-semibold text-[#78350f]">{parsedResult.formatDetected.replace('_', ' ')}</span> •
+                      <p className="text-xs text-muted">
+                        Format: <span className="capitalize font-semibold text-brand">{parsedResult.formatDetected.replace('_', ' ')}</span> •
                         Volume: <strong>${parsedResult.summary.totalVolumeUSDT.toLocaleString()}</strong> •
                         Fees: <strong>${parsedResult.summary.totalCommissionUSDT.toFixed(4)}</strong>
                       </p>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <label className="text-xs text-[#7d695b] font-medium">Apply Strategy Tag:</label>
+                      <label className="text-xs text-muted font-medium">Apply Strategy Tag:</label>
                       <input
                         type="text"
                         value={selectedStrategy}
                         onChange={(e) => setSelectedStrategy(e.target.value)}
-                        className="px-2.5 py-1 text-xs bg-white border border-[#e8dfd5] rounded-xl text-[#281d16] font-medium"
+                        className="px-2.5 py-1 text-xs bg-surface border border-line rounded-xl text-ink font-medium"
                         placeholder="e.g. Binance Breakout"
                       />
                     </div>
                   </div>
 
-                  <div className="border border-[#e8dfd5] rounded-2xl overflow-hidden max-h-60 overflow-y-auto bg-white shadow-xs">
+                  <div className="border border-line rounded-2xl overflow-hidden max-h-60 overflow-y-auto bg-surface shadow-xs">
                     <table className="w-full text-left text-xs border-collapse">
-                      <thead className="bg-[#f8f5f0] text-[#7d695b] font-mono uppercase text-[10px] tracking-wider sticky top-0 border-b border-[#e8dfd5]">
+                      <thead className="bg-canvas text-muted font-mono uppercase text-[10px] tracking-wider sticky top-0 border-b border-line">
                         <tr>
                           <th className="py-2.5 px-3">Date &amp; Time</th>
                           <th className="py-2.5 px-3">Pair / Side</th>
@@ -344,39 +344,39 @@ export const BinanceSyncModal: React.FC<BinanceSyncModalProps> = ({
                           <th className="py-2.5 px-3">Fee</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[#ede6dc] font-mono text-xs">
+                      <tbody className="divide-y divide-line-soft font-mono text-xs">
                         {parsedResult.trades.map((t, idx) => (
-                          <tr key={t.id || idx} className="hover:bg-[#faf7f2] transition">
-                            <td className="py-2 px-3 text-[#4a3b32]">
+                          <tr key={t.id || idx} className="hover:bg-canvas transition">
+                            <td className="py-2 px-3 text-ink-soft">
                               <div>{t.date}</div>
-                              <div className="text-[10px] text-[#8c7462]">{t.time}</div>
+                              <div className="text-[10px] text-faint">{t.time}</div>
                             </td>
                             <td className="py-2 px-3 font-sans">
-                              <span className="font-bold text-[#281d16] font-mono">{t.symbol}</span>
+                              <span className="font-bold text-ink font-mono">{t.symbol}</span>
                               <span
                                 className={`ml-2 text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${
                                   t.direction === 'long'
-                                    ? 'bg-[#edf7ed] text-[#1e6b37]'
-                                    : 'bg-[#fef2f2] text-[#b93829]'
+                                    ? 'bg-profit-bg text-profit'
+                                    : 'bg-loss-bg text-loss'
                                 }`}
                               >
                                 {t.direction}
                               </span>
                             </td>
-                            <td className="py-2 px-3 text-[#281d16]">
+                            <td className="py-2 px-3 text-ink">
                               {formatPrice(t.entryPrice)}
                             </td>
-                            <td className="py-2 px-3 text-[#78350f] font-semibold">
+                            <td className="py-2 px-3 text-brand font-semibold">
                               {formatQuantity(t.quantity, 'crypto')}
                             </td>
                             <td
                               className={`py-2 px-3 font-bold ${
-                                t.netPnl > 0 ? 'text-[#1e6b37]' : t.netPnl < 0 ? 'text-[#b93829]' : 'text-[#7d695b]'
+                                t.netPnl > 0 ? 'text-profit' : t.netPnl < 0 ? 'text-loss' : 'text-muted'
                               }`}
                             >
                               {formatPnL(t.netPnl)}
                             </td>
-                            <td className="py-2 px-3 text-[#7d695b]">
+                            <td className="py-2 px-3 text-muted">
                               ${t.fees.toFixed(4)}
                             </td>
                           </tr>
@@ -390,10 +390,10 @@ export const BinanceSyncModal: React.FC<BinanceSyncModalProps> = ({
           ) : (
             /* Binance API Sync Tab */
             <div className="space-y-4">
-              <div className="p-4 bg-[#fefce8] border border-[#fef08a] rounded-2xl flex items-start gap-3">
+              <div className="p-4 bg-warn-bg-soft border border-warn-line rounded-2xl flex items-start gap-3">
                 <Info className="w-5 h-5 text-[#ca8a04] shrink-0 mt-0.5" />
-                <div className="text-xs text-[#854d0e] space-y-1">
-                  <h4 className="font-bold text-sm text-[#713f12]">Read-Only API Key Guide</h4>
+                <div className="text-xs text-brand space-y-1">
+                  <h4 className="font-bold text-sm text-brand">Read-Only API Key Guide</h4>
                   <p>
                     For your security, create a Binance API Key with <strong>Read-Only</strong> permissions only.
                     <strong> Never enable Withdrawals or Margin Transfer.</strong>
@@ -402,7 +402,7 @@ export const BinanceSyncModal: React.FC<BinanceSyncModalProps> = ({
                     href="https://www.binance.com/en/my/settings/api-management"
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1 font-bold text-[#92400e] hover:underline pt-1"
+                    className="inline-flex items-center gap-1 font-bold text-brand hover:underline pt-1"
                   >
                     <span>Open Binance API Management</span>
                     <ExternalLink className="w-3.5 h-3.5" />
@@ -412,7 +412,7 @@ export const BinanceSyncModal: React.FC<BinanceSyncModalProps> = ({
 
               <div className="space-y-3">
                 <div>
-                  <label className="block text-xs font-semibold text-[#4a3b32] mb-1">
+                  <label className="block text-xs font-semibold text-ink-soft mb-1">
                     Binance API Key (Read-Only)
                   </label>
                   <input
@@ -420,12 +420,12 @@ export const BinanceSyncModal: React.FC<BinanceSyncModalProps> = ({
                     value={apiKey}
                     onChange={(e) => setApiKey(e.target.value)}
                     placeholder="e.g. vmPUZE6mv9SD5VNHk4HlWFsOr6aKE2zvsw0MuIgwCIPy6utIco14y7Ju91duEh8A"
-                    className="w-full bg-white border border-[#e8dfd5] rounded-xl px-4 py-2.5 text-xs font-mono text-[#281d16] focus:outline-none focus:border-[#78350f]"
+                    className="w-full bg-surface border border-line rounded-xl px-4 py-2.5 text-xs font-mono text-ink focus:outline-none focus:border-brand"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#4a3b32] mb-1">
+                  <label className="block text-xs font-semibold text-ink-soft mb-1">
                     Binance Secret Key (Stored locally in browser session)
                   </label>
                   <input
@@ -433,7 +433,7 @@ export const BinanceSyncModal: React.FC<BinanceSyncModalProps> = ({
                     value={apiSecret}
                     onChange={(e) => setApiSecret(e.target.value)}
                     placeholder="••••••••••••••••••••••••••••••••••••••••"
-                    className="w-full bg-white border border-[#e8dfd5] rounded-xl px-4 py-2.5 text-xs font-mono text-[#281d16] focus:outline-none focus:border-[#78350f]"
+                    className="w-full bg-surface border border-line rounded-xl px-4 py-2.5 text-xs font-mono text-ink focus:outline-none focus:border-brand"
                   />
                 </div>
 
@@ -442,7 +442,7 @@ export const BinanceSyncModal: React.FC<BinanceSyncModalProps> = ({
                     type="button"
                     onClick={handleSaveApiKeys}
                     disabled={!apiKey || apiTesting}
-                    className="px-5 py-2.5 bg-[#78350f] hover:bg-[#632909] text-white text-xs font-bold rounded-xl transition shadow-xs cursor-pointer flex items-center gap-2 disabled:opacity-50"
+                    className="px-5 py-2.5 bg-brand-solid hover:bg-brand-solid-hover text-white text-xs font-bold rounded-xl transition shadow-xs cursor-pointer flex items-center gap-2 disabled:opacity-50"
                   >
                     {apiTesting ? (
                       <span>Connecting to Binance...</span>
@@ -460,11 +460,11 @@ export const BinanceSyncModal: React.FC<BinanceSyncModalProps> = ({
         </div>
 
         {/* Modal Footer */}
-        <div className="bg-[#f4ebe1] px-6 py-4 border-t border-[#e2d4c3] flex items-center justify-between">
+        <div className="bg-sunken px-6 py-4 border-t border-line-strong flex items-center justify-between">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-xs font-bold text-[#7d695b] hover:text-[#281d16] hover:bg-[#ede6dc] rounded-xl transition cursor-pointer"
+            className="px-4 py-2 text-xs font-bold text-muted hover:text-ink hover:bg-sunken-strong rounded-xl transition cursor-pointer"
           >
             Cancel
           </button>
@@ -474,7 +474,7 @@ export const BinanceSyncModal: React.FC<BinanceSyncModalProps> = ({
               type="button"
               onClick={handleConfirmImport}
               disabled={!parsedResult || parsedResult.trades.length === 0 || isSubmitting}
-              className="px-5 py-2.5 bg-[#78350f] hover:bg-[#632909] text-white text-xs font-bold rounded-xl transition shadow-md cursor-pointer flex items-center gap-2 disabled:opacity-50"
+              className="px-5 py-2.5 bg-brand-solid hover:bg-brand-solid-hover text-white text-xs font-bold rounded-xl transition shadow-md cursor-pointer flex items-center gap-2 disabled:opacity-50"
             >
               {isSubmitting ? (
                 <span>Syncing with Supabase...</span>

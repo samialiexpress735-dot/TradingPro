@@ -482,7 +482,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f5f0] text-[#2c1e16] flex flex-col font-sans selection:bg-[#a06235] selection:text-white">
+    <div className="min-h-screen bg-canvas text-ink flex flex-col font-sans selection:bg-accent selection:text-white">
       {/* Navigation Header */}
       <Navbar
         activeTab={activeTab}
@@ -586,15 +586,15 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-[#e8dfd5] bg-[#f0e9df] py-6 px-4 text-center text-xs text-[#7d695b]">
+      <footer className="border-t border-line bg-sunken-strong py-6 px-4 text-center text-xs text-muted">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-[#3d2b20]">TradePulse</span>
+            <span className="font-bold text-ink">TradePulse</span>
             <span>• Quantitative Journal &amp; Edge Analytics</span>
           </div>
           <div className="flex items-center gap-4 font-mono text-[11px]">
-            <span className="text-[#2e7d32] font-semibold flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#2e7d32]"></span>
+            <span className="text-profit font-semibold flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-profit-solid"></span>
               {user ? `Connected: ${user.email} (Real-Time Cloud Synced)` : 'Multi-Device Cloud Ready'}
             </span>
             <span>Local Time: {new Date().toLocaleDateString()}</span>

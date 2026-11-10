@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>TradePulse - Trading Journal &amp; P&amp;L Analytics</title>
     <meta name="description" content="Professional trade journaling platform with profit/loss tracking, interactive equity curves, strategy playbooks, risk position calculator, and market news catalyst intelligence." />
     <meta property="og:title" content="TradePulse - Trading Journal &amp; P&amp;L Analytics" />
@@ -35,7 +35,22 @@
     </script>
 
     <!-- PWA Settings & Mobile Viewport Constraints -->
-    <meta name="theme-color" content="#f7f4ee" />
+    <meta name="theme-color" content="#f8f5f0" />
+    <meta name="color-scheme" content="light dark" />
+    <script>
+      // Apply the saved/OS theme before first paint to avoid a flash of the wrong theme.
+      (function () {
+        try {
+          var t = localStorage.getItem('tp-theme');
+          var dark = t ? t === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) {
+            document.documentElement.classList.add('dark');
+            var m = document.querySelector('meta[name="theme-color"]');
+            if (m) m.setAttribute('content', '#14100d');
+          }
+        } catch (e) {}
+      })();
+    </script>
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />

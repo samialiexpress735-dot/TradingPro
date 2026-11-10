@@ -172,53 +172,53 @@ export const TradeModal: React.FC<TradeModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-[#281d16]/50 backdrop-blur-xs overflow-y-auto">
-      <div className="bg-white border border-[#e8dfd5] rounded-2xl max-w-3xl w-full p-6 shadow-2xl relative my-auto animate-fade-in text-left">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-inverse/50 backdrop-blur-xs overflow-y-auto">
+      <div className="bg-surface border border-line rounded-2xl max-w-3xl w-full p-6 shadow-2xl relative my-auto animate-fade-in text-left">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#ede6dc] pb-4 mb-5">
+        <div className="flex items-center justify-between border-b border-line-soft pb-4 mb-5">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-[#f5ede4] text-[#78350f] rounded-xl border border-[#debfa8]">
+            <div className="p-2.5 bg-sunken text-brand rounded-xl border border-line-brand">
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-[#281d16]">
+              <h2 className="text-lg font-bold text-ink">
                 {initialTrade?.id ? 'Edit Trade Entry' : 'Log New Trade'}
               </h2>
-              <p className="text-xs text-[#7d695b]">Record execution, psychological mindset, and metrics</p>
+              <p className="text-xs text-muted">Record execution, psychological mindset, and metrics</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-[#7d695b] hover:text-[#281d16] p-1.5 rounded-xl hover:bg-[#f5ede4] transition cursor-pointer"
+            className="text-muted hover:text-ink p-1.5 rounded-xl hover:bg-sunken transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Live Metrics Summary Bar */}
-        <div className="mb-5 p-3.5 rounded-xl bg-[#fcfaf7] border border-[#ede6dc] grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
+        <div className="mb-5 p-3.5 rounded-xl bg-surface-alt border border-line-soft grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
           <div>
-            <span className="text-[#8c7462] block text-[10px] uppercase font-sans">Net P&amp;L</span>
+            <span className="text-faint block text-[10px] uppercase font-sans">Net P&amp;L</span>
             <span
               className={`text-base font-bold ${
                 status === 'open'
-                  ? 'text-[#78350f]'
+                  ? 'text-brand'
                   : metrics.netPnl >= 0
-                  ? 'text-[#1e6b37]'
-                  : 'text-[#b93829]'
+                  ? 'text-profit'
+                  : 'text-loss'
               }`}
             >
               {status === 'open'
                 ? 'OPEN'
-                : `${metrics.netPnl >= 0 ? '+' : ''}$${metrics.netPnl.toFixed(2)}`}
+                : `${metrics.netPnl >= 0 ? '+' : '-'}$${Math.abs(metrics.netPnl).toFixed(2)}`}
             </span>
           </div>
 
           <div>
-            <span className="text-[#8c7462] block text-[10px] uppercase font-sans">Return (ROI)</span>
+            <span className="text-faint block text-[10px] uppercase font-sans">Return (ROI)</span>
             <span
               className={`text-base font-bold ${
-                metrics.roi >= 0 ? 'text-[#1e6b37]' : 'text-[#b93829]'
+                metrics.roi >= 0 ? 'text-profit' : 'text-loss'
               }`}
             >
               {status === 'open' ? '—' : `${metrics.roi >= 0 ? '+' : ''}${metrics.roi}%`}
@@ -226,17 +226,17 @@ export const TradeModal: React.FC<TradeModalProps> = ({
           </div>
 
           <div>
-            <span className="text-[#8c7462] block text-[10px] uppercase font-sans">Planned R:R</span>
-            <span className="text-base font-bold text-[#78350f]">
+            <span className="text-faint block text-[10px] uppercase font-sans">Planned R:R</span>
+            <span className="text-base font-bold text-brand">
               1 : {metrics.plannedRR}
             </span>
           </div>
 
           <div>
-            <span className="text-[#8c7462] block text-[10px] uppercase font-sans">Realized R</span>
+            <span className="text-faint block text-[10px] uppercase font-sans">Realized R</span>
             <span
               className={`text-base font-bold ${
-                metrics.realizedRR >= 0 ? 'text-[#1e6b37]' : 'text-[#b93829]'
+                metrics.realizedRR >= 0 ? 'text-profit' : 'text-loss'
               }`}
             >
               {status === 'open' ? 'In Play' : `${metrics.realizedRR}R`}
@@ -248,19 +248,19 @@ export const TradeModal: React.FC<TradeModalProps> = ({
           {/* Row 1: Ticker, Asset, Direction, Status */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
-              <label className="block text-xs font-medium text-[#7d695b] mb-1">Ticker / Symbol *</label>
+              <label className="block text-xs font-medium text-muted mb-1">Ticker / Symbol *</label>
               <input
                 type="text"
                 required
                 value={symbol}
                 onChange={(e) => setSymbol(e.target.value.toUpperCase())}
                 placeholder="NVDA"
-                className="w-full bg-[#fcfaf7] border border-[#e8dfd5] rounded-xl px-3 py-2 text-[#281d16] font-mono text-sm focus:outline-none focus:border-[#78350f] uppercase"
+                className="w-full bg-surface-alt border border-line rounded-xl px-3 py-2 text-ink font-mono text-sm focus:outline-none focus:border-brand uppercase"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[#7d695b] mb-1">Asset Class</label>
+              <label className="block text-xs font-medium text-muted mb-1">Asset Class</label>
               <select
                 value={assetClass}
                 onChange={(e) => {
@@ -284,7 +284,7 @@ export const TradeModal: React.FC<TradeModalProps> = ({
                     setMarketSession('24/7 Crypto');
                   }
                 }}
-                className="w-full bg-[#fcfaf7] border border-[#e8dfd5] rounded-xl px-2.5 py-2 text-[#281d16] text-xs focus:outline-none focus:border-[#78350f] capitalize"
+                className="w-full bg-surface-alt border border-line rounded-xl px-2.5 py-2 text-ink text-xs focus:outline-none focus:border-brand capitalize"
               >
                 <option value="stocks">Stocks</option>
                 <option value="crypto">Crypto (Spot)</option>
@@ -295,15 +295,15 @@ export const TradeModal: React.FC<TradeModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[#7d695b] mb-1">Direction</label>
-              <div className="grid grid-cols-2 gap-1 bg-[#fcfaf7] p-1 rounded-xl border border-[#e8dfd5]">
+              <label className="block text-xs font-medium text-muted mb-1">Direction</label>
+              <div className="grid grid-cols-2 gap-1 bg-surface-alt p-1 rounded-xl border border-line">
                 <button
                   type="button"
                   onClick={() => setDirection('long')}
                   className={`py-1 text-xs font-bold rounded-lg transition cursor-pointer ${
                     direction === 'long'
-                      ? 'bg-[#edf7ed] text-[#1e6b37] border border-[#c3e6cb]'
-                      : 'text-[#7d695b]'
+                      ? 'bg-profit-bg text-profit border border-profit-line'
+                      : 'text-muted'
                   }`}
                 >
                   LONG
@@ -313,8 +313,8 @@ export const TradeModal: React.FC<TradeModalProps> = ({
                   onClick={() => setDirection('short')}
                   className={`py-1 text-xs font-bold rounded-lg transition cursor-pointer ${
                     direction === 'short'
-                      ? 'bg-[#fef2f2] text-[#b93829] border border-[#fecaca]'
-                      : 'text-[#7d695b]'
+                      ? 'bg-loss-bg text-loss border border-loss-line'
+                      : 'text-muted'
                   }`}
                 >
                   SHORT
@@ -323,11 +323,11 @@ export const TradeModal: React.FC<TradeModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[#7d695b] mb-1">Status</label>
+              <label className="block text-xs font-medium text-muted mb-1">Status</label>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as TradeStatus)}
-                className="w-full bg-[#fcfaf7] border border-[#e8dfd5] rounded-xl px-2.5 py-2 text-[#281d16] text-xs focus:outline-none focus:border-[#78350f] capitalize"
+                className="w-full bg-surface-alt border border-line rounded-xl px-2.5 py-2 text-ink text-xs focus:outline-none focus:border-brand capitalize"
               >
                 <option value="closed">Closed Trade</option>
                 <option value="open">Open / Live</option>
@@ -337,9 +337,9 @@ export const TradeModal: React.FC<TradeModalProps> = ({
 
           {/* Binance Future & Spot Coins Quick Selector */}
           {(assetClass === 'futures' || assetClass === 'crypto') && (
-            <div className="p-2.5 bg-[#faf7f2] rounded-xl border border-[#e2d8cb] space-y-1.5">
+            <div className="p-2.5 bg-canvas rounded-xl border border-line space-y-1.5">
               <div className="flex items-center justify-between text-[11px]">
-                <span className="font-semibold text-[#634832] flex items-center gap-1.5">
+                <span className="font-semibold text-ink-soft flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-[#f3ba2f]"></span>
                   <span>{assetClass === 'futures' ? 'Binance USDT-M Futures (.P)' : 'Binance Spot Pairs'}</span>
                 </span>
@@ -380,8 +380,8 @@ export const TradeModal: React.FC<TradeModalProps> = ({
                     }}
                     className={`px-2 py-0.5 text-xs font-mono rounded-lg transition cursor-pointer ${
                       symbol === item.sym
-                        ? 'bg-[#78350f] text-white font-bold shadow-xs'
-                        : 'bg-white text-[#634832] border border-[#e2d8cb] hover:bg-[#ede6dc]'
+                        ? 'bg-brand-solid text-white font-bold shadow-xs'
+                        : 'bg-surface text-ink-soft border border-line hover:bg-sunken-strong'
                     }`}
                   >
                     {item.sym}
@@ -394,42 +394,42 @@ export const TradeModal: React.FC<TradeModalProps> = ({
           {/* Row 2: Dates and Times */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
-              <label className="block text-xs font-medium text-[#7d695b] mb-1">Entry Date</label>
+              <label className="block text-xs font-medium text-muted mb-1">Entry Date</label>
               <input
                 type="date"
                 required
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full bg-[#fcfaf7] border border-[#e8dfd5] rounded-xl px-2.5 py-2 text-[#281d16] text-xs font-mono focus:outline-none focus:border-[#78350f]"
+                className="w-full bg-surface-alt border border-line rounded-xl px-2.5 py-2 text-ink text-xs font-mono focus:outline-none focus:border-brand"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-[#7d695b] mb-1">Entry Time</label>
+              <label className="block text-xs font-medium text-muted mb-1">Entry Time</label>
               <input
                 type="time"
                 value={time}
                 onChange={(e) => setTime(e.target.value)}
-                className="w-full bg-[#fcfaf7] border border-[#e8dfd5] rounded-xl px-2.5 py-2 text-[#281d16] text-xs font-mono focus:outline-none focus:border-[#78350f]"
+                className="w-full bg-surface-alt border border-line rounded-xl px-2.5 py-2 text-ink text-xs font-mono focus:outline-none focus:border-brand"
               />
             </div>
             {status === 'closed' && (
               <>
                 <div>
-                  <label className="block text-xs font-medium text-[#7d695b] mb-1">Exit Date</label>
+                  <label className="block text-xs font-medium text-muted mb-1">Exit Date</label>
                   <input
                     type="date"
                     value={exitDate}
                     onChange={(e) => setExitDate(e.target.value)}
-                    className="w-full bg-[#fcfaf7] border border-[#e8dfd5] rounded-xl px-2.5 py-2 text-[#281d16] text-xs font-mono focus:outline-none focus:border-[#78350f]"
+                    className="w-full bg-surface-alt border border-line rounded-xl px-2.5 py-2 text-ink text-xs font-mono focus:outline-none focus:border-brand"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-[#7d695b] mb-1">Exit Time</label>
+                  <label className="block text-xs font-medium text-muted mb-1">Exit Time</label>
                   <input
                     type="time"
                     value={exitTime}
                     onChange={(e) => setExitTime(e.target.value)}
-                    className="w-full bg-[#fcfaf7] border border-[#e8dfd5] rounded-xl px-2.5 py-2 text-[#281d16] text-xs font-mono focus:outline-none focus:border-[#78350f]"
+                    className="w-full bg-surface-alt border border-line rounded-xl px-2.5 py-2 text-ink text-xs font-mono focus:outline-none focus:border-brand"
                   />
                 </div>
               </>
@@ -439,40 +439,40 @@ export const TradeModal: React.FC<TradeModalProps> = ({
           {/* Row 3: Prices & Quantity */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-medium text-[#7d695b] mb-1">Entry Price ($) *</label>
+              <label className="block text-xs font-medium text-muted mb-1">Entry Price ($) *</label>
               <input
                 type="number"
                 step="any"
                 required
                 value={entryPrice}
                 onChange={(e) => setEntryPrice(Number(e.target.value))}
-                className="w-full bg-[#fcfaf7] border border-[#e8dfd5] rounded-xl px-3 py-2 text-[#281d16] font-mono text-xs focus:outline-none focus:border-[#78350f]"
+                className="w-full bg-surface-alt border border-line rounded-xl px-3 py-2 text-ink font-mono text-xs focus:outline-none focus:border-brand"
               />
             </div>
 
             {status === 'closed' && (
               <div>
-                <label className="block text-xs font-medium text-[#7d695b] mb-1">Exit Price ($) *</label>
+                <label className="block text-xs font-medium text-muted mb-1">Exit Price ($) *</label>
                 <input
                   type="number"
                   step="any"
                   required
                   value={exitPrice}
                   onChange={(e) => setExitPrice(Number(e.target.value))}
-                  className="w-full bg-[#fcfaf7] border border-[#e8dfd5] rounded-xl px-3 py-2 text-[#281d16] font-mono text-xs focus:outline-none focus:border-[#78350f]"
+                  className="w-full bg-surface-alt border border-line rounded-xl px-3 py-2 text-ink font-mono text-xs focus:outline-none focus:border-brand"
                 />
               </div>
             )}
 
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="text-xs font-medium text-[#7d695b]">
+                <label className="text-xs font-medium text-muted">
                   {assetClass === 'futures' || assetClass === 'crypto'
                     ? 'Quantity (Coins) *'
                     : 'Quantity / Size *'}
                 </label>
                 {(assetClass === 'futures' || assetClass === 'crypto') && (
-                  <span className="text-[10px] text-[#78350f] font-mono font-medium">8 Decimals</span>
+                  <span className="text-[10px] text-brand font-mono font-medium">8 Decimals</span>
                 )}
               </div>
               <input
@@ -482,7 +482,7 @@ export const TradeModal: React.FC<TradeModalProps> = ({
                 value={quantity}
                 onChange={(e) => setQuantity(Number(e.target.value))}
                 placeholder={assetClass === 'futures' || assetClass === 'crypto' ? '0.05 or 15.5' : '100'}
-                className="w-full bg-[#fcfaf7] border border-[#e8dfd5] rounded-xl px-3 py-2 text-[#281d16] font-mono text-xs focus:outline-none focus:border-[#78350f]"
+                className="w-full bg-surface-alt border border-line rounded-xl px-3 py-2 text-ink font-mono text-xs focus:outline-none focus:border-brand"
               />
             </div>
           </div>
@@ -490,36 +490,36 @@ export const TradeModal: React.FC<TradeModalProps> = ({
           {/* Row 4: Stop Loss, Target, Fees */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-medium text-[#7d695b] mb-1">Stop Loss ($) *</label>
+              <label className="block text-xs font-medium text-muted mb-1">Stop Loss ($) *</label>
               <input
                 type="number"
                 step="any"
                 required
                 value={stopLoss}
                 onChange={(e) => setStopLoss(Number(e.target.value))}
-                className="w-full bg-[#fcfaf7] border border-[#e8dfd5] rounded-xl px-3 py-2 text-[#b93829] font-mono text-xs focus:outline-none focus:border-[#b93829]"
+                className="w-full bg-surface-alt border border-line rounded-xl px-3 py-2 text-loss font-mono text-xs focus:outline-none focus:border-loss"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[#7d695b] mb-1">Take Profit Target ($)</label>
+              <label className="block text-xs font-medium text-muted mb-1">Take Profit Target ($)</label>
               <input
                 type="number"
                 step="any"
                 value={takeProfit}
                 onChange={(e) => setTakeProfit(Number(e.target.value))}
-                className="w-full bg-[#fcfaf7] border border-[#e8dfd5] rounded-xl px-3 py-2 text-[#1e6b37] font-mono text-xs focus:outline-none focus:border-[#1e6b37]"
+                className="w-full bg-surface-alt border border-line rounded-xl px-3 py-2 text-profit font-mono text-xs focus:outline-none focus:border-profit"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[#7d695b] mb-1">Commissions &amp; Fees ($)</label>
+              <label className="block text-xs font-medium text-muted mb-1">Commissions &amp; Fees ($)</label>
               <input
                 type="number"
                 step="any"
                 value={fees}
                 onChange={(e) => setFees(Number(e.target.value))}
-                className="w-full bg-[#fcfaf7] border border-[#e8dfd5] rounded-xl px-3 py-2 text-[#7d695b] font-mono text-xs focus:outline-none focus:border-[#78350f]"
+                className="w-full bg-surface-alt border border-line rounded-xl px-3 py-2 text-muted font-mono text-xs focus:outline-none focus:border-brand"
               />
             </div>
           </div>
@@ -527,14 +527,14 @@ export const TradeModal: React.FC<TradeModalProps> = ({
           {/* Row 5: Strategy, Market Session, Rating */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-medium text-[#7d695b] mb-1">Strategy / Setup Tag</label>
+              <label className="block text-xs font-medium text-muted mb-1">Strategy / Setup Tag</label>
               <select
                 value={strategy}
                 onChange={(e) => {
                   setStrategy(e.target.value);
                   if (e.target.value !== 'other') setCustomStrategy('');
                 }}
-                className="w-full bg-[#fcfaf7] border border-[#e8dfd5] rounded-xl px-3 py-2 text-[#281d16] text-xs focus:outline-none focus:border-[#78350f]"
+                className="w-full bg-surface-alt border border-line rounded-xl px-3 py-2 text-ink text-xs focus:outline-none focus:border-brand"
               >
                 {strategies.map((s) => (
                   <option key={s.id} value={s.name}>
@@ -549,20 +549,20 @@ export const TradeModal: React.FC<TradeModalProps> = ({
                   placeholder="Enter custom setup name..."
                   value={customStrategy}
                   onChange={(e) => setCustomStrategy(e.target.value)}
-                  className="w-full mt-1.5 bg-[#fcfaf7] border border-[#e8dfd5] rounded-xl px-3 py-1.5 text-[#281d16] text-xs"
+                  className="w-full mt-1.5 bg-surface-alt border border-line rounded-xl px-3 py-1.5 text-ink text-xs"
                 />
               )}
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[#7d695b] mb-1 flex items-center justify-between">
+              <label className="block text-xs font-medium text-muted mb-1 flex items-center justify-between">
                 <span>Market Session</span>
-                <span className="text-[10px] text-amber-750 bg-amber-100/80 px-1.5 py-0.5 rounded font-mono font-medium">Auto-detected</span>
+                <span className="text-[10px] text-amber-750 bg-warn-bg/80 px-1.5 py-0.5 rounded font-mono font-medium">Auto-detected</span>
               </label>
               <select
                 value={marketSession}
                 onChange={(e) => setMarketSession(e.target.value as MarketSession)}
-                className="w-full bg-[#fcfaf7] border border-[#e8dfd5] rounded-xl px-3 py-2 text-[#281d16] text-xs focus:outline-none focus:border-[#78350f]"
+                className="w-full bg-surface-alt border border-line rounded-xl px-3 py-2 text-ink text-xs focus:outline-none focus:border-brand"
               >
                 <option value="Market Open (NY)">Market Open (NY)</option>
                 <option value="Mid-Day">Mid-Day (11am-2pm)</option>
@@ -575,18 +575,18 @@ export const TradeModal: React.FC<TradeModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[#7d695b] mb-1">Execution Quality (1-5)</label>
+              <label className="block text-xs font-medium text-muted mb-1">Execution Quality (1-5)</label>
               <div className="flex items-center gap-1.5 py-1.5">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button
                     key={star}
                     type="button"
                     onClick={() => setRating(star)}
-                    className="text-[#dacfc3] hover:text-[#b45309] transition cursor-pointer"
+                    className="text-[#dacfc3] hover:text-accent transition cursor-pointer"
                   >
                     <Star
                       className={`w-5 h-5 ${
-                        star <= rating ? 'fill-[#b45309] text-[#b45309]' : 'text-[#dacfc3]'
+                        star <= rating ? 'fill-accent text-accent' : 'text-[#dacfc3]'
                       }`}
                     />
                   </button>
@@ -598,11 +598,11 @@ export const TradeModal: React.FC<TradeModalProps> = ({
           {/* Row 6: Mindset Psychology & Rule Adherence */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-[#7d695b] mb-1">Psychology / Emotion</label>
+              <label className="block text-xs font-medium text-muted mb-1">Psychology / Emotion</label>
               <select
                 value={emotion}
                 onChange={(e) => setEmotion(e.target.value as EmotionalState)}
-                className="w-full bg-[#fcfaf7] border border-[#e8dfd5] rounded-xl px-3 py-2 text-[#281d16] text-xs focus:outline-none focus:border-[#78350f]"
+                className="w-full bg-surface-alt border border-line rounded-xl px-3 py-2 text-ink text-xs focus:outline-none focus:border-brand"
               >
                 <option value="Disciplined">Disciplined / In The Zone</option>
                 <option value="Patient">Patient / Waited for Setup</option>
@@ -615,11 +615,11 @@ export const TradeModal: React.FC<TradeModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[#7d695b] mb-1">Rule Adherence / Mistake</label>
+              <label className="block text-xs font-medium text-muted mb-1">Rule Adherence / Mistake</label>
               <select
                 value={mistake}
                 onChange={(e) => setMistake(e.target.value as TradeMistake)}
-                className="w-full bg-[#fcfaf7] border border-[#e8dfd5] rounded-xl px-3 py-2 text-[#281d16] text-xs focus:outline-none focus:border-[#78350f]"
+                className="w-full bg-surface-alt border border-line rounded-xl px-3 py-2 text-ink text-xs focus:outline-none focus:border-brand"
               >
                 <option value="Followed Plan">Followed Plan Perfectly</option>
                 <option value="Moved Stop Loss">Moved Stop Loss</option>
@@ -638,40 +638,40 @@ export const TradeModal: React.FC<TradeModalProps> = ({
 
           {/* Trade Notes */}
           <div>
-            <label className="block text-xs font-medium text-[#7d695b] mb-1">Notes &amp; Thesis</label>
+            <label className="block text-xs font-medium text-muted mb-1">Notes &amp; Thesis</label>
             <textarea
               rows={3}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Why did you take this trade? What was the context (catalyst, volume, level)? What would you do differently?"
-              className="w-full bg-[#fcfaf7] border border-[#e8dfd5] rounded-xl px-3 py-2 text-[#281d16] text-xs focus:outline-none focus:border-[#78350f] resize-none"
+              className="w-full bg-surface-alt border border-line rounded-xl px-3 py-2 text-ink text-xs focus:outline-none focus:border-brand resize-none"
             />
           </div>
 
           {/* Screenshot / Chart URL */}
           <div>
-            <label className="block text-xs font-medium text-[#7d695b] mb-1">Chart Screenshot URL or Upload</label>
+            <label className="block text-xs font-medium text-muted mb-1">Chart Screenshot URL or Upload</label>
             <div className="flex gap-2">
               <input
                 type="text"
                 value={chartUrl}
                 onChange={(e) => setChartUrl(e.target.value)}
                 placeholder="https://... or upload image below"
-                className="flex-1 bg-[#fcfaf7] border border-[#e8dfd5] rounded-xl px-3 py-2 text-[#281d16] text-xs focus:outline-none focus:border-[#78350f] font-mono"
+                className="flex-1 bg-surface-alt border border-line rounded-xl px-3 py-2 text-ink text-xs focus:outline-none focus:border-brand font-mono"
               />
-              <label className="px-3 py-2 bg-[#faf7f2] hover:bg-[#f2ece2] text-[#4a3b32] text-xs rounded-xl border border-[#e2d8cb] cursor-pointer flex items-center gap-1.5 transition">
+              <label className="px-3 py-2 bg-canvas hover:bg-sunken text-ink-soft text-xs rounded-xl border border-line cursor-pointer flex items-center gap-1.5 transition">
                 <Upload className="w-3.5 h-3.5" />
                 <span>Upload</span>
                 <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
               </label>
             </div>
             {chartUrl && (
-              <div className="mt-2 relative rounded-xl overflow-hidden border border-[#ede6dc] max-h-40 group">
+              <div className="mt-2 relative rounded-xl overflow-hidden border border-line-soft max-h-40 group">
                 <img src={chartUrl} alt="Trade chart preview" className="w-full h-40 object-cover" />
                 <button
                   type="button"
                   onClick={() => setChartUrl('')}
-                  className="absolute top-2 right-2 p-1 bg-[#281d16]/70 hover:bg-[#281d16] text-white rounded-lg text-xs cursor-pointer"
+                  className="absolute top-2 right-2 p-1 bg-inverse/70 hover:bg-inverse text-white rounded-lg text-xs cursor-pointer"
                 >
                   Remove
                 </button>
@@ -680,17 +680,17 @@ export const TradeModal: React.FC<TradeModalProps> = ({
           </div>
 
           {/* Form Actions */}
-          <div className="pt-4 border-t border-[#ede6dc] flex items-center justify-end gap-3">
+          <div className="pt-4 border-t border-line-soft flex items-center justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-[#faf7f2] hover:bg-[#f2ece2] text-[#4a3b32] text-xs font-semibold rounded-xl border border-[#e2d8cb] transition cursor-pointer"
+              className="px-4 py-2 bg-canvas hover:bg-sunken text-ink-soft text-xs font-semibold rounded-xl border border-line transition cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-[#78350f] hover:bg-[#632909] text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-2 cursor-pointer"
+              className="px-6 py-2 bg-brand-solid hover:bg-brand-solid-hover text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-2 cursor-pointer"
             >
               <Check className="w-4 h-4" />
               <span>{initialTrade?.id ? 'Save Changes' : 'Record Trade'}</span>

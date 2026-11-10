@@ -228,28 +228,28 @@ export const SocialTradeCardModal: React.FC<SocialTradeCardModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-xs overflow-y-auto">
-      <div className="bg-white border border-[#e8dfd5] rounded-3xl w-full max-w-3xl overflow-hidden shadow-2xl flex flex-col animate-in fade-in zoom-in-95 duration-200">
+      <div className="bg-surface border border-line rounded-3xl w-full max-w-3xl overflow-hidden shadow-2xl flex flex-col animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#e8dfd5] bg-[#fcfaf7]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-line bg-surface-alt">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#f5ede4] text-[#78350f] border border-[#debfa8] flex items-center justify-center">
+            <div className="w-10 h-10 rounded-2xl bg-sunken text-brand border border-line-brand flex items-center justify-center">
               <Share2 className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-[#281d16] flex items-center gap-2">
+              <h2 className="text-base font-bold text-ink flex items-center gap-2">
                 Social Trade Card
-                <span className="text-[10px] bg-[#edf7ed] text-[#1e6b37] px-2 py-0.5 rounded-full font-mono font-medium border border-[#c3e6cb]">
+                <span className="text-[10px] bg-profit-bg text-profit px-2 py-0.5 rounded-full font-mono font-medium border border-profit-line">
                   1200x675 HD
                 </span>
               </h2>
-              <p className="text-xs text-[#7d695b]">
+              <p className="text-xs text-muted">
                 Export or copy a clean trading review card for Discord, Twitter/X, or personal study.
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-[#8c7462] hover:text-[#281d16] hover:bg-[#ede6dc] rounded-xl transition cursor-pointer"
+            className="p-2 text-faint hover:text-ink hover:bg-sunken-strong rounded-xl transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -259,15 +259,15 @@ export const SocialTradeCardModal: React.FC<SocialTradeCardModalProps> = ({
         <div className="p-5 sm:p-6 space-y-4">
           {/* Theme selector */}
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#4a3b32]">Card Styling:</span>
+            <span className="text-xs font-bold text-ink-soft">Card Styling:</span>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setTheme('espresso')}
                 className={`px-3 py-1 text-xs rounded-xl font-medium transition cursor-pointer ${
                   theme === 'espresso'
-                    ? 'bg-[#352115] text-white shadow-xs'
-                    : 'bg-[#faf7f2] text-[#5a4433] hover:bg-[#ede6dc]'
+                    ? 'bg-inverse text-white shadow-xs'
+                    : 'bg-canvas text-ink-soft hover:bg-sunken-strong'
                 }`}
               >
                 Espresso Luxury
@@ -277,8 +277,8 @@ export const SocialTradeCardModal: React.FC<SocialTradeCardModalProps> = ({
                 onClick={() => setTheme('alabaster')}
                 className={`px-3 py-1 text-xs rounded-xl font-medium transition cursor-pointer ${
                   theme === 'alabaster'
-                    ? 'bg-[#78350f] text-white shadow-xs'
-                    : 'bg-[#faf7f2] text-[#5a4433] hover:bg-[#ede6dc]'
+                    ? 'bg-brand-solid text-white shadow-xs'
+                    : 'bg-canvas text-ink-soft hover:bg-sunken-strong'
                 }`}
               >
                 Alabaster Warm
@@ -288,8 +288,8 @@ export const SocialTradeCardModal: React.FC<SocialTradeCardModalProps> = ({
                 onClick={() => setTheme('charcoal')}
                 className={`px-3 py-1 text-xs rounded-xl font-medium transition cursor-pointer ${
                   theme === 'charcoal'
-                    ? 'bg-[#1e1e24] text-white shadow-xs'
-                    : 'bg-[#faf7f2] text-[#5a4433] hover:bg-[#ede6dc]'
+                    ? 'bg-inverse text-white shadow-xs'
+                    : 'bg-canvas text-ink-soft hover:bg-sunken-strong'
                 }`}
               >
                 Charcoal Dark
@@ -298,40 +298,40 @@ export const SocialTradeCardModal: React.FC<SocialTradeCardModalProps> = ({
           </div>
 
           {/* Canvas Card Display */}
-          <div className="rounded-2xl overflow-hidden border border-[#e8dfd5] shadow-md bg-[#22160f] flex items-center justify-center">
+          <div className="rounded-2xl overflow-hidden border border-line shadow-md bg-inverse flex items-center justify-center">
             <canvas ref={canvasRef} className="w-full h-auto max-h-[380px] object-contain block" />
           </div>
 
           {/* Trade Details summary */}
-          <div className="bg-[#fcfaf7] border border-[#ede6dc] rounded-xl p-3 text-xs text-[#5a4433] flex flex-wrap items-center justify-between gap-2">
+          <div className="bg-surface-alt border border-line-soft rounded-xl p-3 text-xs text-ink-soft flex flex-wrap items-center justify-between gap-2">
             <span>
               <strong>{trade.symbol}</strong> ({trade.direction.toUpperCase()}) • Net P&amp;L:{' '}
-              <strong className={trade.netPnl >= 0 ? 'text-[#1e6b37]' : 'text-[#b93829]'}>
-                {trade.netPnl >= 0 ? '+' : ''}${trade.netPnl.toFixed(2)}
+              <strong className={trade.netPnl >= 0 ? 'text-profit' : 'text-loss'}>
+                {trade.netPnl >= 0 ? '+' : '-'}${Math.abs(trade.netPnl).toFixed(2)}
               </strong>
             </span>
-            <span className="text-[#8c7462] font-mono">
+            <span className="text-faint font-mono">
               Executed: {trade.date} {trade.time || ''}
             </span>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-[#e8dfd5] bg-[#fcfaf7]">
-          <span className="text-xs text-[#7d695b]">Ready to share or archive</span>
+        <div className="flex items-center justify-between px-6 py-4 border-t border-line bg-surface-alt">
+          <span className="text-xs text-muted">Ready to share or archive</span>
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={handleCopyToClipboard}
-              className="px-4 py-2 bg-white hover:bg-[#faf7f2] text-[#4a3b32] border border-[#d5c3b1] text-xs font-semibold rounded-xl flex items-center gap-1.5 transition cursor-pointer"
+              className="px-4 py-2 bg-surface hover:bg-canvas text-ink-soft border border-line-brand text-xs font-semibold rounded-xl flex items-center gap-1.5 transition cursor-pointer"
             >
-              {copied ? <Check className="w-4 h-4 text-[#1e6b37]" /> : <Copy className="w-4 h-4" />}
+              {copied ? <Check className="w-4 h-4 text-profit" /> : <Copy className="w-4 h-4" />}
               <span>{copied ? 'Copied to Clipboard!' : 'Copy Image'}</span>
             </button>
             <button
               type="button"
               onClick={handleDownloadImage}
-              className="px-5 py-2 bg-[#78350f] hover:bg-[#632909] text-white text-xs font-bold rounded-xl shadow-xs flex items-center gap-1.5 transition cursor-pointer"
+              className="px-5 py-2 bg-brand-solid hover:bg-brand-solid-hover text-white text-xs font-bold rounded-xl shadow-xs flex items-center gap-1.5 transition cursor-pointer"
             >
               <Download className="w-4 h-4" />
               <span>Download PNG</span>

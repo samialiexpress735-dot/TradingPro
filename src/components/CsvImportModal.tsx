@@ -154,28 +154,28 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-xs overflow-y-auto">
-      <div className="bg-white border border-[#e8dfd5] rounded-3xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div className="bg-surface border border-line rounded-3xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#e8dfd5] bg-[#fcfaf7]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-line bg-surface-alt">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#f5ede4] text-[#78350f] border border-[#debfa8] flex items-center justify-center">
+            <div className="w-10 h-10 rounded-2xl bg-sunken text-brand border border-line-brand flex items-center justify-center">
               <FileSpreadsheet className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-[#281d16] flex items-center gap-2">
+              <h2 className="text-base font-bold text-ink flex items-center gap-2">
                 Broker CSV Import Wizard
-                <span className="text-[10px] bg-[#f0e8de] text-[#78350f] px-2 py-0.5 rounded-full font-mono font-medium border border-[#debfa8]">
+                <span className="text-[10px] bg-sunken-strong text-brand px-2 py-0.5 rounded-full font-mono font-medium border border-line-brand">
                   Universal Parser
                 </span>
               </h2>
-              <p className="text-xs text-[#7d695b]">
+              <p className="text-xs text-muted">
                 Import statements from ThinkorSwim, Interactive Brokers, TradingView, MetaTrader, or custom spreadsheets.
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-[#8c7462] hover:text-[#281d16] hover:bg-[#ede6dc] rounded-xl transition"
+            className="p-2 text-faint hover:text-ink hover:bg-sunken-strong rounded-xl transition"
           >
             <X className="w-5 h-5" />
           </button>
@@ -189,7 +189,7 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
               onDragOver={(e) => e.preventDefault()}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-[#d5c3b1] hover:border-[#78350f] rounded-2xl p-8 text-center bg-[#faf7f2] hover:bg-[#f6f0e6] transition cursor-pointer flex flex-col items-center justify-center gap-3"
+              className="border-2 border-dashed border-line-brand hover:border-brand rounded-2xl p-8 text-center bg-canvas hover:bg-sunken transition cursor-pointer flex flex-col items-center justify-center gap-3"
             >
               <input
                 ref={fileInputRef}
@@ -198,21 +198,21 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
                 onChange={handleFileUpload}
                 className="hidden"
               />
-              <div className="w-12 h-12 rounded-2xl bg-white border border-[#e8dfd5] text-[#78350f] flex items-center justify-center shadow-xs">
+              <div className="w-12 h-12 rounded-2xl bg-surface border border-line text-brand flex items-center justify-center shadow-xs">
                 <Upload className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-sm font-bold text-[#281d16]">
+                <p className="text-sm font-bold text-ink">
                   Click to upload or drag &amp; drop statement CSV
                 </p>
-                <p className="text-xs text-[#8c7462] mt-0.5">
+                <p className="text-xs text-faint mt-0.5">
                   Supports .csv, .txt, .tsv from any broker or trading platform
                 </p>
               </div>
 
               {/* Sample loader badges */}
-              <div className="pt-3 border-t border-[#ede6dc] w-full max-w-md">
-                <p className="text-[11px] font-mono text-[#8c7462] mb-2 uppercase tracking-wider">
+              <div className="pt-3 border-t border-line-soft w-full max-w-md">
+                <p className="text-[11px] font-mono text-faint mb-2 uppercase tracking-wider">
                   Or load a sample file to test immediately:
                 </p>
                 <div className="flex flex-wrap items-center justify-center gap-2">
@@ -222,7 +222,7 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
                       e.stopPropagation();
                       handleLoadSample('generic');
                     }}
-                    className="px-3 py-1 bg-white hover:bg-[#f2ece2] border border-[#d5c3b1] rounded-xl text-xs font-semibold text-[#5a4433] transition"
+                    className="px-3 py-1 bg-surface hover:bg-sunken border border-line-brand rounded-xl text-xs font-semibold text-ink-soft transition"
                   >
                     Generic Sample
                   </button>
@@ -232,7 +232,7 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
                       e.stopPropagation();
                       handleLoadSample('tos');
                     }}
-                    className="px-3 py-1 bg-white hover:bg-[#f2ece2] border border-[#d5c3b1] rounded-xl text-xs font-semibold text-[#5a4433] transition"
+                    className="px-3 py-1 bg-surface hover:bg-sunken border border-line-brand rounded-xl text-xs font-semibold text-ink-soft transition"
                   >
                     ThinkorSwim
                   </button>
@@ -242,7 +242,7 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
                       e.stopPropagation();
                       handleLoadSample('ibkr');
                     }}
-                    className="px-3 py-1 bg-white hover:bg-[#f2ece2] border border-[#d5c3b1] rounded-xl text-xs font-semibold text-[#5a4433] transition"
+                    className="px-3 py-1 bg-surface hover:bg-sunken border border-line-brand rounded-xl text-xs font-semibold text-ink-soft transition"
                   >
                     Interactive Brokers
                   </button>
@@ -252,7 +252,7 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
                       e.stopPropagation();
                       handleLoadSample('tradingview');
                     }}
-                    className="px-3 py-1 bg-white hover:bg-[#f2ece2] border border-[#d5c3b1] rounded-xl text-xs font-semibold text-[#5a4433] transition"
+                    className="px-3 py-1 bg-surface hover:bg-sunken border border-line-brand rounded-xl text-xs font-semibold text-ink-soft transition"
                   >
                     TradingView
                   </button>
@@ -262,15 +262,15 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
           ) : (
             <div className="space-y-4">
               {/* File Info Bar */}
-              <div className="bg-[#fcfaf7] border border-[#e8dfd5] rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3">
+              <div className="bg-surface-alt border border-line rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-[#e8dfd5] text-[#4a3b32] flex items-center justify-center font-mono">
-                    <FileText className="w-5 h-5 text-[#78350f]" />
+                  <div className="w-9 h-9 rounded-xl bg-line text-ink-soft flex items-center justify-center font-mono">
+                    <FileText className="w-5 h-5 text-brand" />
                   </div>
                   <div>
-                    <span className="text-xs font-bold text-[#281d16] block">{fileName || 'Uploaded CSV'}</span>
-                    <span className="text-[11px] text-[#78350f] font-medium flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-[#1e6b37]"></span>
+                    <span className="text-xs font-bold text-ink block">{fileName || 'Uploaded CSV'}</span>
+                    <span className="text-[11px] text-brand font-medium flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-profit-solid"></span>
                       {platformLabels[parseResult?.detectedPlatform || 'generic']}
                     </span>
                   </div>
@@ -282,8 +282,8 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
                     onClick={() => setShowMapping(!showMapping)}
                     className={`px-3 py-1.5 text-xs font-semibold rounded-xl border flex items-center gap-1.5 transition ${
                       showMapping
-                        ? 'bg-[#78350f] text-white border-[#78350f]'
-                        : 'bg-white text-[#4a3b32] border-[#d5c3b1] hover:bg-[#faf7f2]'
+                        ? 'bg-brand-solid text-white border-brand'
+                        : 'bg-surface text-ink-soft border-line-brand hover:bg-canvas'
                     }`}
                   >
                     <Sliders className="w-3.5 h-3.5" />
@@ -295,7 +295,7 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
                       setCsvContent('');
                       setFileName('');
                     }}
-                    className="px-3 py-1.5 text-xs font-medium text-[#8c7462] hover:text-[#281d16] hover:bg-[#ede6dc] rounded-xl border border-transparent transition flex items-center gap-1"
+                    className="px-3 py-1.5 text-xs font-medium text-faint hover:text-ink hover:bg-sunken-strong rounded-xl border border-transparent transition flex items-center gap-1"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
                     <span>Change File</span>
@@ -305,20 +305,20 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
 
               {/* Column Mapping Options (Accordion) */}
               {showMapping && parseResult && (
-                <div className="bg-[#faf7f2] border border-[#e2d8cb] rounded-2xl p-4 space-y-3">
-                  <div className="flex items-center justify-between border-b border-[#e8dfd5] pb-2">
-                    <span className="text-xs font-bold text-[#281d16]">Field Mapping</span>
-                    <span className="text-[11px] text-[#8c7462]">
+                <div className="bg-canvas border border-line rounded-2xl p-4 space-y-3">
+                  <div className="flex items-center justify-between border-b border-line pb-2">
+                    <span className="text-xs font-bold text-ink">Field Mapping</span>
+                    <span className="text-[11px] text-faint">
                       Assign CSV columns to TradePulse metrics
                     </span>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                     <div>
-                      <label className="text-[11px] text-[#7d695b] font-medium block mb-1">Symbol / Ticker</label>
+                      <label className="text-[11px] text-muted font-medium block mb-1">Symbol / Ticker</label>
                       <select
                         value={customMapping.symbolCol || ''}
                         onChange={(e) => setCustomMapping((prev) => ({ ...prev, symbolCol: e.target.value }))}
-                        className="w-full bg-white border border-[#d5c3b1] rounded-xl px-2.5 py-1.5 text-xs text-[#281d16]"
+                        className="w-full bg-surface border border-line-brand rounded-xl px-2.5 py-1.5 text-xs text-ink"
                       >
                         <option value="">Auto-detected</option>
                         {parseResult.headers.map((h) => (
@@ -330,11 +330,11 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
                     </div>
 
                     <div>
-                      <label className="text-[11px] text-[#7d695b] font-medium block mb-1">Date</label>
+                      <label className="text-[11px] text-muted font-medium block mb-1">Date</label>
                       <select
                         value={customMapping.dateCol || ''}
                         onChange={(e) => setCustomMapping((prev) => ({ ...prev, dateCol: e.target.value }))}
-                        className="w-full bg-white border border-[#d5c3b1] rounded-xl px-2.5 py-1.5 text-xs text-[#281d16]"
+                        className="w-full bg-surface border border-line-brand rounded-xl px-2.5 py-1.5 text-xs text-ink"
                       >
                         <option value="">Auto-detected</option>
                         {parseResult.headers.map((h) => (
@@ -346,11 +346,11 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
                     </div>
 
                     <div>
-                      <label className="text-[11px] text-[#7d695b] font-medium block mb-1">Net P&amp;L</label>
+                      <label className="text-[11px] text-muted font-medium block mb-1">Net P&amp;L</label>
                       <select
                         value={customMapping.netPnlCol || ''}
                         onChange={(e) => setCustomMapping((prev) => ({ ...prev, netPnlCol: e.target.value }))}
-                        className="w-full bg-white border border-[#d5c3b1] rounded-xl px-2.5 py-1.5 text-xs text-[#281d16]"
+                        className="w-full bg-surface border border-line-brand rounded-xl px-2.5 py-1.5 text-xs text-ink"
                       >
                         <option value="">Auto-detected</option>
                         {parseResult.headers.map((h) => (
@@ -362,11 +362,11 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
                     </div>
 
                     <div>
-                      <label className="text-[11px] text-[#7d695b] font-medium block mb-1">Quantity</label>
+                      <label className="text-[11px] text-muted font-medium block mb-1">Quantity</label>
                       <select
                         value={customMapping.quantityCol || ''}
                         onChange={(e) => setCustomMapping((prev) => ({ ...prev, quantityCol: e.target.value }))}
-                        className="w-full bg-white border border-[#d5c3b1] rounded-xl px-2.5 py-1.5 text-xs text-[#281d16]"
+                        className="w-full bg-surface border border-line-brand rounded-xl px-2.5 py-1.5 text-xs text-ink"
                       >
                         <option value="">Auto-detected</option>
                         {parseResult.headers.map((h) => (
@@ -381,13 +381,13 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
               )}
 
               {/* Duplicate Filter & Selection Toolbar */}
-              <div className="flex flex-wrap items-center justify-between gap-3 text-xs bg-white border border-[#e8dfd5] rounded-xl p-3">
+              <div className="flex flex-wrap items-center justify-between gap-3 text-xs bg-surface border border-line rounded-xl p-3">
                 <div className="flex items-center gap-3">
-                  <span className="font-semibold text-[#281d16]">
+                  <span className="font-semibold text-ink">
                     Found {parseResult?.trades.length || 0} trades
                   </span>
                   {parseResult && parseResult.duplicatesCount > 0 && (
-                    <span className="bg-[#fffbeb] text-[#b45309] border border-[#fde68a] px-2 py-0.5 rounded-md text-[11px] font-medium flex items-center gap-1">
+                    <span className="bg-warn-bg-soft text-accent border border-warn-line px-2 py-0.5 rounded-md text-[11px] font-medium flex items-center gap-1">
                       <AlertTriangle className="w-3 h-3" />
                       {parseResult.duplicatesCount} duplicate{parseResult.duplicatesCount > 1 ? 's' : ''} detected
                     </span>
@@ -395,19 +395,19 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <label className="flex items-center gap-1.5 text-[#5a4433] cursor-pointer">
+                  <label className="flex items-center gap-1.5 text-ink-soft cursor-pointer">
                     <input
                       type="checkbox"
                       checked={filterDuplicates}
                       onChange={(e) => setFilterDuplicates(e.target.checked)}
-                      className="rounded accent-[#78350f]"
+                      className="rounded accent-brand-solid"
                     />
                     <span>Skip duplicates</span>
                   </label>
                   <button
                     type="button"
                     onClick={handleSelectAll}
-                    className="text-[#78350f] hover:underline font-semibold"
+                    className="text-brand hover:underline font-semibold"
                   >
                     Select All
                   </button>
@@ -415,7 +415,7 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
                   <button
                     type="button"
                     onClick={handleDeselectAll}
-                    className="text-[#8c7462] hover:underline"
+                    className="text-faint hover:underline"
                   >
                     Deselect All
                   </button>
@@ -423,9 +423,9 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
               </div>
 
               {/* Preview Table */}
-              <div className="border border-[#e8dfd5] rounded-2xl overflow-hidden bg-white max-h-[340px] overflow-y-auto">
+              <div className="border border-line rounded-2xl overflow-hidden bg-surface max-h-[340px] overflow-y-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="sticky top-0 bg-[#f7f2ea] text-[#6e5849] border-b border-[#e8dfd5] font-mono text-[11px]">
+                  <thead className="sticky top-0 bg-canvas text-muted border-b border-line font-mono text-[11px]">
                     <tr>
                       <th className="py-2.5 px-3 w-8"></th>
                       <th className="py-2.5 px-3">Date</th>
@@ -438,7 +438,7 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
                       <th className="py-2.5 px-3">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#ede6dc]">
+                  <tbody className="divide-y divide-line-soft">
                     {parseResult?.trades.map((t, idx) => {
                       const isSelected = selectedIndices.has(idx);
                       const isDup = existingTrades.some(
@@ -452,8 +452,8 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
                         <tr
                           key={t.id}
                           onClick={() => handleToggleSelect(idx)}
-                          className={`hover:bg-[#faf7f2] cursor-pointer transition ${
-                            isSelected ? 'bg-[#fbf9f5]' : 'opacity-60'
+                          className={`hover:bg-canvas cursor-pointer transition ${
+                            isSelected ? 'bg-surface-alt' : 'opacity-60'
                           }`}
                         >
                           <td className="py-2 px-3">
@@ -461,18 +461,18 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
                               type="checkbox"
                               checked={isSelected}
                               onChange={() => handleToggleSelect(idx)}
-                              className="rounded accent-[#78350f]"
+                              className="rounded accent-brand-solid"
                               onClick={(e) => e.stopPropagation()}
                             />
                           </td>
-                          <td className="py-2 px-3 font-mono text-[#4a3b32] whitespace-nowrap">{t.date}</td>
-                          <td className="py-2 px-3 font-bold text-[#281d16]">{t.symbol}</td>
+                          <td className="py-2 px-3 font-mono text-ink-soft whitespace-nowrap">{t.date}</td>
+                          <td className="py-2 px-3 font-bold text-ink">{t.symbol}</td>
                           <td className="py-2 px-3">
                             <span
                               className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${
                                 t.direction === 'long'
-                                  ? 'bg-[#edf7ed] text-[#1e6b37]'
-                                  : 'bg-[#fef2f2] text-[#b93829]'
+                                  ? 'bg-profit-bg text-profit'
+                                  : 'bg-loss-bg text-loss'
                               }`}
                             >
                               {t.direction}
@@ -482,17 +482,17 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
                           <td className="py-2 px-3 text-right font-mono">${t.entryPrice.toFixed(2)}</td>
                           <td className="py-2 px-3 text-right font-mono">${t.exitPrice.toFixed(2)}</td>
                           <td className="py-2 px-3 text-right font-mono font-bold whitespace-nowrap">
-                            <span className={t.netPnl >= 0 ? 'text-[#1e6b37]' : 'text-[#b93829]'}>
-                              {t.netPnl >= 0 ? '+' : ''}${t.netPnl.toFixed(2)}
+                            <span className={t.netPnl >= 0 ? 'text-profit' : 'text-loss'}>
+                              {t.netPnl >= 0 ? '+' : '-'}${Math.abs(t.netPnl).toFixed(2)}
                             </span>
                           </td>
                           <td className="py-2 px-3 whitespace-nowrap">
                             {isDup ? (
-                              <span className="text-[10px] text-[#b45309] font-mono bg-[#fffbeb] px-1.5 py-0.5 rounded border border-[#fde68a]">
+                              <span className="text-[10px] text-accent font-mono bg-warn-bg-soft px-1.5 py-0.5 rounded border border-warn-line">
                                 Existing
                               </span>
                             ) : (
-                              <span className="text-[10px] text-[#1e6b37] font-mono bg-[#edf7ed] px-1.5 py-0.5 rounded border border-[#c3e6cb]">
+                              <span className="text-[10px] text-profit font-mono bg-profit-bg px-1.5 py-0.5 rounded border border-profit-line">
                                 Ready
                               </span>
                             )}
@@ -508,8 +508,8 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-[#e8dfd5] bg-[#fcfaf7]">
-          <div className="text-xs text-[#7d695b]">
+        <div className="flex items-center justify-between px-6 py-4 border-t border-line bg-surface-alt">
+          <div className="text-xs text-muted">
             {selectedIndices.size} trade{selectedIndices.size === 1 ? '' : 's'} selected for import
           </div>
 
@@ -517,7 +517,7 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-semibold text-[#5a4433] hover:text-[#281d16] hover:bg-[#ede6dc] rounded-xl transition"
+              className="px-4 py-2 text-xs font-semibold text-ink-soft hover:text-ink hover:bg-sunken-strong rounded-xl transition"
             >
               Cancel
             </button>
@@ -525,7 +525,7 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
               type="button"
               disabled={selectedIndices.size === 0}
               onClick={handleExecuteImport}
-              className="px-5 py-2.5 bg-[#78350f] hover:bg-[#632909] disabled:bg-[#d5c3b1] disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-2"
+              className="px-5 py-2.5 bg-brand-solid hover:bg-brand-solid-hover disabled:bg-line-brand disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-2"
             >
               <CheckCircle2 className="w-4 h-4" />
               <span>Import {selectedIndices.size} Trade{selectedIndices.size === 1 ? '' : 's'}</span>

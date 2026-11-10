@@ -126,22 +126,22 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
   return (
     <div className="space-y-6">
       {/* Top Banner */}
-      <div className="bg-white border border-[#e8dfd5] rounded-2xl p-4 sm:p-6 shadow-xs relative overflow-hidden">
+      <div className="bg-surface border border-line rounded-2xl p-4 sm:p-6 shadow-xs relative overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           <div className="flex items-start sm:items-center gap-3 sm:gap-4">
-            <div className="p-2 sm:p-3 bg-[#f5ede4] text-[#78350f] rounded-2xl border border-[#debfa8] shrink-0">
+            <div className="p-2 sm:p-3 bg-sunken text-brand rounded-2xl border border-line-brand shrink-0">
               <Calculator className="w-5 h-5 sm:w-7 sm:h-7" />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-base sm:text-xl font-bold text-[#281d16] tracking-tight">
+                <h2 className="text-base sm:text-xl font-bold text-ink tracking-tight">
                   Position Size &amp; Quantity Calculator
                 </h2>
-                <span className="px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-[#edf7ed] text-[#1e6b37] border border-[#c3e6cb] shrink-0">
+                <span className="px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-profit-bg text-profit border border-profit-line shrink-0">
                   Solves Quantity
                 </span>
               </div>
-              <p className="text-[11px] sm:text-xs text-[#7d695b] mt-0.5 sm:mt-1 max-w-2xl">
+              <p className="text-[11px] sm:text-xs text-muted mt-0.5 sm:mt-1 max-w-2xl">
                 Calculates the exact quantity (shares, contracts, or coins) to cap your loss if stopped out.
               </p>
             </div>
@@ -149,36 +149,36 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
 
           {/* Quick presets */}
           <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap pt-1 sm:pt-0">
-            <span className="text-[11px] sm:text-xs text-[#8c7462] font-mono">Presets:</span>
+            <span className="text-[11px] sm:text-xs text-faint font-mono">Presets:</span>
             <button
               onClick={() => handlePresetSelect('NVDA', 'stocks', 140, 137, 147.5, 1)}
-              className="px-2 py-1 text-xs bg-[#faf7f2] hover:bg-[#f2ece2] text-[#4a3b32] rounded-lg border border-[#e2d8cb] transition cursor-pointer"
+              className="px-2 py-1 text-xs bg-canvas hover:bg-sunken text-ink-soft rounded-lg border border-line transition cursor-pointer"
             >
               NVDA
             </button>
             <button
               onClick={() => handlePresetSelect('BTCUSDT', 'crypto', 68000, 66500, 72000, 1)}
-              className="px-2 py-1 text-xs bg-[#faf7f2] hover:bg-[#f2ece2] text-[#4a3b32] rounded-lg border border-[#e2d8cb] transition cursor-pointer"
+              className="px-2 py-1 text-xs bg-canvas hover:bg-sunken text-ink-soft rounded-lg border border-line transition cursor-pointer"
             >
               BTC (Spot)
             </button>
             <button
               onClick={() => handlePresetSelect('BTCUSDT.P', 'futures', 68500, 67200, 71500, 1)}
-              className="px-2 py-1 text-xs bg-[#faf7f2] hover:bg-[#f2ece2] text-[#78350f] font-semibold rounded-lg border border-[#d8bca6] transition cursor-pointer flex items-center gap-1"
+              className="px-2 py-1 text-xs bg-canvas hover:bg-sunken text-brand font-semibold rounded-lg border border-line-brand transition cursor-pointer flex items-center gap-1"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-[#f3ba2f]"></span>
               <span>BTC.P</span>
             </button>
             <button
               onClick={() => handlePresetSelect('SOLUSDT.P', 'futures', 178.50, 172.00, 195.00, 1)}
-              className="px-2 py-1 text-xs bg-[#faf7f2] hover:bg-[#f2ece2] text-[#78350f] font-semibold rounded-lg border border-[#d8bca6] transition cursor-pointer flex items-center gap-1"
+              className="px-2 py-1 text-xs bg-canvas hover:bg-sunken text-brand font-semibold rounded-lg border border-line-brand transition cursor-pointer flex items-center gap-1"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-[#f3ba2f]"></span>
               <span>SOLUSDT.P</span>
             </button>
             <button
               onClick={() => handlePresetSelect('EUR/USD', 'forex', 1.0850, 1.0820, 1.0920, 1)}
-              className="px-2.5 py-1 text-xs bg-[#faf7f2] hover:bg-[#f2ece2] text-[#4a3b32] rounded-lg border border-[#e2d8cb] transition cursor-pointer"
+              className="px-2.5 py-1 text-xs bg-canvas hover:bg-sunken text-ink-soft rounded-lg border border-line transition cursor-pointer"
             >
               EUR/USD (Forex)
             </button>
@@ -188,29 +188,29 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: Input Panel */}
-        <div className="lg:col-span-7 bg-white border border-[#e8dfd5] rounded-2xl p-6 shadow-xs space-y-5">
-          <div className="border-b border-[#ede6dc] pb-3 flex items-center justify-between">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#634832] flex items-center gap-2">
-              <Sliders className="w-4 h-4 text-[#78350f]" />
+        <div className="lg:col-span-7 bg-surface border border-line rounded-2xl p-6 shadow-xs space-y-5">
+          <div className="border-b border-line-soft pb-3 flex items-center justify-between">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-ink-soft flex items-center gap-2">
+              <Sliders className="w-4 h-4 text-brand" />
               <span>1. Define Account &amp; Risk Parameters</span>
             </h3>
-            <span className="text-xs text-[#78350f] font-mono font-medium">Input your limits</span>
+            <span className="text-xs text-brand font-mono font-medium">Input your limits</span>
           </div>
 
           {/* Account Balance & Risk Mode Selection */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Account Balance */}
             <div>
-              <label className="block text-xs font-medium text-[#7d695b] mb-1.5">
+              <label className="block text-xs font-medium text-muted mb-1.5">
                 Total Account Balance ($)
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-2.5 text-[#8c7462] font-mono text-sm">$</span>
+                <span className="absolute left-3 top-2.5 text-faint font-mono text-sm">$</span>
                 <input
                   type="number"
                   value={balance}
                   onChange={(e) => setBalance(Math.max(0, Number(e.target.value)))}
-                  className="w-full bg-[#fcfaf7] border border-[#e8dfd5] rounded-xl pl-8 pr-4 py-2 text-[#281d16] font-mono text-sm focus:outline-none focus:border-[#78350f] transition"
+                  className="w-full bg-surface-alt border border-line rounded-xl pl-8 pr-4 py-2 text-ink font-mono text-sm focus:outline-none focus:border-brand transition"
                   placeholder="25000"
                 />
               </div>
@@ -219,19 +219,19 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
             {/* Risk Mode Switch: % of Account vs Fixed Dollar Amount */}
             <div>
               <div className="flex justify-between items-center mb-1.5">
-                <label className="text-xs font-medium text-[#7d695b]">Risk Sizing Mode</label>
-                <span className="text-xs font-mono font-bold text-[#78350f]">
+                <label className="text-xs font-medium text-muted">Risk Sizing Mode</label>
+                <span className="text-xs font-mono font-bold text-brand">
                   ${activeDollarRisk.toFixed(2)} Risk Cap
                 </span>
               </div>
-              <div className="grid grid-cols-2 gap-1.5 bg-[#fcfaf7] p-1 rounded-xl border border-[#e8dfd5]">
+              <div className="grid grid-cols-2 gap-1.5 bg-surface-alt p-1 rounded-xl border border-line">
                 <button
                   type="button"
                   onClick={() => setRiskMode('percent')}
                   className={`py-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer ${
                     riskMode === 'percent'
-                      ? 'bg-[#78350f] text-white shadow-xs'
-                      : 'text-[#7d695b] hover:text-[#281d16]'
+                      ? 'bg-brand-solid text-white shadow-xs'
+                      : 'text-muted hover:text-ink'
                   }`}
                 >
                   <Percent className="w-3.5 h-3.5" />
@@ -242,8 +242,8 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
                   onClick={() => setRiskMode('dollar')}
                   className={`py-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer ${
                     riskMode === 'dollar'
-                      ? 'bg-[#78350f] text-white shadow-xs'
-                      : 'text-[#7d695b] hover:text-[#281d16]'
+                      ? 'bg-brand-solid text-white shadow-xs'
+                      : 'text-muted hover:text-ink'
                   }`}
                 >
                   <DollarSign className="w-3.5 h-3.5" />
@@ -255,10 +255,10 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
 
           {/* Risk Input Controls */}
           {riskMode === 'percent' ? (
-            <div className="p-3.5 bg-[#faf7f2] rounded-xl border border-[#e2d8cb] space-y-2">
+            <div className="p-3.5 bg-canvas rounded-xl border border-line space-y-2">
               <div className="flex justify-between items-center">
-                <span className="text-xs font-medium text-[#4a3b32]">Risk Percentage (% of ${balance.toLocaleString()})</span>
-                <span className="text-xs font-mono font-bold text-[#78350f]">{riskPercent}% = ${activeDollarRisk.toFixed(2)}</span>
+                <span className="text-xs font-medium text-ink-soft">Risk Percentage (% of ${balance.toLocaleString()})</span>
+                <span className="text-xs font-mono font-bold text-brand">{riskPercent}% = ${activeDollarRisk.toFixed(2)}</span>
               </div>
               <div className="relative">
                 <input
@@ -268,9 +268,9 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
                   max="15"
                   value={riskPercent}
                   onChange={(e) => setRiskPercent(Number(e.target.value))}
-                  className="w-full bg-white border border-[#e8dfd5] rounded-xl px-4 py-2 text-[#281d16] font-mono text-sm focus:outline-none focus:border-[#78350f] transition"
+                  className="w-full bg-surface border border-line rounded-xl px-4 py-2 text-ink font-mono text-sm focus:outline-none focus:border-brand transition"
                 />
-                <span className="absolute right-3 top-2.5 text-[#8c7462] font-mono text-sm">%</span>
+                <span className="absolute right-3 top-2.5 text-faint font-mono text-sm">%</span>
               </div>
               {/* Quick Risk Buttons */}
               <div className="flex gap-1 sm:gap-1.5 pt-1 overflow-x-auto no-scrollbar">
@@ -281,8 +281,8 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
                     onClick={() => setRiskPercent(pct)}
                     className={`flex-1 min-w-[50px] sm:min-w-0 py-1 text-[11px] font-mono rounded-lg transition cursor-pointer whitespace-nowrap text-center ${
                       riskPercent === pct
-                        ? 'bg-[#78350f] text-white shadow-xs font-bold'
-                        : 'bg-white text-[#7d695b] hover:text-[#281d16] border border-[#e2d8cb]'
+                        ? 'bg-brand-solid text-white shadow-xs font-bold'
+                        : 'bg-surface text-muted hover:text-ink border border-line'
                     }`}
                   >
                     <span>{pct}%</span>
@@ -292,22 +292,22 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
               </div>
             </div>
           ) : (
-            <div className="p-3.5 bg-[#faf7f2] rounded-xl border border-[#e2d8cb] space-y-2">
+            <div className="p-3.5 bg-canvas rounded-xl border border-line space-y-2">
               <div className="flex justify-between items-center">
-                <span className="text-xs font-medium text-[#4a3b32]">Max Dollar Loss Limit ($)</span>
-                <span className="text-xs font-mono font-bold text-[#78350f]">
+                <span className="text-xs font-medium text-ink-soft">Max Dollar Loss Limit ($)</span>
+                <span className="text-xs font-mono font-bold text-brand">
                   {balance > 0 ? ((fixedDollarRisk / balance) * 100).toFixed(2) : 0}% of Account
                 </span>
               </div>
               <div className="relative">
-                <span className="absolute left-3 top-2.5 text-[#8c7462] font-mono text-sm">$</span>
+                <span className="absolute left-3 top-2.5 text-faint font-mono text-sm">$</span>
                 <input
                   type="number"
                   step="10"
                   min="1"
                   value={fixedDollarRisk}
                   onChange={(e) => setFixedDollarRisk(Math.max(1, Number(e.target.value)))}
-                  className="w-full bg-white border border-[#e8dfd5] rounded-xl pl-8 pr-4 py-2 text-[#281d16] font-mono text-sm focus:outline-none focus:border-[#78350f] transition"
+                  className="w-full bg-surface border border-line rounded-xl pl-8 pr-4 py-2 text-ink font-mono text-sm focus:outline-none focus:border-brand transition"
                   placeholder="250"
                 />
               </div>
@@ -320,8 +320,8 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
                     onClick={() => setFixedDollarRisk(amt)}
                     className={`flex-1 min-w-[48px] sm:min-w-0 py-1 text-[11px] font-mono rounded-lg transition cursor-pointer whitespace-nowrap text-center ${
                       fixedDollarRisk === amt
-                        ? 'bg-[#78350f] text-white shadow-xs font-bold'
-                        : 'bg-white text-[#7d695b] hover:text-[#281d16] border border-[#e2d8cb]'
+                        ? 'bg-brand-solid text-white shadow-xs font-bold'
+                        : 'bg-surface text-muted hover:text-ink border border-line'
                     }`}
                   >
                     ${amt}
@@ -332,19 +332,19 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
           )}
 
           {/* Symbol, Asset & Direction */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-[#ede6dc]">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-line-soft">
             <div>
-              <label className="block text-xs font-medium text-[#7d695b] mb-1.5">Symbol / Ticker</label>
+              <label className="block text-xs font-medium text-muted mb-1.5">Symbol / Ticker</label>
               <input
                 type="text"
                 value={symbol}
                 onChange={(e) => setSymbol(e.target.value.toUpperCase())}
-                className="w-full bg-[#fcfaf7] border border-[#e8dfd5] rounded-xl px-4 py-2 text-[#281d16] font-mono text-sm uppercase focus:outline-none focus:border-[#78350f] transition"
+                className="w-full bg-surface-alt border border-line rounded-xl px-4 py-2 text-ink font-mono text-sm uppercase focus:outline-none focus:border-brand transition"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[#7d695b] mb-1.5">Asset Class</label>
+              <label className="block text-xs font-medium text-muted mb-1.5">Asset Class</label>
               <select
                 value={assetClass}
                 onChange={(e) => {
@@ -365,7 +365,7 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
                     setPointMultiplier(1);
                   }
                 }}
-                className="w-full bg-[#fcfaf7] border border-[#e8dfd5] rounded-xl px-3 py-2 text-[#281d16] text-sm focus:outline-none focus:border-[#78350f] transition capitalize"
+                className="w-full bg-surface-alt border border-line rounded-xl px-3 py-2 text-ink text-sm focus:outline-none focus:border-brand transition capitalize"
               >
                 <option value="stocks">Stocks (Shares)</option>
                 <option value="crypto">Crypto (Spot)</option>
@@ -376,15 +376,15 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[#7d695b] mb-1.5">Direction</label>
-              <div className="grid grid-cols-2 gap-1.5 bg-[#fcfaf7] p-1 rounded-xl border border-[#e8dfd5]">
+              <label className="block text-xs font-medium text-muted mb-1.5">Direction</label>
+              <div className="grid grid-cols-2 gap-1.5 bg-surface-alt p-1 rounded-xl border border-line">
                 <button
                   type="button"
                   onClick={() => setDirection('long')}
                   className={`py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
                     direction === 'long'
-                      ? 'bg-[#edf7ed] text-[#1e6b37] border border-[#c3e6cb]'
-                      : 'text-[#7d695b] hover:text-[#281d16]'
+                      ? 'bg-profit-bg text-profit border border-profit-line'
+                      : 'text-muted hover:text-ink'
                   }`}
                 >
                   LONG (Buy)
@@ -394,8 +394,8 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
                   onClick={() => setDirection('short')}
                   className={`py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
                     direction === 'short'
-                      ? 'bg-[#fef2f2] text-[#b93829] border border-[#fecaca]'
-                      : 'text-[#7d695b] hover:text-[#281d16]'
+                      ? 'bg-loss-bg text-loss border border-loss-line'
+                      : 'text-muted hover:text-ink'
                   }`}
                 >
                   SHORT (Sell)
@@ -405,52 +405,52 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
           </div>
 
           {/* Price Levels: Entry, Stop Loss, Target */}
-          <div className="space-y-2 pt-2 border-t border-[#ede6dc]">
+          <div className="space-y-2 pt-2 border-t border-line-soft">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#634832]">
+              <span className="text-xs font-bold uppercase tracking-wider text-ink-soft">
                 2. Price Levels (Determines Stop Distance)
               </span>
-              <span className="text-xs font-mono text-[#8c7462]">
-                Risk per Share: <strong className="text-[#b93829]">{formatPrice(calcResult.priceRiskPerUnit)}</strong>
+              <span className="text-xs font-mono text-faint">
+                Risk per Share: <strong className="text-loss">{formatPrice(calcResult.priceRiskPerUnit)}</strong>
               </span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-medium text-[#7d695b] mb-1.5">Entry Price ($)</label>
+                <label className="block text-xs font-medium text-muted mb-1.5">Entry Price ($)</label>
                 <input
                   type="number"
                   step="any"
                   value={entryPrice}
                   onChange={(e) => setEntryPrice(Number(e.target.value))}
-                  className="w-full bg-[#fcfaf7] border border-[#e8dfd5] rounded-xl px-4 py-2 text-[#281d16] font-mono text-sm focus:outline-none focus:border-[#78350f] transition"
+                  className="w-full bg-surface-alt border border-line rounded-xl px-4 py-2 text-ink font-mono text-sm focus:outline-none focus:border-brand transition"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[#7d695b] mb-1.5">Stop Loss Price ($)</label>
+                <label className="block text-xs font-medium text-muted mb-1.5">Stop Loss Price ($)</label>
                 <input
                   type="number"
                   step="any"
                   value={stopLoss}
                   onChange={(e) => setStopLoss(Number(e.target.value))}
-                  className="w-full bg-[#fcfaf7] border border-[#fecaca] rounded-xl px-4 py-2 text-[#b93829] font-mono text-sm font-semibold focus:outline-none focus:border-[#b93829] transition"
+                  className="w-full bg-surface-alt border border-loss-line rounded-xl px-4 py-2 text-loss font-mono text-sm font-semibold focus:outline-none focus:border-loss transition"
                 />
-                <span className="text-[10px] text-[#b93829] font-mono block mt-1">
+                <span className="text-[10px] text-loss font-mono block mt-1">
                   -{formatPrice(calcResult.priceRiskPerUnit)} ({calcResult.priceRiskPercent}%) from entry
                 </span>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[#7d695b] mb-1.5">Target / TP Price ($)</label>
+                <label className="block text-xs font-medium text-muted mb-1.5">Target / TP Price ($)</label>
                 <input
                   type="number"
                   step="any"
                   value={takeProfit}
                   onChange={(e) => setTakeProfit(Number(e.target.value))}
-                  className="w-full bg-[#fcfaf7] border border-[#c3e6cb] rounded-xl px-4 py-2 text-[#1e6b37] font-mono text-sm font-semibold focus:outline-none focus:border-[#1e6b37] transition"
+                  className="w-full bg-surface-alt border border-profit-line rounded-xl px-4 py-2 text-profit font-mono text-sm font-semibold focus:outline-none focus:border-profit transition"
                 />
-                <span className="text-[10px] text-[#1e6b37] font-mono block mt-1">
+                <span className="text-[10px] text-profit font-mono block mt-1">
                   +{formatPrice(Math.abs(takeProfit - entryPrice))} per unit
                 </span>
               </div>
@@ -459,8 +459,8 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
 
           {/* Binance Futures USDT-M Quick Coins & Contract Sizing */}
           {assetClass === 'futures' && (
-            <div className="p-3 bg-[#faf7f2] rounded-xl border border-[#e2d8cb] space-y-2">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-[#4a3b32]">
+            <div className="p-3 bg-canvas rounded-xl border border-line space-y-2">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-ink-soft">
                 <span className="w-2 h-2 rounded-full bg-[#f3ba2f]"></span>
                 <span>Binance Perpetual Coins (.P)</span>
               </div>
@@ -488,8 +488,8 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
                     }}
                     className={`px-2.5 py-1 text-xs font-mono rounded-lg transition cursor-pointer ${
                       symbol === coin.sym
-                        ? 'bg-[#78350f] text-white shadow-xs font-bold'
-                        : 'bg-white text-[#7d695b] hover:text-[#281d16] border border-[#e2d8cb]'
+                        ? 'bg-brand-solid text-white shadow-xs font-bold'
+                        : 'bg-surface text-muted hover:text-ink border border-line'
                     }`}
                   >
                     {coin.sym}
@@ -501,10 +501,10 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
 
           {/* Leverage slider & Binance Quick Chips */}
           {(assetClass === 'crypto' || assetClass === 'futures' || assetClass === 'forex') && (
-            <div className="pt-2 border-t border-[#ede6dc] space-y-2">
+            <div className="pt-2 border-t border-line-soft space-y-2">
               <div className="flex justify-between items-center text-xs">
-                <span className="text-[#7d695b]">Leverage</span>
-                <span className="font-mono font-bold text-[#78350f]">{leverage}x</span>
+                <span className="text-muted">Leverage</span>
+                <span className="font-mono font-bold text-brand">{leverage}x</span>
               </div>
               <input
                 type="range"
@@ -512,11 +512,11 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
                 max={assetClass === 'futures' ? 125 : 50}
                 value={leverage}
                 onChange={(e) => setLeverage(Number(e.target.value))}
-                className="w-full accent-[#78350f] cursor-pointer"
+                className="w-full accent-brand-solid cursor-pointer"
               />
               {assetClass === 'futures' && (
                 <div className="flex items-center gap-1.5 flex-wrap text-[11px] font-mono">
-                  <span className="text-[#8c7462] text-[10px]">Quick Leverage:</span>
+                  <span className="text-faint text-[10px]">Quick Leverage:</span>
                   {[1, 5, 10, 20, 50, 75, 100, 125].map((lev) => (
                     <button
                       key={lev}
@@ -524,8 +524,8 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
                       onClick={() => setLeverage(lev)}
                       className={`px-2 py-0.5 rounded transition cursor-pointer ${
                         leverage === lev
-                          ? 'bg-[#78350f] text-white font-bold'
-                          : 'bg-[#faf7f2] text-[#634832] border border-[#e2d8cb] hover:bg-[#ede6dc]'
+                          ? 'bg-brand-solid text-white font-bold'
+                          : 'bg-canvas text-ink-soft border border-line hover:bg-sunken-strong'
                       }`}
                     >
                       {lev}x
@@ -540,31 +540,31 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
         {/* Right: Output & Position Recommendations */}
         <div className="lg:col-span-5 space-y-5">
           {/* HERO OUTPUT CARD: QUANTITY / POSITION SIZE */}
-          <div className="bg-white border-2 border-[#debfa8] rounded-2xl p-6 shadow-sm relative overflow-hidden">
-            <div className="flex items-center justify-between border-b border-[#ede6dc] pb-3 mb-4">
+          <div className="bg-surface border-2 border-line-brand rounded-2xl p-6 shadow-sm relative overflow-hidden">
+            <div className="flex items-center justify-between border-b border-line-soft pb-3 mb-4">
               <div>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-[#78350f]">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-brand">
                   Calculated Output
                 </span>
-                <h3 className="text-base font-extrabold text-[#281d16]">
+                <h3 className="text-base font-extrabold text-ink">
                   Exact Position Size (Quantity)
                 </h3>
               </div>
-              <span className="text-xs px-2.5 py-1 rounded-full bg-[#edf7ed] text-[#1e6b37] border border-[#c3e6cb] font-mono font-bold">
+              <span className="text-xs px-2.5 py-1 rounded-full bg-profit-bg text-profit border border-profit-line font-mono font-bold">
                 1 : {calcResult.rewardToRisk || 0} R:R
               </span>
             </div>
 
             {/* Giant Quantity Hero Display */}
-            <div className="p-5 rounded-2xl bg-gradient-to-br from-[#faf7f2] via-[#f5ede4] to-[#ede3d8] border border-[#debfa8] text-center shadow-xs">
-              <span className="text-xs text-[#78350f] font-bold uppercase tracking-wider block mb-1">
+            <div className="p-5 rounded-2xl bg-gradient-to-br from-canvas via-sunken to-sunken-strong border border-line-brand text-center shadow-xs">
+              <span className="text-xs text-brand font-bold uppercase tracking-wider block mb-1">
                 Target Quantity to Buy / Sell
               </span>
               <div className="flex items-baseline justify-center gap-2">
-                <span className="text-4xl sm:text-5xl font-black text-[#281d16] font-mono tracking-tight">
+                <span className="text-4xl sm:text-5xl font-black text-ink font-mono tracking-tight">
                   {formatQuantity(calcResult.positionSize, assetClass)}
                 </span>
-                <span className="text-base sm:text-lg font-bold text-[#78350f] uppercase">
+                <span className="text-base sm:text-lg font-bold text-brand uppercase">
                   {calcResult.unitLabel}
                 </span>
               </div>
@@ -574,18 +574,18 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
                 <button
                   type="button"
                   onClick={handleCopyQuantity}
-                  className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white hover:bg-[#faf7f2] text-[#4a3b32] border border-[#debfa8] shadow-xs flex items-center gap-1.5 transition cursor-pointer"
+                  className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-surface hover:bg-canvas text-ink-soft border border-line-brand shadow-xs flex items-center gap-1.5 transition cursor-pointer"
                 >
                   {copied ? (
                     <>
-                      <Check className="w-3.5 h-3.5 text-[#1e6b37]" />
-                      <span className="text-[#1e6b37] font-bold">
+                      <Check className="w-3.5 h-3.5 text-profit" />
+                      <span className="text-profit font-bold">
                         Copied {formatQuantity(calcResult.positionSize, assetClass)}!
                       </span>
                     </>
                   ) : (
                     <>
-                      <Copy className="w-3.5 h-3.5 text-[#78350f] shrink-0" />
+                      <Copy className="w-3.5 h-3.5 text-brand shrink-0" />
                       <span>
                         <span className="hidden sm:inline">Copy Quantity </span>
                         <span className="sm:hidden">Copy </span>
@@ -598,7 +598,7 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
 
               {/* Forex breakdown if applicable */}
               {forexLots && (
-                <div className="mt-3 pt-3 border-t border-[#e2d8cb] text-xs font-mono text-[#634832] flex justify-center gap-3 flex-wrap">
+                <div className="mt-3 pt-3 border-t border-line text-xs font-mono text-ink-soft flex justify-center gap-3 flex-wrap">
                   <span><strong>{forexLots.standard}</strong> Std Lots</span>
                   <span>•</span>
                   <span><strong>{forexLots.mini}</strong> Mini Lots</span>
@@ -610,50 +610,50 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
 
             {/* Financial Metrics Summary Grid */}
             <div className="grid grid-cols-2 gap-2.5 mt-4 text-xs font-mono">
-              <div className="p-3 bg-[#fcfaf7] rounded-xl border border-[#ede6dc]">
-                <span className="text-[#8c7462] block text-[10px] uppercase font-sans font-medium">
+              <div className="p-3 bg-surface-alt rounded-xl border border-line-soft">
+                <span className="text-faint block text-[10px] uppercase font-sans font-medium">
                   Actual Loss at Stop
                 </span>
-                <span className="text-[#b93829] font-bold text-sm">
+                <span className="text-loss font-bold text-sm">
                   -${calcResult.actualRisk.toFixed(2)}
                 </span>
-                <span className="text-[10px] text-[#8c7462] block mt-0.5 font-sans">
+                <span className="text-[10px] text-faint block mt-0.5 font-sans">
                   ({calcResult.actualRiskPercent}% of account)
                 </span>
               </div>
 
-              <div className="p-3 bg-[#fcfaf7] rounded-xl border border-[#ede6dc]">
-                <span className="text-[#8c7462] block text-[10px] uppercase font-sans font-medium">
+              <div className="p-3 bg-surface-alt rounded-xl border border-line-soft">
+                <span className="text-faint block text-[10px] uppercase font-sans font-medium">
                   Target Profit
                 </span>
-                <span className="text-[#1e6b37] font-bold text-sm">
+                <span className="text-profit font-bold text-sm">
                   +${calcResult.targetProfit?.toFixed(2) ?? '0.00'}
                 </span>
-                <span className="text-[10px] text-[#1e6b37] block mt-0.5 font-sans">
+                <span className="text-[10px] text-profit block mt-0.5 font-sans">
                   ({calcResult.rewardToRisk || 0}x risk)
                 </span>
               </div>
 
-              <div className="p-3 bg-[#fcfaf7] rounded-xl border border-[#ede6dc]">
-                <span className="text-[#8c7462] block text-[10px] uppercase font-sans font-medium">
+              <div className="p-3 bg-surface-alt rounded-xl border border-line-soft">
+                <span className="text-faint block text-[10px] uppercase font-sans font-medium">
                   Total Position Value
                 </span>
-                <span className="text-[#281d16] font-bold text-sm">
+                <span className="text-ink font-bold text-sm">
                   ${calcResult.positionValue.toLocaleString()}
                 </span>
-                <span className="text-[10px] text-[#8c7462] block mt-0.5 font-sans">
+                <span className="text-[10px] text-faint block mt-0.5 font-sans">
                   {calcResult.positionSize} × ${entryPrice}
                 </span>
               </div>
 
-              <div className="p-3 bg-[#fcfaf7] rounded-xl border border-[#ede6dc]">
-                <span className="text-[#8c7462] block text-[10px] uppercase font-sans font-medium">
+              <div className="p-3 bg-surface-alt rounded-xl border border-line-soft">
+                <span className="text-faint block text-[10px] uppercase font-sans font-medium">
                   Margin Required
                 </span>
-                <span className="text-[#281d16] font-bold text-sm">
+                <span className="text-ink font-bold text-sm">
                   ${calcResult.marginRequired.toLocaleString()}
                 </span>
-                <span className="text-[10px] text-[#8c7462] block mt-0.5 font-sans">
+                <span className="text-[10px] text-faint block mt-0.5 font-sans">
                   {leverage > 1 ? `${leverage}x leverage` : '100% cash'}
                 </span>
               </div>
@@ -661,8 +661,8 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
 
             {/* Over-leverage warning */}
             {calcResult.isOverLeveraged && (
-              <div className="mt-4 p-3 bg-[#fef2f2] border border-[#fecaca] rounded-xl flex items-start gap-2 text-[#b93829] text-xs">
-                <AlertTriangle className="w-4 h-4 shrink-0 text-[#b93829] mt-0.5" />
+              <div className="mt-4 p-3 bg-loss-bg border border-loss-line rounded-xl flex items-start gap-2 text-loss text-xs">
+                <AlertTriangle className="w-4 h-4 shrink-0 text-loss mt-0.5" />
                 <div>
                   <strong>Over-Leverage Warning:</strong> Required margin (${calcResult.marginRequired.toLocaleString()}) exceeds your account balance (${balance.toLocaleString()}). Widen your stop-loss or reduce risk percentage.
                 </div>
@@ -684,7 +684,7 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
                     direction,
                   })
                 }
-                className="w-full mt-4 py-3 px-4 bg-[#78350f] hover:bg-[#632909] text-white font-semibold text-sm rounded-xl transition flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+                className="w-full mt-4 py-3 px-4 bg-brand-solid hover:bg-brand-solid-hover text-white font-semibold text-sm rounded-xl transition flex items-center justify-center gap-2 shadow-xs cursor-pointer"
               >
                 <span>Log Trade with This Quantity ({calcResult.positionSize} {calcResult.unitLabel})</span>
                 <ArrowRight className="w-4 h-4" />
@@ -693,38 +693,38 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
           </div>
 
           {/* Mathematical Formula Breakdown Card */}
-          <div className="bg-white border border-[#e8dfd5] rounded-2xl p-5 shadow-xs space-y-3">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#634832]">
-              <HelpCircle className="w-4 h-4 text-[#78350f]" />
+          <div className="bg-surface border border-line rounded-2xl p-5 shadow-xs space-y-3">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink-soft">
+              <HelpCircle className="w-4 h-4 text-brand" />
               <span>How This Quantity Is Calculated</span>
             </div>
 
-            <div className="p-3 bg-[#faf7f2] rounded-xl border border-[#e2d8cb] font-mono text-xs text-[#281d16] space-y-1.5">
-              <div className="text-[#78350f] font-bold text-center pb-1 border-b border-[#e2d8cb]">
+            <div className="p-3 bg-canvas rounded-xl border border-line font-mono text-xs text-ink space-y-1.5">
+              <div className="text-brand font-bold text-center pb-1 border-b border-line">
                 Quantity = Total Dollar Risk ÷ Risk Per Share
               </div>
-              <div className="text-[11px] text-[#4a3b32] pt-1 space-y-1">
+              <div className="text-[11px] text-ink-soft pt-1 space-y-1">
                 <div>
                   • <strong>Step 1 (Max Risk):</strong> {calcResult.stepFormula?.step1Risk}
                 </div>
                 <div>
                   • <strong>Step 2 (Stop Distance):</strong> {calcResult.stepFormula?.step2Distance}
                 </div>
-                <div className="text-[#78350f] font-bold">
+                <div className="text-brand font-bold">
                   • <strong>Step 3 (Resulting Quantity):</strong> {calcResult.stepFormula?.step3Quantity}
                 </div>
-                <div className="text-[#b93829]">
+                <div className="text-loss">
                   • <strong>Step 4 (Stop Outcome):</strong> {calcResult.stepFormula?.step4LossAtStop}
                 </div>
                 {calcResult.stepFormula?.step5GainAtTarget && (
-                  <div className="text-[#1e6b37]">
+                  <div className="text-profit">
                     • <strong>Step 5 (Target Outcome):</strong> {calcResult.stepFormula.step5GainAtTarget}
                   </div>
                 )}
               </div>
             </div>
 
-            <p className="text-[11px] text-[#7d695b] leading-relaxed">
+            <p className="text-[11px] text-muted leading-relaxed">
               By sizing your position strictly according to your stop-loss distance, you ensure that no matter how volatile the market is, you never lose more than your allocated risk budget.
             </p>
           </div>
