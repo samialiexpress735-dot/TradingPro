@@ -429,209 +429,228 @@ export async function signOutUser() {
 // ==========================================
 
 /**
- * Fetch all trades belonging to the authenticated user across devices
+ * Helpers shared by the trade sync functions below.
  */
-export async function fetchUserTrades(userId: string): Promise<Trade[]> {
-  // 1. If Supabase is active, query PostgreSQL
-  if (supabase) {
+function tradeToRow(userId: string, trade: Trade) {
+  return {
+    id: trade.id,
+    user_id: userId,
+    date: trade.date,
+    time: trade.time,
+    exit_date: trade.exitDate || null,
+    exit_time: trade.exitTime || null,
+    symbol: trade.symbol,
+    asset_class: trade.assetClass,
+    direction: trade.direction,
+    status: trade.status,
+    outcome: trade.outcome,
+    entry_price: trade.entryPrice,
+    exit_price: trade.exitPrice,
+    quantity: trade.quantity,
+    stop_loss: trade.stopLoss,
+    take_profit: trade.takeProfit,
+    fees: trade.fees,
+    gross_pnl: trade.grossPnl,
+    net_pnl: trade.netPnl,
+    roi: trade.roi,
+    planned_rr: trade.plannedRR,
+    realized_rr: trade.realizedRR,
+    strategy: trade.strategy,
+    rating: trade.rating,
+    emotion: trade.emotion,
+    mistake: trade.mistake || null,
+    notes: trade.notes || '',
+    chart_url: trade.chartUrl || null,
+    market_session: trade.marketSession || null,
+  };
+}
+
+function rowToTrade(row: any): Trade {
+  return {
+    id: row.id,
+    date: row.date,
+    time: row.time || '09:30',
+    exitDate: row.exit_date,
+    exitTime: row.exit_time,
+    symbol: row.symbol,
+    assetClass: row.asset_class,
+    direction: row.direction,
+    status: row.status,
+    outcome: row.outcome,
+    entryPrice: Number(row.entry_price),
+    exitPrice: Number(row.exit_price || 0),
+    quantity: Number(row.quantity),
+    stopLoss: Number(row.stop_loss || 0),
+    takeProfit: Number(row.take_profit || 0),
+    fees: Number(row.fees || 0),
+    grossPnl: Number(row.gross_pnl || 0),
+    netPnl: Number(row.net_pnl || 0),
+    roi: Number(row.roi || 0),
+    plannedRR: Number(row.planned_rr || 0),
+    realizedRR: Number(row.realized_rr || 0),
+    strategy: row.strategy || 'Discretionary',
+    rating: Number(row.rating || 0),
+    emotion: row.emotion || 'Disciplined',
+    mistake: row.mistake,
+    notes: row.notes || '',
+    chartUrl: row.chart_url,
+    marketSession: row.market_session,
+  };
+}
+
+/** True only when the browser holds a real Supabase auth session for this user (needed to pass RLS). */
+async function hasSupabaseSession(userId: string): Promise<boolean> {
+  if (!supabase) return false;
+  try {
+    const { data } = await supabase.auth.getSession();
+    return data.session?.user?.id === userId;
+  } catch {
+    return false;
+  }
+}
+
+/** Calls the optional Express backend. Resolves to parsed JSON, or null if unreachable / not JSON (e.g. static hosting). */
+async function callServer(url: string, init: RequestInit, userId: string): Promise<any | null> {
+  try {
+    const res = await fetch(url, {
+      ...init,
+      headers: { 'x-user-id': userId, ...(init.headers || {}) },
+    });
+    if (!res.ok) return null;
+    const type = res.headers.get('content-type') || '';
+    if (!type.includes('application/json')) return null;
+    const json = await res.json();
+    return json && json.success ? json : null;
+  } catch {
+    return null;
+  }
+}
+
+export interface FetchTradesResult {
+  trades: Trade[];
+  /** false when no data source answered, so the caller must NOT treat an empty list as "user has no trades". */
+  reliable: boolean;
+}
+
+/**
+ * Fetch all trades belonging to the user across devices.
+ * Combines Supabase (real auth session) and the optional Express backend; Supabase wins on conflicts.
+ */
+export async function fetchUserTradesDetailed(userId: string): Promise<FetchTradesResult> {
+  const byId = new Map<string, Trade>();
+  let reliable = false;
+
+  // 1. Express backend (optional mirror / fallback for non-Supabase accounts)
+  const server = await callServer(`/api/user/trades?userId=${encodeURIComponent(userId)}`, {}, userId);
+  if (server && Array.isArray(server.trades)) {
+    reliable = true;
+    server.trades.forEach((t: Trade) => byId.set(t.id, t));
+  }
+
+  // 2. Supabase PostgreSQL (authoritative when a real session exists)
+  if (await hasSupabaseSession(userId)) {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabase!
         .from('trades')
         .select('*')
         .eq('user_id', userId)
-        .order('date', { ascending: false });
-
-      if (!error && data && data.length > 0) {
-        return data.map((row: any) => ({
-          id: row.id,
-          date: row.date,
-          time: row.time || '09:30',
-          exitDate: row.exit_date,
-          exitTime: row.exit_time,
-          symbol: row.symbol,
-          assetClass: row.asset_class,
-          direction: row.direction,
-          status: row.status,
-          outcome: row.outcome,
-          entryPrice: Number(row.entry_price),
-          exitPrice: Number(row.exit_price || 0),
-          quantity: Number(row.quantity),
-          stopLoss: Number(row.stop_loss || 0),
-          takeProfit: Number(row.take_profit || 0),
-          fees: Number(row.fees || 0),
-          grossPnl: Number(row.gross_pnl || 0),
-          netPnl: Number(row.net_pnl || 0),
-          roi: Number(row.roi || 0),
-          plannedRR: Number(row.planned_rr || 0),
-          realizedRR: Number(row.realized_rr || 0),
-          strategy: row.strategy || 'Discretionary',
-          rating: Number(row.rating || 0),
-          emotion: row.emotion || 'Disciplined',
-          mistake: row.mistake,
-          notes: row.notes || '',
-          chartUrl: row.chart_url,
-          marketSession: row.market_session,
-        }));
+        .order('date', { ascending: false })
+        .limit(10000);
+      if (error) {
+        console.warn('Supabase fetch failed:', error.message);
+      } else if (data) {
+        reliable = true;
+        data.forEach((row: any) => byId.set(row.id, rowToTrade(row)));
       }
     } catch (err) {
-      console.warn('Supabase fetch failed, falling back to server DB:', err);
+      console.warn('Supabase fetch failed:', err);
     }
   }
 
-  // 2. Fetch from centralized backend server
-  try {
-    const res = await fetch(`/api/user/trades?userId=${encodeURIComponent(userId)}`, {
-      headers: {
-        'x-user-id': userId,
-      },
-    });
-    const result = await res.json();
-    if (result.success && Array.isArray(result.trades)) {
-      return result.trades;
-    }
-  } catch (err) {
-    console.error('Error fetching user trades from server API:', err);
-  }
+  return { trades: [...byId.values()], reliable };
+}
 
-  return [];
+/** Backwards-compatible wrapper. */
+export async function fetchUserTrades(userId: string): Promise<Trade[]> {
+  return (await fetchUserTradesDetailed(userId)).trades;
 }
 
 /**
- * Upsert single trade for the user to cloud/server
+ * Upsert single trade for the user. Resolves to true only when the save was actually confirmed.
  */
-export async function upsertUserTrade(userId: string, trade: Trade): Promise<void> {
-  // 1. Supabase sync if enabled
-  if (supabase) {
+export async function upsertUserTrade(userId: string, trade: Trade): Promise<boolean> {
+  return batchSyncUserTrades(userId, [trade]);
+}
+
+/**
+ * Bulk upsert trades for the user. Resolves to true only when the save was actually confirmed.
+ */
+export async function batchSyncUserTrades(userId: string, trades: Trade[]): Promise<boolean> {
+  if (trades.length === 0) return true;
+
+  let confirmed = false;
+  let failed = false;
+
+  if (await hasSupabaseSession(userId)) {
     try {
-      const payload = {
-        id: trade.id,
-        user_id: userId,
-        date: trade.date,
-        time: trade.time,
-        exit_date: trade.exitDate || null,
-        exit_time: trade.exitTime || null,
-        symbol: trade.symbol,
-        asset_class: trade.assetClass,
-        direction: trade.direction,
-        status: trade.status,
-        outcome: trade.outcome,
-        entry_price: trade.entryPrice,
-        exit_price: trade.exitPrice,
-        quantity: trade.quantity,
-        stop_loss: trade.stopLoss,
-        take_profit: trade.takeProfit,
-        fees: trade.fees,
-        gross_pnl: trade.grossPnl,
-        net_pnl: trade.netPnl,
-        roi: trade.roi,
-        planned_rr: trade.plannedRR,
-        realized_rr: trade.realizedRR,
-        strategy: trade.strategy,
-        rating: trade.rating,
-        emotion: trade.emotion,
-        mistake: trade.mistake || null,
-        notes: trade.notes || '',
-        chart_url: trade.chartUrl || null,
-        market_session: trade.marketSession || null,
-      };
-      await supabase.from('trades').upsert(payload, { onConflict: 'id' });
+      const CHUNK = 500;
+      for (let i = 0; i < trades.length; i += CHUNK) {
+        const rows = trades.slice(i, i + CHUNK).map((t) => tradeToRow(userId, t));
+        const { error } = await supabase!.from('trades').upsert(rows, { onConflict: 'id' });
+        if (error) throw error;
+      }
+      confirmed = true;
     } catch (e) {
-      console.warn('Supabase upsert error:', e);
+      failed = true;
+      console.warn('Supabase trade save failed:', e);
     }
   }
 
-  // 2. Persistent Backend Server Sync
-  try {
-    await fetch('/api/user/trades', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-user-id': userId,
-      },
-      body: JSON.stringify({ userId, trade }),
-    });
-  } catch (err) {
-    console.error('Failed to sync trade to server DB:', err);
-  }
+  // Express backend mirror (only the trades that changed - never the whole list)
+  const serverRes = await Promise.all(
+    trades.map((trade) =>
+      callServer(
+        '/api/user/trades',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, trade }),
+        },
+        userId
+      )
+    )
+  );
+  if (serverRes.every(Boolean)) confirmed = true;
+
+  return confirmed && !failed;
 }
 
 /**
- * Bulk sync trades for user
+ * Delete trade for user. Resolves to true only when the delete was actually confirmed.
  */
-export async function batchSyncUserTrades(userId: string, trades: Trade[]): Promise<void> {
-  if (supabase && trades.length > 0) {
+export async function deleteUserTradeFromCloud(userId: string, tradeId: string): Promise<boolean> {
+  let confirmed = false;
+  let failed = false;
+
+  if (await hasSupabaseSession(userId)) {
     try {
-      const payloads = trades.map((trade) => ({
-        id: trade.id,
-        user_id: userId,
-        date: trade.date,
-        time: trade.time,
-        exit_date: trade.exitDate || null,
-        exit_time: trade.exitTime || null,
-        symbol: trade.symbol,
-        asset_class: trade.assetClass,
-        direction: trade.direction,
-        status: trade.status,
-        outcome: trade.outcome,
-        entry_price: trade.entryPrice,
-        exit_price: trade.exitPrice,
-        quantity: trade.quantity,
-        stop_loss: trade.stopLoss,
-        take_profit: trade.takeProfit,
-        fees: trade.fees,
-        gross_pnl: trade.grossPnl,
-        net_pnl: trade.netPnl,
-        roi: trade.roi,
-        planned_rr: trade.plannedRR,
-        realized_rr: trade.realizedRR,
-        strategy: trade.strategy,
-        rating: trade.rating,
-        emotion: trade.emotion,
-        mistake: trade.mistake || null,
-        notes: trade.notes || '',
-        chart_url: trade.chartUrl || null,
-        market_session: trade.marketSession || null,
-      }));
-      await supabase.from('trades').upsert(payloads, { onConflict: 'id' });
+      const { error } = await supabase!.from('trades').delete().eq('id', tradeId).eq('user_id', userId);
+      if (error) throw error;
+      confirmed = true;
     } catch (e) {
-      console.warn('Supabase batch sync notice:', e);
+      failed = true;
+      console.warn('Supabase trade delete failed:', e);
     }
   }
 
-  try {
-    await fetch('/api/user/trades/sync', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-user-id': userId,
-      },
-      body: JSON.stringify({ userId, trades }),
-    });
-  } catch (err) {
-    console.error('Failed to batch sync trades to server DB:', err);
-  }
-}
+  const serverRes = await callServer(
+    `/api/user/trades/${encodeURIComponent(tradeId)}?userId=${encodeURIComponent(userId)}`,
+    { method: 'DELETE' },
+    userId
+  );
+  if (serverRes) confirmed = true;
 
-/**
- * Delete trade for user
- */
-export async function deleteUserTradeFromCloud(userId: string, tradeId: string): Promise<void> {
-  if (supabase) {
-    try {
-      await supabase.from('trades').delete().eq('id', tradeId).eq('user_id', userId);
-    } catch {}
-  }
-
-  try {
-    await fetch(`/api/user/trades/${encodeURIComponent(tradeId)}?userId=${encodeURIComponent(userId)}`, {
-      method: 'DELETE',
-      headers: {
-        'x-user-id': userId,
-      },
-    });
-  } catch (err) {
-    console.error('Failed to delete trade on server DB:', err);
-  }
+  return confirmed && !failed;
 }
 
 /**

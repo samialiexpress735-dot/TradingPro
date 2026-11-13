@@ -3,17 +3,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Trade, Strategy, AssetClass, CapitalTransaction } from './types/trade';
-import { INITIAL_TRADES, INITIAL_STRATEGIES, SAMPLE_DEMO_TRADES } from './data/mockTrades';
+import { INITIAL_STRATEGIES, SAMPLE_DEMO_TRADES } from './data/mockTrades';
 import { calculateStats, generateEquityCurve, classifyOutcome } from './utils/calculations';
 import {
   supabase,
   isSupabaseConfigured,
   getStoredUserSession,
   signOutUser,
-  fetchUserTrades,
-  upsertUserTrade,
+  fetchUserTradesDetailed,
   deleteUserTradeFromCloud,
   batchSyncUserTrades,
   fetchUserStrategies,
@@ -40,6 +39,19 @@ import { BinanceSyncModal } from './components/BinanceSyncModal';
 import { DepositWithdrawModal } from './components/DepositWithdrawModal';
 import { DailyLossLimitBanner } from './components/DailyLossLimitCard';
 import { useDailyLossLimit } from './hooks/useDailyLossLimit';
+import { ConfirmDialog } from './components/ConfirmDialog';
+import { ToastHost, ToastMessage } from './components/Toast';
+import {
+  loadCachedTrades,
+  saveCachedTrades,
+  hasCachedTrades,
+  getPending,
+  markUnsynced,
+  markSynced,
+  markDeleted,
+  clearDeleted,
+  newTradeId,
+} from './utils/tradeStore';
 
 export default function App() {
   // Navigation tab state
@@ -59,7 +71,28 @@ export default function App() {
   const [startingBalance, setStartingBalance] = useState<number>(25000);
 
   // Trades state (stored in Supabase public.trades)
-  const [rawTrades, setTrades] = useState<Trade[]>(INITIAL_TRADES);
+  // Trades are cached in localStorage on every change, so a refresh always restores the latest state.
+  const [rawTrades, setTrades] = useState<Trade[]>(() =>
+    loadCachedTrades(getStoredUserSession()?.id || 'guest')
+  );
+  const tradesRef = useRef<Trade[]>(rawTrades);
+  const userKeyRef = useRef<string>('guest');
+  const syncInFlightRef = useRef<string | null>(null);
+  const pendingDeletesRef = useRef<Map<string, Promise<unknown>>>(new Map());
+  const [highlightTradeId, setHighlightTradeId] = useState<string | null>(null);
+  const [toast, setToast] = useState<ToastMessage | null>(null);
+  const [confirmState, setConfirmState] = useState<{
+    title: string;
+    message: string;
+    confirmLabel: string;
+    danger?: boolean;
+    onConfirm: () => void;
+  } | null>(null);
+  const notify = useCallback(
+    (kind: ToastMessage['kind'], text: string, actionLabel?: string, onAction?: () => void) =>
+      setToast({ id: Date.now(), kind, text, actionLabel, onAction }),
+    []
+  );
   // Re-derive win/loss/breakeven for closed trades from their P&L. Older imports stored small
   // results (within +/-$2) as breakeven, which hid them from win rate, heatmap counts and streaks.
   const trades = useMemo(
@@ -71,6 +104,9 @@ export default function App() {
       }),
     [rawTrades]
   );
+
+  // Keep the cache key in step with whoever is signed in
+  userKeyRef.current = user?.id || 'guest';
 
   // Strategies state (stored in Supabase public.strategies)
   const [strategies, setStrategies] = useState<Strategy[]>(INITIAL_STRATEGIES);
@@ -159,41 +195,147 @@ export default function App() {
     applyMonetizationToDOM(settings);
   }, []);
 
+  // Single place that changes the trade list: updates state, the ref and the local cache together,
+  // so nothing can be lost on refresh even if the cloud is slow or unreachable.
+  const commitTrades = useCallback((next: Trade[], key?: string) => {
+    tradesRef.current = next;
+    setTrades(next);
+    saveCachedTrades(key ?? userKeyRef.current, next);
+  }, []);
+
+  // Save trades to the cloud. Anything not confirmed stays flagged and is retried on the next load.
+  const persistTrades = useCallback(
+    async (toSave: Trade[]) => {
+      const key = userKeyRef.current;
+      if (key === 'guest' || toSave.length === 0) return;
+      const ids = toSave.map((t) => t.id);
+      markUnsynced(key, ids);
+      const ok = await batchSyncUserTrades(key, toSave);
+      if (ok) {
+        markSynced(key, ids);
+      } else {
+        notify('error', 'Saved on this device, but cloud sync failed. It will retry automatically.');
+      }
+    },
+    [notify]
+  );
+
+  // Delete trades from the cloud. Unconfirmed deletes stay hidden and are retried on the next load.
+  const removeTradesFromCloud = useCallback(
+    async (ids: string[]) => {
+      const key = userKeyRef.current;
+      if (key === 'guest' || ids.length === 0) return;
+      markDeleted(key, ids);
+      const job = Promise.all(ids.map((id) => deleteUserTradeFromCloud(key, id))).then((results) => {
+        const done = ids.filter((_, i) => results[i]);
+        if (done.length) clearDeleted(key, done);
+        if (done.length < ids.length) {
+          notify('error', 'Deleted on this device, but the cloud delete failed. It will retry automatically.');
+        }
+      });
+      ids.forEach((id) => pendingDeletesRef.current.set(id, job));
+      await job;
+      ids.forEach((id) => {
+        if (pendingDeletesRef.current.get(id) === job) pendingDeletesRef.current.delete(id);
+      });
+    },
+    [notify]
+  );
+
   // Sync state with Supabase Cloud Database when user logs in
   const syncWithCloud = useCallback(
     async (currentUser: any) => {
-      if (!currentUser?.id) return;
+      const uid: string | undefined = currentUser?.id;
+      if (!uid) return;
+      if (syncInFlightRef.current === uid) return; // already syncing this account
+      syncInFlightRef.current = uid;
+      userKeyRef.current = uid;
       setIsSyncing(true);
       try {
-        // 1. Fetch cloud trades for this user from Supabase
-        const cloudTrades = await fetchUserTrades(currentUser.id);
-
-        if (cloudTrades && cloudTrades.length > 0) {
-          // Cloud has data for this user account: use it as source of truth
-          setTrades(cloudTrades);
-        } else if (trades.length > 0) {
-          // Push initial in-memory trades to cloud
-          await batchSyncUserTrades(currentUser.id, trades);
+        // 0. Show this account's locally cached trades right away
+        const hadCache = hasCachedTrades(uid);
+        const cachedNow = loadCachedTrades(uid);
+        if (hadCache) {
+          tradesRef.current = cachedNow;
+          setTrades(cachedNow);
         }
+        const guestTrades = tradesRef.current; // trades logged before signing in (first login only)
+
+        // 1. Fetch cloud trades for this user
+        const cloud = await fetchUserTradesDetailed(uid);
+        if (userKeyRef.current !== uid) return; // signed out / switched account while waiting
+
+        if (cloud.reliable) {
+          // Read local state AFTER the await so edits made while fetching are not lost
+          const { unsynced, deleted } = getPending(uid);
+          const local = loadCachedTrades(uid);
+          const localById = new Map(local.map((t) => [t.id, t]));
+
+          // Retry deletes the cloud never confirmed, and hide those trades meanwhile
+          if (deleted.size > 0) {
+            const ids = [...deleted];
+            const results = await Promise.all(ids.map((id) => deleteUserTradeFromCloud(uid, id)));
+            const done = ids.filter((_, i) => results[i]);
+            if (done.length) clearDeleted(uid, done);
+          }
+
+          const merged = new Map<string, Trade>();
+          cloud.trades.forEach((t) => {
+            if (!deleted.has(t.id)) merged.set(t.id, t);
+          });
+
+          // Trades saved here but never confirmed in the cloud: keep the local copy and push it again
+          const toPush: Trade[] = [];
+          unsynced.forEach((id) => {
+            const t = localById.get(id);
+            if (t && !deleted.has(id)) {
+              merged.set(id, t);
+              toPush.push(t);
+            }
+          });
+
+          // First login on this device: move trades logged as a guest into the account
+          if (merged.size === 0 && !hadCache && guestTrades.length > 0) {
+            guestTrades.forEach((t) => {
+              merged.set(t.id, t);
+              toPush.push(t);
+            });
+            saveCachedTrades('guest', []);
+          }
+
+          const next = [...merged.values()].sort((a, b) =>
+            `${b.date} ${b.time || ''}`.localeCompare(`${a.date} ${a.time || ''}`)
+          );
+          commitTrades(next, uid);
+
+          if (toPush.length > 0) {
+            const ok = await batchSyncUserTrades(uid, toPush);
+            if (ok) markSynced(uid, toPush.map((t) => t.id));
+          }
+        }
+        // If the cloud was unreachable we keep showing the cached trades instead of wiping them.
 
         // 2. Fetch cloud strategies for this user from Supabase
-        const cloudStrategies = await fetchUserStrategies(currentUser.id);
+        const cloudStrategies = await fetchUserStrategies(uid);
         if (cloudStrategies && cloudStrategies.length > 0) {
           setStrategies(cloudStrategies);
         }
 
         // 3. Fetch user settings (balance, monthly target, binance api key, capital adjustments, monetization) from Supabase
-        const settings = await fetchUserSettings(currentUser.id);
+        const settings = await fetchUserSettings(uid);
         if (settings) {
           applyLoadedUserSettings(settings);
         }
       } catch (err) {
         console.error('Error synchronizing with Supabase:', err);
       } finally {
+        if (syncInFlightRef.current === uid) syncInFlightRef.current = null;
         setIsSyncing(false);
       }
     },
-    [trades, applyLoadedUserSettings]
+    // NOTE: deliberately does not depend on `trades` - doing so re-ran the sync after every edit
+    // and let stale cloud data overwrite fresh deletes / clones.
+    [applyLoadedUserSettings, commitTrades]
   );
 
   // Manual sync triggered from UserMenu
@@ -255,17 +397,6 @@ export default function App() {
     }
   }, [syncWithCloud, applyLoadedUserSettings]);
 
-  // Background server sync for trades
-  useEffect(() => {
-    if (user?.id) {
-      fetch('/api/user/trades/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id, trades }),
-      }).catch(() => {});
-    }
-  }, [trades, user?.id]);
-
   // Derived calculations
   const performanceStats = useMemo(() => calculateStats(trades), [trades]);
   const equityCurveData = useMemo(
@@ -318,49 +449,60 @@ export default function App() {
   };
 
   // Trade management handlers
-  const handleSaveTrade = async (tradeToSave: Trade) => {
-    setTrades((prev) => {
-      const existsIndex = prev.findIndex((t) => t.id === tradeToSave.id);
-      if (existsIndex >= 0) {
-        const updated = [...prev];
-        updated[existsIndex] = tradeToSave;
-        return updated;
-      }
-      return [tradeToSave, ...prev];
-    });
-    setEditingTrade(null);
+  const flashTrade = (id: string) => {
+    setHighlightTradeId(id);
+    setTimeout(() => setHighlightTradeId((cur) => (cur === id ? null : cur)), 3000);
+  };
 
-    // Save to user account cloud/server database immediately
-    if (user?.id) {
-      try {
-        await upsertUserTrade(user.id, tradeToSave);
-      } catch (err) {
-        console.error('Failed to sync saved trade to Supabase:', err);
-      }
-    }
+  const handleSaveTrade = async (tradeToSave: Trade) => {
+    const prev = tradesRef.current;
+    const exists = prev.some((t) => t.id === tradeToSave.id);
+    commitTrades(
+      exists ? prev.map((t) => (t.id === tradeToSave.id ? tradeToSave : t)) : [tradeToSave, ...prev]
+    );
+    setEditingTrade(null);
+    flashTrade(tradeToSave.id);
+    await persistTrades([tradeToSave]);
+  };
+
+  const handleRestoreTrade = async (trade: Trade) => {
+    // Let any in-flight cloud delete finish first, otherwise it could land after the restore
+    await pendingDeletesRef.current.get(trade.id);
+    commitTrades([trade, ...tradesRef.current.filter((t) => t.id !== trade.id)]);
+    flashTrade(trade.id);
+    await persistTrades([trade]);
   };
 
   const handleDeleteTrade = async (id: string) => {
-    setTrades((prev) => prev.filter((t) => t.id !== id));
-
-    if (user?.id) {
-      try {
-        await deleteUserTradeFromCloud(user.id, id);
-      } catch (err) {
-        console.error('Failed to delete trade from Supabase:', err);
-      }
-    }
+    const removed = tradesRef.current.find((t) => t.id === id);
+    if (!removed) return;
+    commitTrades(tradesRef.current.filter((t) => t.id !== id));
+    notify('success', `Deleted ${removed.symbol} trade`, 'Undo', () => {
+      void handleRestoreTrade(removed);
+    });
+    await removeTradesFromCloud([id]);
   };
 
-  const handleDuplicateTrade = (trade: Trade) => {
-    const duplicated: Trade = {
+  const handleDuplicateTrade = async (trade: Trade) => {
+    const now = new Date();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const date = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    const time = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    const clone: Trade = {
       ...trade,
-      id: `tr-${Date.now()}`,
-      date: new Date().toISOString().split('T')[0],
-      time: new Date().toTimeString().split(' ')[0].substring(0, 5),
+      id: newTradeId(),
+      date,
+      time,
+      exitDate: trade.status === 'closed' ? date : trade.exitDate,
+      exitTime: trade.status === 'closed' ? time : trade.exitTime,
     };
-    setEditingTrade(duplicated);
-    setIsTradeModalOpen(true);
+    commitTrades([clone, ...tradesRef.current]);
+    flashTrade(clone.id);
+    notify('success', `Duplicated ${trade.symbol} trade`, 'Edit', () => {
+      setEditingTrade(clone);
+      setIsTradeModalOpen(true);
+    });
+    await persistTrades([clone]);
   };
 
   const handleAddTradeClick = () => {
@@ -373,30 +515,23 @@ export default function App() {
     setIsTradeModalOpen(true);
   };
 
+  // Merge newly imported trades (skipping ids that already exist) and save them
+  const addImportedTrades = async (imported: Trade[]) => {
+    const existing = new Set(tradesRef.current.map((t) => t.id));
+    const fresh = imported.filter((t) => !existing.has(t.id));
+    if (fresh.length === 0) return;
+    commitTrades([...fresh, ...tradesRef.current]);
+    await persistTrades(fresh);
+  };
+
   // CSV Import handler
   const handleImportCsv = async (importedTrades: Trade[]) => {
-    setTrades((prev) => [...importedTrades, ...prev]);
-    if (user?.id) {
-      try {
-        await batchSyncUserTrades(user.id, [...importedTrades, ...trades]);
-      } catch (err) {
-        console.error('Failed to sync imported trades to Supabase:', err);
-      }
-    }
+    await addImportedTrades(importedTrades);
   };
 
   // Binance trades import handler (Spot & Futures)
   const handleImportBinanceTrades = async (newTrades: Trade[]) => {
-    if (newTrades.length === 0) return;
-    const updated = [...newTrades, ...trades];
-    setTrades(updated);
-    if (user?.id) {
-      try {
-        await batchSyncUserTrades(user.id, updated);
-      } catch (err) {
-        console.error('Failed to sync imported Binance trades to Supabase:', err);
-      }
-    }
+    await addImportedTrades(newTrades);
   };
 
   // Calculator integration
@@ -431,33 +566,51 @@ export default function App() {
   };
 
   // Load sample demo trades
+  const loadDemoTrades = async () => {
+    await addImportedTrades(SAMPLE_DEMO_TRADES);
+  };
+
   const handleLoadDemoTrades = () => {
-    if (trades.length > 0) {
-      if (!window.confirm('Load sample trades? Existing trades will be preserved alongside sample entries.')) {
-        return;
-      }
+    if (tradesRef.current.length > 0) {
+      setConfirmState({
+        title: 'Load sample trades?',
+        message: 'Existing trades will be kept alongside the sample entries.',
+        confirmLabel: 'Load samples',
+        onConfirm: () => {
+          setConfirmState(null);
+          void loadDemoTrades();
+        },
+      });
+      return;
     }
-    setTrades(SAMPLE_DEMO_TRADES);
-    if (user?.id) {
-      batchSyncUserTrades(user.id, SAMPLE_DEMO_TRADES).catch(() => {});
-    }
+    void loadDemoTrades();
   };
 
   // Reset or clear data
   const handleResetData = () => {
-    if (window.confirm('Clear all trades from your journal to start completely fresh?')) {
-      setTrades([]);
-      if (user?.id) {
-        batchSyncUserTrades(user.id, []).catch(() => {});
-      }
-    }
+    setConfirmState({
+      title: 'Clear all trades?',
+      message: 'Every trade will be removed from your journal and your cloud account. This cannot be undone.',
+      confirmLabel: 'Clear everything',
+      danger: true,
+      onConfirm: () => {
+        setConfirmState(null);
+        const ids = tradesRef.current.map((t) => t.id);
+        commitTrades([]);
+        void removeTradesFromCloud(ids);
+      },
+    });
   };
 
   // Sign out handler
   const handleSignOut = async () => {
     await signOutUser();
     setUser(null);
-    setTrades([]);
+    userKeyRef.current = 'guest';
+    syncInFlightRef.current = null;
+    const guestTrades = loadCachedTrades('guest');
+    tradesRef.current = guestTrades;
+    setTrades(guestTrades);
   };
 
   // Strategy management
@@ -586,6 +739,7 @@ export default function App() {
             onDeleteTrade={handleDeleteTrade}
             onDuplicateTrade={handleDuplicateTrade}
             onImportCsv={handleImportCsv}
+            highlightTradeId={highlightTradeId}
             onOpenBinanceSync={() => setIsBinanceModalOpen(true)}
             initialFilterMistake={journalMistakeFilter}
           />
@@ -654,6 +808,7 @@ export default function App() {
         }}
         onSave={handleSaveTrade}
         initialTrade={editingTrade}
+        isEditing={!!editingTrade?.id && trades.some((t) => t.id === editingTrade.id)}
         strategies={strategies}
       />
 
@@ -700,6 +855,20 @@ export default function App() {
 
       {/* PWA Offline Network Toast */}
       <OfflineIndicator />
+
+      {/* Confirm dialog (replaces blocked-prone window.confirm) */}
+      <ConfirmDialog
+        isOpen={!!confirmState}
+        title={confirmState?.title || ''}
+        message={confirmState?.message || ''}
+        confirmLabel={confirmState?.confirmLabel}
+        danger={confirmState?.danger}
+        onConfirm={() => confirmState?.onConfirm()}
+        onCancel={() => setConfirmState(null)}
+      />
+
+      {/* Action feedback (delete / duplicate / sync problems) */}
+      <ToastHost toast={toast} onDismiss={() => setToast(null)} />
     </div>
   );
 }

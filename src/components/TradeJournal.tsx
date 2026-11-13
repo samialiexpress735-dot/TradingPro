@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Trade, Strategy, AssetClass, TradeOutcome } from '../types/trade';
 import { formatQuantity, formatPrice, formatPnL } from '../utils/formatters';
 import {
@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { CsvImportModal } from './CsvImportModal';
 import { SocialTradeCardModal } from './SocialTradeCardModal';
+import { ConfirmDialog } from './ConfirmDialog';
 
 interface TradeJournalProps {
   trades: Trade[];
@@ -40,6 +41,8 @@ interface TradeJournalProps {
   onImportCsv: (trades: Trade[]) => void;
   onOpenBinanceSync?: () => void;
   initialFilterMistake?: string;
+  /** Trade to briefly highlight (just saved / duplicated / restored). */
+  highlightTradeId?: string | null;
 }
 
 export const TradeJournal: React.FC<TradeJournalProps> = ({
@@ -52,6 +55,7 @@ export const TradeJournal: React.FC<TradeJournalProps> = ({
   onImportCsv,
   onOpenBinanceSync,
   initialFilterMistake,
+  highlightTradeId,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAsset, setSelectedAsset] = useState<string>('all');
@@ -65,6 +69,18 @@ export const TradeJournal: React.FC<TradeJournalProps> = ({
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   const [isCsvModalOpen, setIsCsvModalOpen] = useState(false);
   const [cardModalTrade, setCardModalTrade] = useState<Trade | null>(null);
+  const [tradeToDelete, setTradeToDelete] = useState<Trade | null>(null);
+
+  // Scroll a freshly duplicated / saved trade into view so the action is clearly visible
+  useEffect(() => {
+    if (!highlightTradeId) return;
+    const t = setTimeout(() => {
+      document
+        .querySelector(`[data-trade-row="${CSS.escape(highlightTradeId)}"]`)
+        ?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }, 80);
+    return () => clearTimeout(t);
+  }, [highlightTradeId]);
 
   // Filter & Sort trades
   const filteredTrades = useMemo(() => {
@@ -480,8 +496,13 @@ export const TradeJournal: React.FC<TradeJournalProps> = ({
                   return (
                     <React.Fragment key={trade.id}>
                       <tr
-                        className={`hover:bg-canvas transition group cursor-pointer ${
-                          isExpanded ? 'bg-sunken/40' : ''
+                        data-trade-row={trade.id}
+                        className={`hover:bg-canvas transition-colors duration-500 group cursor-pointer ${
+                          trade.id === highlightTradeId
+                            ? 'bg-warn-bg-soft shadow-[inset_3px_0_0_var(--brand-solid)]'
+                            : isExpanded
+                            ? 'bg-sunken/40'
+                            : ''
                         }`}
                         onClick={() => setExpandedTradeId(isExpanded ? null : trade.id)}
                       >
@@ -592,51 +613,54 @@ export const TradeJournal: React.FC<TradeJournalProps> = ({
                           className="py-3 px-4 text-right"
                           onClick={(e) => e.stopPropagation()} // Don't toggle row expand
                         >
-                          <div className="flex items-center justify-end gap-1.5">
+                          <div className="flex items-center justify-end gap-1">
                             <button
                               onClick={() => setCardModalTrade(trade)}
-                              className="p-1.5 text-muted hover:text-brand hover:bg-sunken-strong rounded-lg transition cursor-pointer"
+                              className="w-8 h-8 inline-flex items-center justify-center text-muted hover:text-brand hover:bg-sunken-strong rounded-lg transition cursor-pointer"
                               title="Export / Share Trade Card"
+                              aria-label="Share trade card"
                             >
-                              <Share2 className="w-3.5 h-3.5" />
+                              <Share2 className="w-4 h-4" />
                             </button>
 
                             {trade.chartUrl && (
                               <button
                                 onClick={() => setPreviewImageUrl(trade.chartUrl!)}
-                                className="p-1.5 text-muted hover:text-ink hover:bg-sunken-strong rounded-lg transition cursor-pointer"
+                                className="w-8 h-8 inline-flex items-center justify-center text-muted hover:text-ink hover:bg-sunken-strong rounded-lg transition cursor-pointer"
                                 title="View chart screenshot"
+                                aria-label="View chart screenshot"
                               >
-                                <ImageIcon className="w-3.5 h-3.5" />
+                                <ImageIcon className="w-4 h-4" />
                               </button>
                             )}
 
+                            <span className="w-px h-5 bg-line mx-1" aria-hidden="true" />
+
                             <button
                               onClick={() => onDuplicateTrade(trade)}
-                              className="p-1.5 text-muted hover:text-brand hover:bg-sunken-strong rounded-lg transition cursor-pointer"
-                              title="Duplicate trade setup"
+                              className="w-8 h-8 inline-flex items-center justify-center text-muted hover:text-brand hover:bg-sunken-strong rounded-lg transition cursor-pointer"
+                              title="Duplicate trade"
+                              aria-label="Duplicate trade"
                             >
-                              <Copy className="w-3.5 h-3.5" />
+                              <Copy className="w-4 h-4" />
                             </button>
 
                             <button
                               onClick={() => onEditTrade(trade)}
-                              className="p-1.5 text-muted hover:text-profit hover:bg-sunken-strong rounded-lg transition cursor-pointer"
+                              className="w-8 h-8 inline-flex items-center justify-center text-muted hover:text-profit hover:bg-profit-bg rounded-lg transition cursor-pointer"
                               title="Edit trade"
+                              aria-label="Edit trade"
                             >
-                              <Edit2 className="w-3.5 h-3.5" />
+                              <Edit2 className="w-4 h-4" />
                             </button>
 
                             <button
-                              onClick={() => {
-                                if (window.confirm(`Delete trade ${trade.symbol} on ${trade.date}?`)) {
-                                  onDeleteTrade(trade.id);
-                                }
-                              }}
-                              className="p-1.5 text-muted hover:text-loss hover:bg-sunken-strong rounded-lg transition cursor-pointer"
+                              onClick={() => setTradeToDelete(trade)}
+                              className="w-8 h-8 inline-flex items-center justify-center text-muted hover:text-loss hover:bg-loss-bg rounded-lg transition cursor-pointer"
                               title="Delete trade"
+                              aria-label="Delete trade"
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
                         </td>
@@ -772,6 +796,28 @@ export const TradeJournal: React.FC<TradeJournalProps> = ({
         isOpen={cardModalTrade !== null}
         onClose={() => setCardModalTrade(null)}
         trade={cardModalTrade}
+      />
+
+      {/* Delete confirmation (in-app, so it works in every browser / PWA / iframe) */}
+      <ConfirmDialog
+        isOpen={tradeToDelete !== null}
+        danger
+        title="Delete this trade?"
+        message={
+          tradeToDelete ? (
+            <>
+              <span className="font-mono font-semibold text-ink">{tradeToDelete.symbol}</span>{' '}
+              {tradeToDelete.direction} on {tradeToDelete.date} will be removed from your journal and stats.
+              You can undo right after.
+            </>
+          ) : null
+        }
+        confirmLabel="Delete trade"
+        onCancel={() => setTradeToDelete(null)}
+        onConfirm={() => {
+          if (tradeToDelete) onDeleteTrade(tradeToDelete.id);
+          setTradeToDelete(null);
+        }}
       />
     </div>
   );
