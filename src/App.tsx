@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { localDateString } from './utils/dateHelpers';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Trade, Strategy, AssetClass, CapitalTransaction } from './types/trade';
 import { INITIAL_TRADES, INITIAL_STRATEGIES, SAMPLE_DEMO_TRADES } from './data/mockTrades';
@@ -322,7 +323,7 @@ export default function App() {
     const duplicated: Trade = {
       ...trade,
       id: `tr-${Date.now()}`,
-      date: new Date().toISOString().split('T')[0],
+      date: localDateString(),
       time: new Date().toTimeString().split(' ')[0].substring(0, 5),
     };
     setEditingTrade(duplicated);
@@ -340,30 +341,25 @@ export default function App() {
   };
 
   // CSV Import handler
-  const handleImportCsv = async (importedTrades: Trade[]) => {
-    setTrades((prev) => [...importedTrades, ...prev]);
+  // CSV / Binance import. Skips anything whose id is already in the journal (re-importing the same file is a no-op),
+  // and syncs the merged list computed from current state (not a stale closure).
+  const handleImportTrades = async (incoming: Trade[]) => {
+    if (incoming.length === 0) return;
+    const existingIds = new Set(trades.map((t) => t.id));
+    const fresh = incoming.filter((t) => !existingIds.has(t.id));
+    if (fresh.length === 0) return;
+    const merged = [...fresh, ...trades];
+    setTrades(merged);
     if (user?.id) {
       try {
-        await batchSyncUserTrades(user.id, [...importedTrades, ...trades]);
+        await batchSyncUserTrades(user.id, merged);
       } catch (err) {
         console.error('Failed to sync imported trades to Supabase:', err);
       }
     }
   };
-
-  // Binance trades import handler (Spot & Futures)
-  const handleImportBinanceTrades = async (newTrades: Trade[]) => {
-    if (newTrades.length === 0) return;
-    const updated = [...newTrades, ...trades];
-    setTrades(updated);
-    if (user?.id) {
-      try {
-        await batchSyncUserTrades(user.id, updated);
-      } catch (err) {
-        console.error('Failed to sync imported Binance trades to Supabase:', err);
-      }
-    }
-  };
+  const handleImportCsv = handleImportTrades;
+  const handleImportBinanceTrades = handleImportTrades;
 
   // Calculator integration
   const handlePreFillFromCalculator = (calcData: {
@@ -381,7 +377,7 @@ export default function App() {
       ...calcData,
       symbol: calcData.symbol || 'AAPL',
       id: `tr-${Date.now()}`,
-      date: new Date().toISOString().split('T')[0],
+      date: localDateString(),
       time: new Date().toTimeString().split(' ')[0].substring(0, 5),
       status: 'open',
       outcome: 'breakeven',
@@ -403,9 +399,12 @@ export default function App() {
         return;
       }
     }
-    setTrades(SAMPLE_DEMO_TRADES);
+    // Merge (the old code replaced the whole journal despite what the confirm dialog says)
+    const existingIds = new Set(trades.map((t) => t.id));
+    const merged = [...SAMPLE_DEMO_TRADES.filter((t) => !existingIds.has(t.id)), ...trades];
+    setTrades(merged);
     if (user?.id) {
-      batchSyncUserTrades(user.id, SAMPLE_DEMO_TRADES).catch(() => {});
+      batchSyncUserTrades(user.id, merged).catch(() => {});
     }
   };
 
@@ -611,6 +610,7 @@ export default function App() {
         }}
         onSave={handleSaveTrade}
         initialTrade={editingTrade}
+        isEditing={!!editingTrade?.id && trades.some((t) => t.id === editingTrade.id)}
         strategies={strategies}
       />
 

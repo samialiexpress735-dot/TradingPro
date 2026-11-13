@@ -1,3 +1,4 @@
+import { readCsvFile } from '../utils/csvCore';
 import React, { useState, useEffect, useRef } from 'react';
 import {
   X,
@@ -72,13 +73,22 @@ export const BinanceSyncModal: React.FC<BinanceSyncModalProps> = ({
     setSuccessMsg(null);
     try {
       const res = parseBinanceCsv(content, existingTrades, selectedStrategy);
+      if (res.error) {
+        setErrorMsg(res.error);
+        setParsedResult(null);
+        return;
+      }
       if (res.trades.length === 0 && res.duplicatesCount === 0) {
-        setErrorMsg('No valid Binance trade records found. Please ensure your file has Date, Market/Symbol, Price, and Amount headers.');
+        setErrorMsg('This does not look like a Binance trade export. Use Spot → Orders → Trade History → Export, or USDⓈ-M Futures → Orders → Trade History → Export, and upload the CSV.');
         setParsedResult(null);
         return;
       }
       setParsedResult(res);
-      setSuccessMsg(`Successfully parsed ${res.trades.length} new trades from Binance export (${res.duplicatesCount} duplicate trades skipped).`);
+      setSuccessMsg(
+        res.trades.length === 0
+          ? `All ${res.duplicatesCount} trades in this file are already in your journal.`
+          : `Parsed ${res.trades.length} new trade${res.trades.length === 1 ? '' : 's'} from Binance export (${res.duplicatesCount} already in your journal were skipped).`
+      );
     } catch (err: any) {
       console.error('Binance CSV parse error:', err);
       setErrorMsg('Failed to parse Binance file. Check format and try again.');
@@ -86,17 +96,22 @@ export const BinanceSyncModal: React.FC<BinanceSyncModalProps> = ({
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleFile = async (file: File | undefined | null) => {
     if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const text = event.target?.result as string;
+    try {
+      const text = await readCsvFile(file);
       setCsvText(text);
       handleProcessCsv(text);
-    };
-    reader.readAsText(file);
+    } catch (err) {
+      setParsedResult(null);
+      setSuccessMsg(null);
+      setErrorMsg(err instanceof Error ? err.message : 'Could not read that file.');
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleFile(e.target.files?.[0]);
+    e.target.value = ''; // allow re-selecting the same file
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -104,16 +119,7 @@ export const BinanceSyncModal: React.FC<BinanceSyncModalProps> = ({
     e.stopPropagation();
     setDragActive(false);
 
-    const file = e.dataTransfer.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const text = event.target?.result as string;
-        setCsvText(text);
-        handleProcessCsv(text);
-      };
-      reader.readAsText(file);
-    }
+    handleFile(e.dataTransfer.files?.[0]);
   };
 
   const handleLoadSample = (type: 'spot' | 'futures') => {
@@ -306,6 +312,14 @@ export const BinanceSyncModal: React.FC<BinanceSyncModalProps> = ({
               </div>
 
               {/* Parsed Results Staging Table */}
+              {parsedResult && parsedResult.warnings.length > 0 && (
+                <div className="rounded-xl border border-warn-line bg-warn-bg-soft p-3 space-y-1.5 text-xs text-brand" role="status">
+                  {parsedResult.warnings.map((w, i) => (
+                    <p key={i}>{w}</p>
+                  ))}
+                </div>
+              )}
+
               {parsedResult && parsedResult.trades.length > 0 && (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
@@ -314,7 +328,7 @@ export const BinanceSyncModal: React.FC<BinanceSyncModalProps> = ({
                         Import Staging Preview ({parsedResult.trades.length} Trades)
                       </h4>
                       <p className="text-xs text-muted">
-                        Format: <span className="capitalize font-semibold text-brand">{parsedResult.formatDetected.replace('_', ' ')}</span> •
+                        Format: <span className="font-semibold text-brand">{parsedResult.formatLabel}</span> •
                         Volume: <strong>${parsedResult.summary.totalVolumeUSDT.toLocaleString()}</strong> •
                         Fees: <strong>${parsedResult.summary.totalCommissionUSDT.toFixed(4)}</strong>
                       </p>

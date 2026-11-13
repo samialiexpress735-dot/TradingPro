@@ -1,0 +1,4 @@
+User_ID,UTC_Time,Account,Operation,Coin,Change,Remark
+12345,2026-11-02 09:10:05,Spot,Buy,BTC,0.01,""
+12345,2026-11-02 09:10:05,Spot,Transaction Spend,USDT,-600,""
+12345,2026-11-02 09:10:05,Spot,Fee,BTC,-0.00001,""
