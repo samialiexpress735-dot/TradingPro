@@ -6,7 +6,7 @@ import { MonthlyTargetTracker } from './MonthlyTargetTracker';
 import { DisciplineLeakCard } from './DisciplineLeakCard';
 import { DailyLossLimitCard } from './DailyLossLimitCard';
 import { DailyLossLimitState } from '../hooks/useDailyLossLimit';
-import { formatPnL } from '../utils/formatters';
+import { formatPnL, formatSmartAmount } from '../utils/formatters';
 import { AdSenseBanner } from './AdSenseBanner';
 import { StatCard } from './StatCard';
 import {
@@ -144,7 +144,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           icon={isNetPositive ? <TrendingUp className="text-profit" /> : <TrendingDown className="text-loss" />}
           value={`${isNetPositive ? '+' : '-'}$${Math.abs(stats.netProfit).toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
           valueClassName={isNetPositive ? 'text-profit' : 'text-loss'}
-          sub={`Gross: $${stats.grossProfit.toFixed(0)} / -$${stats.grossLoss.toFixed(0)}`}
+          sub={`Gross: $${formatSmartAmount(stats.grossProfit)} / -$${formatSmartAmount(stats.grossLoss)}`}
         />
         <StatCard
           label="Win Rate"

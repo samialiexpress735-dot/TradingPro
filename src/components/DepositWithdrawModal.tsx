@@ -299,7 +299,7 @@ export const DepositWithdrawModal: React.FC<DepositWithdrawModalProps> = ({
                   </span>
                   <input
                     type="number"
-                    min="1"
+                    min="0.01"
                     step="any"
                     value={amountStr}
                     onChange={(e) => setAmountStr(e.target.value)}

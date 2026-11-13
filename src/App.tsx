@@ -6,7 +6,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Trade, Strategy, AssetClass, CapitalTransaction } from './types/trade';
 import { INITIAL_TRADES, INITIAL_STRATEGIES, SAMPLE_DEMO_TRADES } from './data/mockTrades';
-import { calculateStats, generateEquityCurve } from './utils/calculations';
+import { calculateStats, generateEquityCurve, classifyOutcome } from './utils/calculations';
 import {
   supabase,
   isSupabaseConfigured,
@@ -59,7 +59,18 @@ export default function App() {
   const [startingBalance, setStartingBalance] = useState<number>(25000);
 
   // Trades state (stored in Supabase public.trades)
-  const [trades, setTrades] = useState<Trade[]>(INITIAL_TRADES);
+  const [rawTrades, setTrades] = useState<Trade[]>(INITIAL_TRADES);
+  // Re-derive win/loss/breakeven for closed trades from their P&L. Older imports stored small
+  // results (within +/-$2) as breakeven, which hid them from win rate, heatmap counts and streaks.
+  const trades = useMemo(
+    () =>
+      rawTrades.map((t) => {
+        if (t.status !== 'closed') return t;
+        const outcome = classifyOutcome(t.netPnl || 0);
+        return t.outcome === outcome ? t : { ...t, outcome };
+      }),
+    [rawTrades]
+  );
 
   // Strategies state (stored in Supabase public.strategies)
   const [strategies, setStrategies] = useState<Strategy[]>(INITIAL_STRATEGIES);

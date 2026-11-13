@@ -11,7 +11,7 @@ import {
   DollarSign,
   Scale,
 } from 'lucide-react';
-import { formatPnL } from '../utils/formatters';
+import { formatPnL, formatSmartAmount } from '../utils/formatters';
 
 interface DisciplineLeakCardProps {
   trades: Trade[];
@@ -205,7 +205,7 @@ export const DisciplineLeakCard: React.FC<DisciplineLeakCardProps> = ({
                 </div>
                 <div className="text-right shrink-0">
                   <div className="text-xs font-mono font-bold text-loss">
-                    -${item.totalLoss.toFixed(0)}
+                    -${formatSmartAmount(item.totalLoss)}
                   </div>
                   <div className="text-[9px] text-brand flex items-center gap-0.5 justify-end">
                     <span>Audit</span>

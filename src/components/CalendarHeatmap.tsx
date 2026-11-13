@@ -1,7 +1,15 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Trade, DailyPnL } from '../types/trade';
 import { groupTradesByDate } from '../utils/calculations';
-import { formatPrice, formatPnL } from '../utils/formatters';
+import { formatPrice, formatPnL, formatSmartAmount } from '../utils/formatters';
+
+// Cell label: cents for small days, whole dollars for big ones, "k" above 1,000.
+const formatCellPnl = (pnl: number): string => {
+  const sign = pnl > 0 ? '+' : pnl < 0 ? '-' : '';
+  const abs = Math.abs(pnl);
+  if (abs >= 1000) return `${sign}$${(abs / 1000).toFixed(1)}k`;
+  return `${sign}$${formatSmartAmount(abs)}`;
+};
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, CheckCircle2, XCircle } from 'lucide-react';
 
 interface CalendarHeatmapProps {
@@ -89,13 +97,14 @@ export const CalendarHeatmap: React.FC<CalendarHeatmapProps> = ({ trades, onSele
   };
 
   // Generate calendar days
-  const { calendarDays, monthTotalPnl, winningDays, losingDays } = useMemo(() => {
+  const { calendarDays, monthTotalPnl, winningDays, losingDays, maxAbsDayPnl } = useMemo(() => {
     const firstDay = new Date(currentYear, currentMonth, 1).getDay(); // 0 is Sunday
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
     let mPnl = 0;
     let wDays = 0;
     let lDays = 0;
+    let maxAbs = 0;
 
     const days: Array<{
       dayNum: number;
@@ -122,9 +131,12 @@ export const CalendarHeatmap: React.FC<CalendarHeatmapProps> = ({ trades, onSele
       const dayData = dailyMap.get(dateStr);
 
       if (dayData) {
-        mPnl += dayData.pnl;
-        if (dayData.pnl > 0) wDays++;
-        else if (dayData.pnl < 0) lDays++;
+        // Round to cents so float noise (e.g. 0.30000000000000004) never flips a day's colour
+        const dayPnl = Number(dayData.pnl.toFixed(2));
+        mPnl += dayPnl;
+        maxAbs = Math.max(maxAbs, Math.abs(dayPnl));
+        if (dayPnl > 0) wDays++;
+        else if (dayPnl < 0) lDays++;
       }
 
       days.push({
@@ -151,6 +163,7 @@ export const CalendarHeatmap: React.FC<CalendarHeatmapProps> = ({ trades, onSele
       monthTotalPnl: Number(mPnl.toFixed(2)),
       winningDays: wDays,
       losingDays: lDays,
+      maxAbsDayPnl: maxAbs,
     };
   }, [currentYear, currentMonth, dailyMap]);
 
@@ -238,9 +251,12 @@ export const CalendarHeatmap: React.FC<CalendarHeatmapProps> = ({ trades, onSele
           }
 
           const hasTrades = cell.data && cell.data.tradeCount > 0;
-          const pnl = cell.data?.pnl ?? 0;
+          const pnl = Number((cell.data?.pnl ?? 0).toFixed(2));
           const isWin = pnl > 0;
           const isLoss = pnl < 0;
+          // Colour strength is relative to this month's biggest day, so small accounts
+          // get the same visual range as large ones (the old cut-offs were +$500 / -$200).
+          const isStrongDay = maxAbsDayPnl > 0 && Math.abs(pnl) >= maxAbsDayPnl * 0.5;
 
           // Compute color intensity in white & brown aesthetic
           let bgClass = 'bg-surface border-line-soft hover:border-line-brand';
@@ -248,14 +264,14 @@ export const CalendarHeatmap: React.FC<CalendarHeatmapProps> = ({ trades, onSele
 
           if (hasTrades) {
             if (isWin) {
-              if (pnl > 500) {
+              if (isStrongDay) {
                 bgClass = 'bg-profit-bg border-profit-line hover:border-[#67b579] shadow-xs';
               } else {
                 bgClass = 'bg-profit-bg-soft border-profit-line hover:border-profit-solid/40';
               }
               textPnlClass = 'text-profit font-bold';
             } else if (isLoss) {
-              if (pnl < -200) {
+              if (isStrongDay) {
                 bgClass = 'bg-loss-bg border-loss-line hover:border-[#f87171] shadow-xs';
               } else {
                 bgClass = 'bg-loss-bg-soft border-loss-line hover:border-loss-solid/40';
@@ -292,7 +308,7 @@ export const CalendarHeatmap: React.FC<CalendarHeatmapProps> = ({ trades, onSele
               {hasTrades ? (
                 <div className="mt-0.5 sm:mt-1">
                   <div className={`text-[10px] sm:text-xs font-mono tracking-tight truncate ${textPnlClass}`}>
-                    {isWin ? '+' : ''}${Math.abs(pnl) >= 1000 ? `${(pnl / 1000).toFixed(1)}k` : pnl.toFixed(0)}
+                    {formatCellPnl(pnl)}
                   </div>
                   <div className="hidden sm:flex text-[10px] text-faint font-mono mt-0.5 items-center gap-1">
                     <span className="text-profit">{cell.data!.winCount}W</span>

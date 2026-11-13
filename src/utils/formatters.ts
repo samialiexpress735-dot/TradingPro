@@ -59,6 +59,17 @@ export function formatPrice(price: number, currency: string = '$'): string {
   })}`;
 }
 
+/**
+ * Amount without currency/sign: whole dollars for large values, cents for small ones,
+ * so a $0.20 result never collapses to "0".
+ */
+export function formatSmartAmount(value: number): string {
+  if (!Number.isFinite(value)) return '0.00';
+  const abs = Math.abs(value);
+  const digits = abs >= 100 ? 0 : 2;
+  return abs.toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+}
+
 export function formatPnL(pnl: number, currency: string = '$'): string {
   if (isNaN(pnl)) return `${currency}0.00`;
   const sign = pnl > 0 ? '+' : pnl < 0 ? '-' : '';

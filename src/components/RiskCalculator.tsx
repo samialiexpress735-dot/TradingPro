@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { AssetClass } from '../types/trade';
 import { calculatePositionSize, calculateRiskOfRuin } from '../utils/calculations';
-import { formatQuantity, formatPrice } from '../utils/formatters';
+import { formatQuantity, formatPrice, formatSmartAmount } from '../utils/formatters';
 import {
   Calculator,
   ArrowRight,
@@ -286,7 +286,7 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
                     }`}
                   >
                     <span>{pct}%</span>
-                    <span className="hidden sm:inline"> (${((balance * pct) / 100).toFixed(0)})</span>
+                    <span className="hidden sm:inline"> (${formatSmartAmount((balance * pct) / 100)})</span>
                   </button>
                 ))}
               </div>
@@ -303,10 +303,10 @@ export const RiskCalculator: React.FC<RiskCalculatorProps> = ({ currentBalance, 
                 <span className="absolute left-3 top-2.5 text-faint font-mono text-sm">$</span>
                 <input
                   type="number"
-                  step="10"
-                  min="1"
+                  step="any"
+                  min="0.01"
                   value={fixedDollarRisk}
-                  onChange={(e) => setFixedDollarRisk(Math.max(1, Number(e.target.value)))}
+                  onChange={(e) => setFixedDollarRisk(Math.max(0.01, Number(e.target.value)))}
                   className="w-full bg-surface border border-line rounded-xl pl-8 pr-4 py-2 text-ink font-mono text-sm focus:outline-none focus:border-brand transition"
                   placeholder="250"
                 />

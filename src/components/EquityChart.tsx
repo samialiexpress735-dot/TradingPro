@@ -72,7 +72,10 @@ export const EquityChart: React.FC<EquityChartProps> = ({ data, startingBalance 
     const peak = Math.max(...data.map((d) => d.equity));
 
     // Pad limits
-    const range = Math.max(100, rawMax - rawMin);
+    // The old fixed $100 floor flattened any account whose moves were smaller than that
+    // (a $0.20 gain on a $1 account was invisible). Floor scales with the balance instead.
+    const minRange = Math.max(0.01, Math.min(100, Math.abs(rawMax) * 0.01));
+    const range = Math.max(minRange, rawMax - rawMin);
     const min = rawMin - range * 0.08;
     const max = rawMax + range * 0.12;
 
@@ -150,6 +153,15 @@ export const EquityChart: React.FC<EquityChartProps> = ({ data, startingBalance 
 
   const netGain = data.length > 0 ? data[data.length - 1].equity - startingBalance : 0;
   const isPositive = netGain >= 0;
+
+  // Y-axis labels: add decimals when the visible range is small so cents are not rounded away
+  const axisSpan = maxVal - minVal;
+  const axisDecimals = axisSpan >= 20 ? 0 : axisSpan >= 2 ? 1 : 2;
+  const formatAxisValue = (v: number) =>
+    `${v < 0 ? '-' : ''}$${Math.abs(v).toLocaleString('en-US', {
+      minimumFractionDigits: axisDecimals,
+      maximumFractionDigits: axisDecimals,
+    })}`;
 
   return (
     <div className="bg-surface border border-line rounded-2xl p-5 shadow-xs relative overflow-hidden">
@@ -310,7 +322,7 @@ export const EquityChart: React.FC<EquityChartProps> = ({ data, startingBalance 
               <g key={ratio}>
                 <line x1={pad.left} y1={y} x2={size.w - pad.right} y2={y} stroke="var(--line-soft)" strokeDasharray="3 3" strokeWidth="1" />
                 <text x={pad.left - 8} y={y + 4} fill="var(--faint)" fontSize="10" textAnchor="end" fontFamily="JetBrains Mono">
-                  ${Math.round(val).toLocaleString()}
+                  {formatAxisValue(val)}
                 </text>
               </g>
             );

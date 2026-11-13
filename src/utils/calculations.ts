@@ -7,6 +7,15 @@ import {
   RiskCalcResult,
 } from '../types/trade';
 
+/** P&L smaller than this (in either direction) counts as breakeven; it only absorbs float noise. */
+export const BREAKEVEN_EPSILON = 0.001;
+
+export function classifyOutcome(netPnl: number): 'win' | 'loss' | 'breakeven' {
+  if (netPnl > BREAKEVEN_EPSILON) return 'win';
+  if (netPnl < -BREAKEVEN_EPSILON) return 'loss';
+  return 'breakeven';
+}
+
 export function calculateTradeMetrics(params: {
   direction: 'long' | 'short';
   entryPrice: number;
@@ -38,12 +47,7 @@ export function calculateTradeMetrics(params: {
   // Realized Risk / Reward (R-multiple)
   const realizedRR = riskPerUnit > 0 ? Number((priceDiff / riskPerUnit).toFixed(2)) : 0;
 
-  let outcome: 'win' | 'loss' | 'breakeven' = 'breakeven';
-  if (netPnl > 0.001) {
-    outcome = 'win';
-  } else if (netPnl < -0.001) {
-    outcome = 'loss';
-  }
+  const outcome = classifyOutcome(netPnl);
 
   return {
     grossPnl,

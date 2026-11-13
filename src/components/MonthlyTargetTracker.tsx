@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Trade } from '../types/trade';
-import { formatPnL, formatPrice } from '../utils/formatters';
+import { formatPnL, formatPrice, formatSmartAmount } from '../utils/formatters';
 import { saveUserSettings } from '../lib/supabase';
 import confetti from 'canvas-confetti';
 import {
@@ -323,7 +323,7 @@ export const MonthlyTargetTracker: React.FC<MonthlyTargetTrackerProps> = ({
                 onClick={() => {
                   setTempType('dollar');
                   if (tempType === 'percent') {
-                    setTempValue(String(Math.round((startingBalance * parseFloat(tempValue || '10')) / 100)));
+                    setTempValue(String(Number(((startingBalance * parseFloat(tempValue || '10')) / 100).toFixed(2))));
                   }
                 }}
                 className={`py-1.5 text-xs font-bold rounded-lg transition cursor-pointer flex items-center justify-center gap-1 ${
@@ -340,7 +340,7 @@ export const MonthlyTargetTracker: React.FC<MonthlyTargetTrackerProps> = ({
                 onClick={() => {
                   setTempType('percent');
                   if (tempType === 'dollar') {
-                    setTempValue(String(Math.max(1, Math.round(((parseFloat(tempValue || '2500')) / startingBalance) * 100))));
+                    setTempValue(String(Math.max(0.1, Number(((parseFloat(tempValue || '2500') / startingBalance) * 100).toFixed(1)))));
                   }
                 }}
                 className={`py-1.5 text-xs font-bold rounded-lg transition cursor-pointer flex items-center justify-center gap-1 ${
@@ -389,9 +389,9 @@ export const MonthlyTargetTracker: React.FC<MonthlyTargetTrackerProps> = ({
           <div className="flex items-center gap-1.5 flex-wrap pt-1 text-[11px] font-mono">
             <span className="text-faint text-[10px] uppercase font-sans font-medium">Quick Presets:</span>
             {[
-              { type: 'percent' as const, val: 5, label: '5% ($' + Math.round(startingBalance * 0.05).toLocaleString() + ')' },
-              { type: 'percent' as const, val: 10, label: '10% ($' + Math.round(startingBalance * 0.10).toLocaleString() + ')' },
-              { type: 'percent' as const, val: 15, label: '15% ($' + Math.round(startingBalance * 0.15).toLocaleString() + ')' },
+              { type: 'percent' as const, val: 5, label: '5% ($' + formatSmartAmount(startingBalance * 0.05) + ')' },
+              { type: 'percent' as const, val: 10, label: '10% ($' + formatSmartAmount(startingBalance * 0.10) + ')' },
+              { type: 'percent' as const, val: 15, label: '15% ($' + formatSmartAmount(startingBalance * 0.15) + ')' },
               { type: 'dollar' as const, val: 1000, label: '$1,000' },
               { type: 'dollar' as const, val: 2500, label: '$2,500' },
               { type: 'dollar' as const, val: 5000, label: '$5,000' },
@@ -453,10 +453,10 @@ export const MonthlyTargetTracker: React.FC<MonthlyTargetTrackerProps> = ({
         {/* Milestone Threshold Indicators */}
         <div className="flex justify-between text-[10px] font-mono text-faint px-1">
           <span>$0 (0%)</span>
-          <span className="hidden sm:inline">25% (${(effectiveTargetDollar * 0.25).toFixed(0)})</span>
-          <span>50% (${(effectiveTargetDollar * 0.5).toFixed(0)})</span>
-          <span className="hidden sm:inline">75% (${(effectiveTargetDollar * 0.75).toFixed(0)})</span>
-          <span className="font-bold text-brand">100% (${effectiveTargetDollar.toFixed(0)})</span>
+          <span className="hidden sm:inline">25% (${formatSmartAmount(effectiveTargetDollar * 0.25)})</span>
+          <span>50% (${formatSmartAmount(effectiveTargetDollar * 0.5)})</span>
+          <span className="hidden sm:inline">75% (${formatSmartAmount(effectiveTargetDollar * 0.75)})</span>
+          <span className="font-bold text-brand">100% (${formatSmartAmount(effectiveTargetDollar)})</span>
         </div>
       </div>
 
