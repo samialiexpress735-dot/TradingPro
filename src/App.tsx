@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { localDateString } from './utils/dateHelpers';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Trade, Strategy, AssetClass, CapitalTransaction } from './types/trade';
 import { INITIAL_TRADES, INITIAL_STRATEGIES, SAMPLE_DEMO_TRADES } from './data/mockTrades';
@@ -261,15 +260,32 @@ export default function App() {
     [trades, startingBalance]
   );
 
+  // Account balance = deposited capital (startingBalance) + realized P&L of closed trades.
+  // startingBalance only changes through deposits/withdrawals; trades move the balance via P&L.
+  const realizedPnl = useMemo(
+    () =>
+      Number(
+        trades
+          .filter((t) => t.status === 'closed')
+          .reduce((sum, t) => sum + (t.netPnl || 0), 0)
+          .toFixed(2)
+      ),
+    [trades]
+  );
+  const accountBalance = Number((startingBalance + realizedPnl).toFixed(2));
+
   // Capital adjustments (paper deposits and withdrawals)
+  // `newBalance` is the new total account balance (including P&L), so strip P&L
+  // back out before storing it as the capital base.
   const handleApplyCapitalAdjustment = async (newBalance: number, transaction: CapitalTransaction) => {
-    setStartingBalance(newBalance);
+    const newStartingBalance = Number((newBalance - realizedPnl).toFixed(2));
+    setStartingBalance(newStartingBalance);
     const updatedTxs = [transaction, ...capitalTransactions];
     setCapitalTransactions(updatedTxs);
 
     const targetUserId = user?.id || 'default_guest';
     await saveUserSettings(targetUserId, {
-      startingBalance: newBalance,
+      startingBalance: newStartingBalance,
       capitalTransactions: updatedTxs,
     });
   };
@@ -323,7 +339,7 @@ export default function App() {
     const duplicated: Trade = {
       ...trade,
       id: `tr-${Date.now()}`,
-      date: localDateString(),
+      date: new Date().toISOString().split('T')[0],
       time: new Date().toTimeString().split(' ')[0].substring(0, 5),
     };
     setEditingTrade(duplicated);
@@ -341,25 +357,30 @@ export default function App() {
   };
 
   // CSV Import handler
-  // CSV / Binance import. Skips anything whose id is already in the journal (re-importing the same file is a no-op),
-  // and syncs the merged list computed from current state (not a stale closure).
-  const handleImportTrades = async (incoming: Trade[]) => {
-    if (incoming.length === 0) return;
-    const existingIds = new Set(trades.map((t) => t.id));
-    const fresh = incoming.filter((t) => !existingIds.has(t.id));
-    if (fresh.length === 0) return;
-    const merged = [...fresh, ...trades];
-    setTrades(merged);
+  const handleImportCsv = async (importedTrades: Trade[]) => {
+    setTrades((prev) => [...importedTrades, ...prev]);
     if (user?.id) {
       try {
-        await batchSyncUserTrades(user.id, merged);
+        await batchSyncUserTrades(user.id, [...importedTrades, ...trades]);
       } catch (err) {
         console.error('Failed to sync imported trades to Supabase:', err);
       }
     }
   };
-  const handleImportCsv = handleImportTrades;
-  const handleImportBinanceTrades = handleImportTrades;
+
+  // Binance trades import handler (Spot & Futures)
+  const handleImportBinanceTrades = async (newTrades: Trade[]) => {
+    if (newTrades.length === 0) return;
+    const updated = [...newTrades, ...trades];
+    setTrades(updated);
+    if (user?.id) {
+      try {
+        await batchSyncUserTrades(user.id, updated);
+      } catch (err) {
+        console.error('Failed to sync imported Binance trades to Supabase:', err);
+      }
+    }
+  };
 
   // Calculator integration
   const handlePreFillFromCalculator = (calcData: {
@@ -377,7 +398,7 @@ export default function App() {
       ...calcData,
       symbol: calcData.symbol || 'AAPL',
       id: `tr-${Date.now()}`,
-      date: localDateString(),
+      date: new Date().toISOString().split('T')[0],
       time: new Date().toTimeString().split(' ')[0].substring(0, 5),
       status: 'open',
       outcome: 'breakeven',
@@ -399,12 +420,9 @@ export default function App() {
         return;
       }
     }
-    // Merge (the old code replaced the whole journal despite what the confirm dialog says)
-    const existingIds = new Set(trades.map((t) => t.id));
-    const merged = [...SAMPLE_DEMO_TRADES.filter((t) => !existingIds.has(t.id)), ...trades];
-    setTrades(merged);
+    setTrades(SAMPLE_DEMO_TRADES);
     if (user?.id) {
-      batchSyncUserTrades(user.id, merged).catch(() => {});
+      batchSyncUserTrades(user.id, SAMPLE_DEMO_TRADES).catch(() => {});
     }
   };
 
@@ -460,9 +478,11 @@ export default function App() {
   };
 
   const handleUpdateBalance = (newBalance: number) => {
-    setStartingBalance(newBalance);
+    // newBalance is the desired total balance; store the capital base without P&L
+    const newStartingBalance = Number((newBalance - realizedPnl).toFixed(2));
+    setStartingBalance(newStartingBalance);
     if (user?.id) {
-      saveUserSettings(user.id, { startingBalance: newBalance }).catch((e) =>
+      saveUserSettings(user.id, { startingBalance: newStartingBalance }).catch((e) =>
         console.error('Error saving balance to Supabase:', e)
       );
     }
@@ -489,7 +509,7 @@ export default function App() {
         onOpenTradeModal={handleAddTradeClick}
         onOpenChecklistModal={() => setIsChecklistOpen(true)}
         onResetData={handleResetData}
-        accountBalance={startingBalance}
+        accountBalance={accountBalance}
         onUpdateBalance={handleUpdateBalance}
         user={user}
         onOpenAuth={() => setIsAuthModalOpen(true)}
@@ -557,7 +577,7 @@ export default function App() {
 
         {activeTab === 'calculator' && (
           <RiskCalculator
-            currentBalance={startingBalance}
+            currentBalance={accountBalance}
             onPreFillTrade={handlePreFillFromCalculator}
           />
         )}
@@ -610,7 +630,6 @@ export default function App() {
         }}
         onSave={handleSaveTrade}
         initialTrade={editingTrade}
-        isEditing={!!editingTrade?.id && trades.some((t) => t.id === editingTrade.id)}
         strategies={strategies}
       />
 
@@ -649,7 +668,7 @@ export default function App() {
       <DepositWithdrawModal
         isOpen={isDepositModalOpen}
         onClose={() => setIsDepositModalOpen(false)}
-        currentBalance={startingBalance}
+        currentBalance={accountBalance}
         onApplyAdjustment={handleApplyCapitalAdjustment}
         transactions={capitalTransactions}
         onDeleteTransaction={handleDeleteCapitalTransaction}
