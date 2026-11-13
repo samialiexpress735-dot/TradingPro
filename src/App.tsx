@@ -38,6 +38,8 @@ import { OfflineIndicator } from './components/OfflineIndicator';
 import { AuthModal } from './components/AuthModal';
 import { BinanceSyncModal } from './components/BinanceSyncModal';
 import { DepositWithdrawModal } from './components/DepositWithdrawModal';
+import { DailyLossLimitBanner } from './components/DailyLossLimitCard';
+import { useDailyLossLimit } from './hooks/useDailyLossLimit';
 
 export default function App() {
   // Navigation tab state
@@ -273,6 +275,10 @@ export default function App() {
     [trades]
   );
   const accountBalance = Number((startingBalance + realizedPnl).toFixed(2));
+
+  // Daily loss limit (tracks today's realized loss against a user-set cap)
+  const dailyLimit = useDailyLossLimit(trades, accountBalance, user?.id);
+  const [dismissedLimitDay, setDismissedLimitDay] = useState<string | null>(null);
 
   // Capital adjustments (paper deposits and withdrawals)
   // `newBalance` is the new total account balance (including P&L), so strip P&L
@@ -526,8 +532,15 @@ export default function App() {
 
       {/* Main View Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 lg:p-8">
+        <DailyLossLimitBanner
+          limit={dailyLimit}
+          dismissedDay={dismissedLimitDay}
+          onDismiss={() => setDismissedLimitDay(dailyLimit.todayKey)}
+        />
+
         {activeTab === 'dashboard' && (
           <Dashboard
+            dailyLimit={dailyLimit}
             stats={performanceStats}
             trades={trades}
             equityData={equityCurveData}

@@ -4,6 +4,8 @@ import { EquityChart } from './EquityChart';
 import { CalendarHeatmap } from './CalendarHeatmap';
 import { MonthlyTargetTracker } from './MonthlyTargetTracker';
 import { DisciplineLeakCard } from './DisciplineLeakCard';
+import { DailyLossLimitCard } from './DailyLossLimitCard';
+import { DailyLossLimitState } from '../hooks/useDailyLossLimit';
 import { formatPnL } from '../utils/formatters';
 import { AdSenseBanner } from './AdSenseBanner';
 import { StatCard } from './StatCard';
@@ -34,6 +36,7 @@ interface DashboardProps {
   monthlyTargetAmount?: number;
   monthlyTargetType?: 'dollar' | 'percent';
   onTargetChange?: (type: 'dollar' | 'percent', val: number) => void;
+  dailyLimit?: DailyLossLimitState;
   onAddTrade: () => void;
   onOpenChecklist: () => void;
   onNavigateToTab: (tab: 'dashboard' | 'journal' | 'review' | 'calculator' | 'playbook' | 'analytics' | 'news') => void;
@@ -56,6 +59,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   monthlyTargetAmount,
   monthlyTargetType,
   onTargetChange,
+  dailyLimit,
   onAddTrade,
   onOpenChecklist,
   onNavigateToTab,
@@ -189,6 +193,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
           sub={`Best Win: ${stats.largestWinStreak}W`}
         />
       </div>
+
+      {/* Daily Loss Limit */}
+      {dailyLimit && <DailyLossLimitCard limit={dailyLimit} />}
 
       {/* Monthly P&L Target Tracker */}
       <MonthlyTargetTracker

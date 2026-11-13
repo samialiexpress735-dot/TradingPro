@@ -68,28 +68,41 @@ export const MarketNewsView: React.FC<MarketNewsViewProps> = ({
   const [isFetchingFeed, setIsFetchingFeed] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string>('Live Connected');
   const [breakingNotice, setBreakingNotice] = useState<string | null>(null);
+  const [feedError, setFeedError] = useState<string | null>(null);
 
   // Fetch live market feed from server
   const fetchLiveCatalysts = useCallback(async (isManual = false) => {
     setIsFetchingFeed(true);
     try {
       const res = await fetch('/api/news/feed');
-      if (res.ok) {
-        const data = await res.json();
-        if (data.catalysts && Array.isArray(data.catalysts)) {
-          setCatalysts((prev) => {
-            // Check if top headline is new
-            if (prev.length > 0 && data.catalysts.length > 0 && prev[0].id !== data.catalysts[0].id) {
-              setBreakingNotice(data.catalysts[0].headline);
-            }
-            return data.catalysts;
-          });
-          const timeStr = new Date().toISOString().substring(11, 19) + ' UTC';
-          setLastUpdated(`Synced ${timeStr}`);
-        }
+      const contentType = res.headers.get('content-type') || '';
+      // Static hosts (e.g. Vercel with only the Vite build) answer /api/* with index.html
+      if (!contentType.includes('application/json')) {
+        throw new Error('The news API is not available on this deployment (the Node server is not running).');
       }
-    } catch (e) {
+      const data = await res.json();
+      if (!res.ok || data.success === false) {
+        throw new Error(data.error || `News feed returned status ${res.status}`);
+      }
+      if (data.catalysts && Array.isArray(data.catalysts)) {
+        setCatalysts((prev) => {
+          // Check if top headline is new
+          if (prev.length > 0 && data.catalysts.length > 0 && prev[0].id !== data.catalysts[0].id) {
+            setBreakingNotice(data.catalysts[0].headline);
+          }
+          return data.catalysts;
+        });
+        const syncedAt = data.lastUpdated ? new Date(data.lastUpdated) : new Date();
+        const timeStr = syncedAt.toISOString().substring(11, 19) + ' UTC';
+        setLastUpdated(
+          data.feedStatus === 'STALE' ? `Stale: sources unreachable, last synced ${timeStr}` : `Synced ${timeStr}`
+        );
+        setFeedError(null);
+      }
+    } catch (e: any) {
       console.warn('Could not refresh live news feed:', e);
+      setFeedError(e?.message || 'Could not load the news feed.');
+      setLastUpdated('Refresh failed');
     } finally {
       setIsFetchingFeed(false);
       setSecondsUntilNextPoll(30);
@@ -702,6 +715,18 @@ export const MarketNewsView: React.FC<MarketNewsViewProps> = ({
             <h3 className="text-sm font-bold text-ink">Connecting Real-Time Financial Wire Feeds...</h3>
             <p className="text-xs text-faint">Streaming live breaking catalysts from Bloomberg, Reuters, CNBC, CoinDesk &amp; Binance.</p>
           </div>
+        ) : catalysts.length === 0 && feedError ? (
+          <div className="bg-loss-bg border border-loss-line rounded-xl p-10 text-center space-y-2">
+            <AlertTriangle className="w-8 h-8 text-loss mx-auto" />
+            <h3 className="text-sm font-bold text-ink">News feed unavailable</h3>
+            <p className="text-xs text-ink-soft max-w-md mx-auto">{feedError}</p>
+            <button
+              onClick={() => fetchLiveCatalysts(true)}
+              className="mt-2 px-3 py-1.5 bg-surface hover:bg-sunken text-brand text-xs font-semibold rounded-lg border border-line-brand cursor-pointer"
+            >
+              Try again
+            </button>
+          </div>
         ) : filteredCatalysts.length === 0 ? (
           <div className="bg-surface-alt border border-line rounded-xl p-10 text-center space-y-2">
             <Info className="w-8 h-8 text-faint mx-auto" />
@@ -832,6 +857,11 @@ export const MarketNewsView: React.FC<MarketNewsViewProps> = ({
                         )}
                       </div>
                     )}
+
+                    <p className="text-[11px] text-faint leading-relaxed">
+                      Bias, impact level and the playbook below are auto-tagged from keywords in the headline, not
+                      from reading the article. Use &quot;Deep Analyze with AI&quot; for a closer look.
+                    </p>
 
                     {/* What this means for trades */}
                     <div className="bg-surface-alt p-3.5 rounded-lg border border-line-strong space-y-1">

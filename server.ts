@@ -885,6 +885,16 @@ function calculateRelativeTime(dateStr: string): string {
   return `${days}d ago`;
 }
 
+// Stable short hash so the same headline keeps the same id between refreshes
+// (the UI uses ids to detect "new" headlines and to keep cards expanded).
+function stableHash(str: string): string {
+  let h = 5381;
+  for (let i = 0; i < str.length; i++) {
+    h = ((h << 5) + h + str.charCodeAt(i)) | 0;
+  }
+  return (h >>> 0).toString(36);
+}
+
 async function fetchRealTimeLiveNews(): Promise<any[]> {
   const feeds = [
     {
@@ -964,31 +974,33 @@ async function fetchRealTimeLiveNews(): Promise<any[]> {
         // Categorize
         const lower = rawTitle.toLowerCase();
         let category: 'crypto' | 'macro' | 'equities' | 'forex' = defaultCategory as any;
-        if (/bitcoin|btc|eth|crypto|binance|solana|altcoin|blockchain|token|stablecoin|coindesk|cointelegraph/.test(lower)) {
+        // Whole-word matching only: substring matching wrongly tagged e.g. "whether" as ETH,
+        // "said" as AI and "second" as SEC.
+        if (/\b(bitcoin|btc|eth|ethereum|crypto|binance|solana|altcoin|blockchain|tokens?|stablecoins?|coindesk|cointelegraph)\b/.test(lower)) {
           category = 'crypto';
-        } else if (/fed|federal reserve|powell|inflation|cpi|ppi|interest rate|rates|gdp|central bank|treasury|yield/.test(lower)) {
+        } else if (/\b(fed|federal reserve|powell|inflation|cpi|ppi|interest rates?|rate (cuts?|hikes?)|gdp|central bank|treasury|yields?)\b/.test(lower)) {
           category = 'macro';
-        } else if (/dollar|dxy|eurusd|usdjpy|gbpusd|forex|currency/.test(lower)) {
+        } else if (/\b(dollar|dxy|eurusd|usdjpy|gbpusd|forex|currency|currencies)\b/.test(lower)) {
           category = 'forex';
-        } else if (/stock|nasdaq|s&p|dow|shares|earnings|ai|chip|tech|wall street|nvidia|nvda|tesla|tsla|apple|aapl/.test(lower)) {
+        } else if (/\b(stocks?|nasdaq|s&p|dow|shares|earnings|ai|chips?|tech|wall street|nvidia|nvda|tesla|tsla|apple|aapl)\b/.test(lower)) {
           category = 'equities';
         }
 
         // Affected Symbols
         const symbols: string[] = [];
-        if (/bitcoin|btc/.test(lower)) symbols.push('BTCUSDT.P');
-        if (/ethereum|eth/.test(lower)) symbols.push('ETHUSDT.P');
-        if (/solana|sol\b/.test(lower)) symbols.push('SOLUSDT.P');
-        if (/binance|bnb/.test(lower)) symbols.push('BNBUSDT.P');
-        if (/nvidia|nvda|chip|gpu|semiconductor/.test(lower)) symbols.push('NVDA');
-        if (/tesla|tsla|ev/.test(lower)) symbols.push('TSLA');
-        if (/apple|aapl/.test(lower)) symbols.push('AAPL');
-        if (/microsoft|msft/.test(lower)) symbols.push('MSFT');
-        if (/amd/.test(lower)) symbols.push('AMD');
-        if (/nasdaq|tech/.test(lower)) symbols.push('QQQ');
-        if (/s&p|stock market|wall street/.test(lower)) symbols.push('SPY');
-        if (/dollar|yield|rates|fed/.test(lower)) symbols.push('DXY');
-        if (/euro|eur/.test(lower)) symbols.push('EURUSD');
+        if (/\b(bitcoin|btc)\b/.test(lower)) symbols.push('BTCUSDT.P');
+        if (/\b(ethereum|eth)\b/.test(lower)) symbols.push('ETHUSDT.P');
+        if (/\b(solana|sol)\b/.test(lower)) symbols.push('SOLUSDT.P');
+        if (/\b(binance|bnb)\b/.test(lower)) symbols.push('BNBUSDT.P');
+        if (/\b(nvidia|nvda|chips?|gpus?|semiconductors?)\b/.test(lower)) symbols.push('NVDA');
+        if (/\b(tesla|tsla|evs?)\b/.test(lower)) symbols.push('TSLA');
+        if (/\b(apple|aapl)\b/.test(lower)) symbols.push('AAPL');
+        if (/\b(microsoft|msft)\b/.test(lower)) symbols.push('MSFT');
+        if (/\bamd\b/.test(lower)) symbols.push('AMD');
+        if (/\b(nasdaq|tech)\b/.test(lower)) symbols.push('QQQ');
+        if (/\b(s&p|stock market|wall street)\b/.test(lower)) symbols.push('SPY');
+        if (/\b(dollar|yields?|rates?|fed)\b/.test(lower)) symbols.push('DXY');
+        if (/\b(euro|eur)\b/.test(lower)) symbols.push('EURUSD');
 
         if (symbols.length === 0) {
           if (category === 'crypto') symbols.push('BTCUSDT.P', 'ETHUSDT.P');
@@ -999,9 +1011,11 @@ async function fetchRealTimeLiveNews(): Promise<any[]> {
 
         // Sentiment
         let sentiment: 'BULLISH' | 'BEARISH' | 'VOLATILE_CHOP' | 'NEUTRAL' = 'NEUTRAL';
-        const isBullish = /rally|surge|soar|jump|gain|bounce|climb|bullish|rise|support|high|record|cut|recovery|stabilize/.test(lower);
-        const isBearish = /plunge|drop|slump|fall|sink|slide|rout|bloodbath|crash|selloff|fear|bearish|loss|losses|hack|lawsuit|probe|down|crackdown|panic/.test(lower);
-        const isVolatile = /whipsaw|pause|mixed|wobble|volatile|uncertain|swings|divide|rebound|tension/.test(lower);
+        // Generic words like "high", "cut" and "support" were removed: "inflation stays high" and
+        // "job cuts" are bearish, so they made the tag wrong as often as right.
+        const isBullish = /\b(rall(y|ies|ied)|surg(e|es|ed)|soar(s|ed)?|jump(s|ed)?|gain(s|ed)?|bounc(e|es|ed)|climb(s|ed)?|bullish|rises?|risen|rose|record high|recover(y|s|ed)?|stabili[sz](e|es|ed))\b/.test(lower);
+        const isBearish = /\b(plung(e|es|ed)|drop(s|ped)?|slump(s|ed)?|fall(s|en)?|fell|sink(s)?|sank|slid(e|es)|rout|bloodbath|crash(es|ed)?|sell-?off|fear|bearish|loss(es)?|hack(s|ed)?|lawsuit|probe|down|crackdown|panic|tumbl(e|es|ed))\b/.test(lower);
+        const isVolatile = /\b(whipsaw(s|ed)?|paus(e|es|ed)|mixed|wobbl(e|es|ed)|volatile|volatility|uncertain(ty)?|swings?|divided?|rebound(s|ed)?|tensions?)\b/.test(lower);
 
         if (isBullish && !isBearish) sentiment = 'BULLISH';
         else if (isBearish && !isBullish) sentiment = 'BEARISH';
@@ -1010,9 +1024,9 @@ async function fetchRealTimeLiveNews(): Promise<any[]> {
 
         // Impact level
         let impactLevel: 'HIGH' | 'MEDIUM' | 'LOW' = 'MEDIUM';
-        if (/hack|crash|plunge|fed|inflation|cpi|rate cut|record|rout|bloodbath|ban|sec|investigation/.test(lower)) {
+        if (/\b(hack(s|ed)?|crash(es|ed)?|plung(e|es|ed)|fed|federal reserve|inflation|cpi|rate (cuts?|hikes?)|rout|bloodbath|bans?|banned|sec|investigation)\b/.test(lower)) {
           impactLevel = 'HIGH';
-        } else if (/shares|earnings|meeting|analyst|forecast|review/.test(lower)) {
+        } else if (/\b(shares|earnings|meeting|analysts?|forecasts?|review)\b/.test(lower)) {
           impactLevel = 'LOW';
         }
 
@@ -1024,25 +1038,25 @@ async function fetchRealTimeLiveNews(): Promise<any[]> {
         let tradingTakeaway = '';
 
         if (sentiment === 'BULLISH') {
-          tradingTakeaway = `Bullish expansion catalyst from ${sourceName}. Institutional bids entering on intraday pullbacks into VWAP and key liquidity pools.`;
+          tradingTakeaway = `Headline from ${sourceName} reads bullish (keyword-based tag). If price confirms, dip buyers typically defend VWAP and nearby support.`;
           recommendedAction = `Look for long continuation setups on 5m/15m retests of structural support or VWAP. Avoid chasing extended green candles.`;
           stopLossGuidance = `Place stop loss strictly behind the session breakout anchor or lower 15-minute swing low.`;
           bestSetup = `Opening Range Breakout (ORB) retest or high-volume pullback to VWAP.`;
           volatilityWarning = `Monitor funding rates and open interest spikes; watch out for mean-reversion pullbacks at major daily resistance.`;
         } else if (sentiment === 'BEARISH') {
-          tradingTakeaway = `Bearish headwind reported by ${sourceName}. Elevated selling pressure and risk-off rotation active across key market leaders.`;
+          tradingTakeaway = `Headline from ${sourceName} reads bearish (keyword-based tag). If price confirms, expect risk-off flows and weaker bounces.`;
           recommendedAction = `Protect open profits by tightening trailing stops. Avoid front-running knife catches until a clear bullish market structure shift (MSS) occurs.`;
           stopLossGuidance = `Keep stop loss tight above intraday lower-high rejections; do not widen stops during adverse volatility.`;
           bestSetup = `Bearish breakdown retest of broken support flipped into resistance, or fade of weak relief bounces.`;
           volatilityWarning = `Cascade liquidation and slippage risk elevated during active flush cycles. Cut position leverage.`;
         } else if (sentiment === 'VOLATILE_CHOP') {
-          tradingTakeaway = `Two-sided market reaction from ${sourceName} catalyst. Conflicting institutional order flow creating wide whipsaws between key range boundaries.`;
+          tradingTakeaway = `Headline from ${sourceName} signals mixed or uncertain conditions (keyword-based tag). Two-sided, choppy price action is possible.`;
           recommendedAction = `Reduce position sizing by 50% or wait on sidelines for directional resolution above or below the opening range.`;
           stopLossGuidance = `Widen stop loss beyond local swing extremes or wait for confirmation closes outside the chop zone.`;
           bestSetup = `Range-bound liquidity sweep fade: buy the false breakdown at range low, sell the false breakout at range high.`;
           volatilityWarning = `False breakouts and stop hunts are frequent in chop environments. Never chase breakouts without high relative volume (RVOL).`;
         } else {
-          tradingTakeaway = `Market digest catalyst from ${sourceName}. Baseline liquidity tracking normal session distribution.`;
+          tradingTakeaway = `No clear directional signal in this ${sourceName} headline (keyword-based tag). Treat it as background context.`;
           recommendedAction = `Trade standard technical setups (Order Blocks, FVG, VWAP) adhering strictly to defined risk parameters.`;
           stopLossGuidance = `Standard 1% to 1.5% fixed trade risk stop loss.`;
           bestSetup = `Standard trend-following pullback entry on confirmed momentum.`;
@@ -1055,11 +1069,11 @@ async function fetchRealTimeLiveNews(): Promise<any[]> {
           if (summaryText.length > 250) summaryText = summaryText.substring(0, 247) + '...';
         }
         if (!summaryText || summaryText.length < 20) {
-          summaryText = `${sourceName} reports: ${rawTitle}. Real-time market catalyst monitored by TradeJournal institutional feed.`;
+          summaryText = `${sourceName} reports: ${rawTitle}.`;
         }
 
         parsedArticles.push({
-          id: `live-${parsedArticles.length + 1}-${Date.now().toString(36)}`,
+          id: `live-${stableHash(normalizedHeadline)}`,
           headline: rawTitle,
           source: sourceName,
           link: linkMatch ? linkMatch[1].trim() : '',
@@ -1108,6 +1122,15 @@ app.get('/api/news/feed', async (req: Request, res: Response) => {
     }
   }
 
+  // Nothing cached and every source failed: say so instead of returning an empty "success"
+  if (cachedLiveNewsCatalysts.length === 0) {
+    return res.status(503).json({
+      success: false,
+      feedStatus: 'UNAVAILABLE',
+      error: 'News sources are unreachable right now. Please try again shortly.',
+    });
+  }
+
   // Calculate fresh timeAgo for each item relative to current moment
   let catalystsToReturn = cachedLiveNewsCatalysts.map((c) => ({
     ...c,
@@ -1120,9 +1143,10 @@ app.get('/api/news/feed', async (req: Request, res: Response) => {
 
   res.json({
     success: true,
-    feedStatus: 'LIVE_STREAMING',
+    // STALE when refreshes have been failing and we are serving an old cache
+    feedStatus: now - lastNewsFetchTimestamp > 5 * 60 * 1000 ? 'STALE' : 'LIVE_STREAMING',
     source: 'google-news-rss-live',
-    lastUpdated: new Date().toISOString(),
+    lastUpdated: new Date(lastNewsFetchTimestamp || now).toISOString(),
     pollIntervalMs: 30000,
     count: catalystsToReturn.length,
     catalysts: catalystsToReturn,
