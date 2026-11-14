@@ -40,6 +40,7 @@ import { DepositWithdrawModal } from './components/DepositWithdrawModal';
 import { DailyLossLimitBanner } from './components/DailyLossLimitCard';
 import { useDailyLossLimit } from './hooks/useDailyLossLimit';
 import { ConfirmDialog } from './components/ConfirmDialog';
+import { useNewsBadge } from './hooks/useNewsBadge';
 import { ToastHost, ToastMessage } from './components/Toast';
 import {
   loadCachedTrades,
@@ -58,6 +59,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<
     'dashboard' | 'journal' | 'review' | 'calculator' | 'playbook' | 'analytics' | 'news'
   >('dashboard');
+  const newsBadgeCount = useNewsBadge(activeTab === 'news');
   const [journalMistakeFilter, setJournalMistakeFilter] = useState<string>('all');
 
   // Supabase / Multi-device Auth & Cloud Sync state
@@ -675,6 +677,7 @@ export default function App() {
       {/* Navigation Header */}
       <Navbar
         activeTab={activeTab}
+        newsBadgeCount={newsBadgeCount}
         onSelectTab={setActiveTab}
         onOpenTradeModal={handleAddTradeClick}
         onOpenChecklistModal={() => setIsChecklistOpen(true)}

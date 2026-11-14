@@ -21,6 +21,8 @@ import { Trade } from '../types/trade';
 
 interface NavbarProps {
   activeTab: 'dashboard' | 'journal' | 'review' | 'calculator' | 'playbook' | 'analytics' | 'news';
+  /** Unread headlines in the live news feed (badge is hidden at 0). */
+  newsBadgeCount?: number;
   onSelectTab: (tab: 'dashboard' | 'journal' | 'review' | 'calculator' | 'playbook' | 'analytics' | 'news') => void;
   onOpenTradeModal: () => void;
   onOpenChecklistModal: () => void;
@@ -39,6 +41,7 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({
   activeTab,
+  newsBadgeCount = 0,
   onSelectTab,
   onOpenTradeModal,
   onOpenChecklistModal,
@@ -217,7 +220,14 @@ export const Navbar: React.FC<NavbarProps> = ({
               >
                 <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-brand' : 'text-faint'}`} />
                 <span>{item.label}</span>
-                {item.hasBadge && <span className="w-1.5 h-1.5 rounded-full bg-accent shrink-0" aria-hidden="true"></span>}
+                {item.hasBadge && newsBadgeCount > 0 && (
+                  <span
+                    className="min-w-4 h-4 px-1 rounded-full bg-accent text-white text-[10px] font-bold font-mono leading-none flex items-center justify-center shrink-0"
+                    aria-label={`${newsBadgeCount} unread news headlines`}
+                  >
+                    {newsBadgeCount > 9 ? '9+' : newsBadgeCount}
+                  </span>
+                )}
               </button>
             );
           })}
