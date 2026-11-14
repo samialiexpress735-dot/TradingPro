@@ -8,97 +8,118 @@
 /*  Light values match the original warm sand/brown palette.           */
 /*  Dark values live under .dark - components never hardcode hex.      */
 /* ------------------------------------------------------------------ */
+/* ------------------------------------------------------------------ */
+/*  Design tokens - "Slate & Indigo"                                   */
+/*  Cool neutral surfaces, indigo brand, cyan accent. Profit/loss stay */
+/*  green/red so P&L reads instantly. Components never hardcode hex.   */
+/* ------------------------------------------------------------------ */
 :root {
   color-scheme: light;
 
   /* Surfaces */
-  --canvas: #f8f5f0;
+  --canvas: #f3f5f9;
   --surface: #ffffff;
-  --surface-alt: #fcfaf7;
-  --sunken: #f4ece2;
-  --sunken-strong: #ede6dc;
-  --inverse: #2b1d16;
-  --inverse-2: #3d2b20;
+  --surface-alt: #f8f9fc;
+  --sunken: #eef1f7;
+  --sunken-strong: #e5e9f1;
+  --inverse: #0b1220;
+  --inverse-2: #141d31;
 
   /* Borders */
-  --line-soft: #ede6dc;
-  --line: #e8dfd5;
-  --line-strong: #ddcfbf;
-  --line-brand: #dfc2ab;
+  --line-soft: #ebeef5;
+  --line: #e0e5ef;
+  --line-strong: #cbd3e1;
+  --line-brand: #c3c9f7;
 
   /* Text */
-  --ink: #281d16;
-  --ink-soft: #4a3b32;
-  --muted: #7d695b;
-  --faint: #8c7462;
+  --ink: #0f172a;
+  --ink-soft: #334155;
+  --muted: #546178;
+  --faint: #66748b;
 
   /* Brand */
-  --brand: #78350f;
-  --brand-solid: #78350f;
-  --brand-solid-hover: #632909;
-  --brand-solid-2: #92400e;
-  --accent: #b45309;
+  --brand: #4338ca;
+  --brand-solid: #4f46e5;
+  --brand-solid-hover: #4338ca;
+  --brand-solid-2: #6366f1;
+  --accent: #0e7490;
 
   /* Semantic: profit / loss / warning */
-  --profit: #1e6b37;
-  --profit-solid: #1e6b37;
-  --profit-bg: #edf7ed;
-  --profit-bg-soft: #f4faf4;
-  --profit-line: #c3e6cb;
-  --loss: #b93829;
-  --loss-solid: #b93829;
+  --profit: #15803d;
+  --profit-solid: #16a34a;
+  --profit-bg: #ecfdf3;
+  --profit-bg-soft: #f5fef9;
+  --profit-line: #b7ebc9;
+  --loss: #c52a2a;
+  --loss-solid: #dc2626;
   --loss-bg: #fef2f2;
   --loss-bg-soft: #fff8f8;
   --loss-line: #fecaca;
   --warn-bg: #fef3c7;
   --warn-bg-soft: #fffbeb;
   --warn-line: #fde68a;
+
+  /* Typography */
+  --font-ui: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-data: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  /* Elevation */
+  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 1px 1px rgb(15 23 42 / 0.03);
+  --shadow-pop: 0 12px 32px -8px rgb(15 23 42 / 0.18), 0 2px 6px rgb(15 23 42 / 0.06);
 }
 
 .dark {
   color-scheme: dark;
 
-  --canvas: #14100d;
-  --surface: #1c1713;
-  --surface-alt: #221c17;
-  --sunken: #2a221b;
-  --sunken-strong: #342a21;
-  --inverse: #0c0907;
-  --inverse-2: #17110d;
+  --canvas: #0a0e17;
+  --surface: #111726;
+  --surface-alt: #151c2e;
+  --sunken: #1a2236;
+  --sunken-strong: #212b42;
+  --inverse: #060910;
+  --inverse-2: #0d1322;
 
-  --line-soft: #2d251e;
-  --line: #382e25;
-  --line-strong: #4b3e32;
-  --line-brand: #6a4a31;
+  --line-soft: #1a2235;
+  --line: #242e46;
+  --line-strong: #34425f;
+  --line-brand: #3b4590;
 
-  --ink: #f4ece4;
-  --ink-soft: #d9cdc1;
-  --muted: #ab9a8b;
-  --faint: #928070;
+  --ink: #eef2f9;
+  --ink-soft: #cbd5e6;
+  --muted: #93a1ba;
+  --faint: #7f8da7;
 
-  --brand: #e9a66a;
-  --brand-solid: #b45f17;
-  --brand-solid-hover: #9a4f10;
-  --brand-solid-2: #c26d1c;
-  --accent: #f0a24d;
+  --brand: #a5b4fc;
+  --brand-solid: #4f46e5;
+  --brand-solid-hover: #4338ca;
+  --brand-solid-2: #6366f1;
+  --accent: #22d3ee;
 
-  --profit: #5fd08b;
-  --profit-solid: #2a8049;
-  --profit-bg: #12261b;
-  --profit-bg-soft: #0f1d15;
-  --profit-line: #21472f;
-  --loss: #f28b7d;
-  --loss-solid: #c8432f;
-  --loss-bg: #2d1815;
-  --loss-bg-soft: #241311;
-  --loss-line: #5a2a24;
-  --warn-bg: #33290f;
-  --warn-bg-soft: #2a220e;
+  --profit: #4ade80;
+  --profit-solid: #16a34a;
+  --profit-bg: #0d2418;
+  --profit-bg-soft: #0b1b13;
+  --profit-line: #1b4630;
+  --loss: #fb8f8f;
+  --loss-solid: #dc2626;
+  --loss-bg: #2b1316;
+  --loss-bg-soft: #220f12;
+  --loss-line: #55232a;
+  --warn-bg: #2e2610;
+  --warn-bg-soft: #261f0d;
   --warn-line: #5d4a19;
+
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.35);
+  --shadow-pop: 0 16px 40px -8px rgb(0 0 0 / 0.6), 0 2px 6px rgb(0 0 0 / 0.4);
 }
 
 /* Expose tokens as Tailwind utilities: bg-surface, text-ink, border-line ... */
 @theme inline {
+  --font-sans: var(--font-ui);
+  --font-mono: var(--font-data);
+  --shadow-xs: var(--shadow-card);
+  --shadow-lg: var(--shadow-pop);
+
   --color-canvas: var(--canvas);
   --color-surface: var(--surface);
   --color-surface-alt: var(--surface-alt);
@@ -140,7 +161,9 @@
 
 @layer base {
   html, body {
-    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: var(--font-ui);
+    font-feature-settings: 'cv11', 'ss01';
+    -webkit-font-smoothing: antialiased;
     background-color: var(--canvas);
     color: var(--ink);
     overflow-x: hidden;
@@ -154,12 +177,12 @@
   }
 
   ::selection {
-    background-color: #a06235;
+    background-color: var(--brand-solid);
     color: #ffffff;
   }
 
   code, pre, .font-mono {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-data);
     /* Aligned digits so P&L columns and KPI numbers don't jitter */
     font-variant-numeric: tabular-nums;
   }
@@ -242,4 +265,18 @@ html.theme-transition *::after {
 }
 .animate-scale-up {
   animation: scale-up 180ms ease-out both;
+}
+
+@keyframes pop-in {
+  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+.animate-pop-in {
+  animation: pop-in 140ms ease-out both;
+  transform-origin: top;
+}
+
+/* Headings: slightly tighter, crisper */
+h1, h2, h3 {
+  letter-spacing: -0.015em;
 }

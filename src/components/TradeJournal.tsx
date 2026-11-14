@@ -991,7 +991,7 @@ export const TradeJournal: React.FC<TradeJournalProps> = ({
           <div className="max-w-5xl w-full max-h-[90vh] relative animate-fade-in" onClick={(e) => e.stopPropagation()}>
             <button
               onClick={() => setPreviewImageUrl(null)}
-              className="absolute -top-10 right-0 text-white hover:text-[#ede6dc] text-sm font-semibold flex items-center gap-1 cursor-pointer"
+              className="absolute -top-10 right-0 text-white hover:text-[#e2e8f0] text-sm font-semibold flex items-center gap-1 cursor-pointer"
             >
               Close ✕
             </button>

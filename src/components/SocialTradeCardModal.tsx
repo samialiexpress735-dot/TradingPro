@@ -46,29 +46,29 @@ export const SocialTradeCardModal: React.FC<SocialTradeCardModalProps> = ({
     // Theme backgrounds & colors
     let bgGradient: CanvasGradient;
     let textColor = '#ffffff';
-    let subTextColor = '#d5c3b1';
+    let subTextColor = '#cbd5e1';
     let cardBg = 'rgba(255, 255, 255, 0.06)';
-    let borderColor = 'rgba(213, 195, 177, 0.2)';
-    let accentColor = '#b45309';
+    let borderColor = 'rgba(165, 180, 207, 0.22)';
+    let accentColor = '#4f46e5';
 
     if (theme === 'espresso') {
       bgGradient = ctx.createLinearGradient(0, 0, 1200, 675);
-      bgGradient.addColorStop(0, '#22160f');
-      bgGradient.addColorStop(0.5, '#352115');
-      bgGradient.addColorStop(1, '#1b110b');
-      textColor = '#faf7f2';
-      subTextColor = '#c7b39f';
-      accentColor = '#f59e0b';
+      bgGradient.addColorStop(0, '#0c1226');
+      bgGradient.addColorStop(0.5, '#161d3d');
+      bgGradient.addColorStop(1, '#080c1a');
+      textColor = '#f1f5f9';
+      subTextColor = '#a5b4cf';
+      accentColor = '#818cf8';
     } else if (theme === 'alabaster') {
       bgGradient = ctx.createLinearGradient(0, 0, 1200, 675);
-      bgGradient.addColorStop(0, '#fcfaf7');
-      bgGradient.addColorStop(0.5, '#f5efe6');
-      bgGradient.addColorStop(1, '#ebe0d1');
-      textColor = '#281d16';
-      subTextColor = '#786455';
+      bgGradient.addColorStop(0, '#f8f9fc');
+      bgGradient.addColorStop(0.5, '#eef1f9');
+      bgGradient.addColorStop(1, '#e0e6f4');
+      textColor = '#0f172a';
+      subTextColor = '#546178';
       cardBg = 'rgba(255, 255, 255, 0.8)';
-      borderColor = 'rgba(120, 53, 15, 0.15)';
-      accentColor = '#78350f';
+      borderColor = 'rgba(67, 56, 202, 0.15)';
+      accentColor = '#4338ca';
     } else {
       bgGradient = ctx.createLinearGradient(0, 0, 1200, 675);
       bgGradient.addColorStop(0, '#121214');
@@ -99,11 +99,11 @@ export const SocialTradeCardModal: React.FC<SocialTradeCardModalProps> = ({
 
     // Top brand bar
     ctx.fillStyle = textColor;
-    ctx.font = 'bold 28px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    ctx.font = 'bold 28px Geist, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.fillText('TradePulse', 80, 85);
 
     ctx.fillStyle = accentColor;
-    ctx.font = '600 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    ctx.font = '600 16px Geist, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.fillText('VERIFIED EXECUTION JOURNAL', 240, 80);
 
     // Main Card Frame
@@ -123,7 +123,7 @@ export const SocialTradeCardModal: React.FC<SocialTradeCardModalProps> = ({
 
     // Symbol & Asset badge
     ctx.fillStyle = textColor;
-    ctx.font = 'bold 54px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    ctx.font = 'bold 54px Geist, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.fillText(trade.symbol, 130, 200);
 
     // Direction pill
@@ -135,24 +135,24 @@ export const SocialTradeCardModal: React.FC<SocialTradeCardModalProps> = ({
     ctx.fill();
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    ctx.font = 'bold 18px Geist, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.fillText(dirIsLong ? 'LONG ↑' : 'SHORT ↓', 338, 182);
 
     // Asset class
     ctx.fillStyle = subTextColor;
-    ctx.font = '500 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    ctx.font = '500 18px Geist, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.fillText(`${trade.assetClass.toUpperCase()} • ${trade.marketSession || 'NY Session'}`, 130, 235);
 
     // Big Net PnL section
     const pnlColor = pnlPositive ? '#22c55e' : '#ef4444';
     ctx.fillStyle = pnlColor;
-    ctx.font = 'bold 72px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    ctx.font = 'bold 72px Geist, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     const pnlPrefix = pnlPositive ? '+' : '';
     const pnlStr = `${pnlPrefix}$${trade.netPnl.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     ctx.fillText(pnlStr, 130, 335);
 
     // ROI & R-Multiple
-    ctx.font = 'bold 28px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    ctx.font = 'bold 28px Geist, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     const roiStr = `${pnlPrefix}${trade.roi.toFixed(2)}% ROI`;
     const rrStr = trade.realizedRR !== 0 ? `  •  ${trade.realizedRR >= 0 ? '+' : ''}${trade.realizedRR}R Realized` : '';
     ctx.fillText(`${roiStr}${rrStr}`, 130, 385);
@@ -176,11 +176,11 @@ export const SocialTradeCardModal: React.FC<SocialTradeCardModalProps> = ({
     cols.forEach((col, i) => {
       const colX = 130 + i * 230;
       ctx.fillStyle = subTextColor;
-      ctx.font = 'bold 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.font = 'bold 14px Geist, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
       ctx.fillText(col.label, colX, 465);
 
       ctx.fillStyle = textColor;
-      ctx.font = 'bold 22px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      ctx.font = 'bold 22px Geist, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
       ctx.fillText(col.val, colX, 500);
     });
 
@@ -191,12 +191,12 @@ export const SocialTradeCardModal: React.FC<SocialTradeCardModalProps> = ({
     const disciplineColor = trade.mistake && trade.mistake !== 'Followed Plan' ? '#f59e0b' : '#22c55e';
 
     ctx.fillStyle = disciplineColor;
-    ctx.font = '600 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    ctx.font = '600 16px Geist, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.fillText(`✓ ${disciplineText} • Emotion: ${trade.emotion}`, 130, 555);
 
     // Date watermark
     ctx.fillStyle = subTextColor;
-    ctx.font = '14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    ctx.font = '14px Geist, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.fillText(`Date: ${trade.date} ${trade.time || ''} • Powered by TradePulse`, 740, 555);
   }, [isOpen, trade, theme]);
 
@@ -270,7 +270,7 @@ export const SocialTradeCardModal: React.FC<SocialTradeCardModalProps> = ({
                     : 'bg-canvas text-ink-soft hover:bg-sunken-strong'
                 }`}
               >
-                Espresso Luxury
+                Midnight Indigo
               </button>
               <button
                 type="button"
@@ -281,7 +281,7 @@ export const SocialTradeCardModal: React.FC<SocialTradeCardModalProps> = ({
                     : 'bg-canvas text-ink-soft hover:bg-sunken-strong'
                 }`}
               >
-                Alabaster Warm
+                Cloud Light
               </button>
               <button
                 type="button"

@@ -96,7 +96,7 @@ export const DisciplineLeakCard: React.FC<DisciplineLeakCardProps> = ({
   if (closedTrades.length === 0) return null;
 
   return (
-    <div className="bg-surface border border-line rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
+    <div className="@container bg-surface border border-line rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-line-soft pb-3">
         <div className="flex items-center gap-2">
@@ -124,7 +124,7 @@ export const DisciplineLeakCard: React.FC<DisciplineLeakCardProps> = ({
       </div>
 
       {/* Comparison Grid: Disciplined vs Leaked */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 @2xl:grid-cols-3 gap-3">
         {/* Metric 1: Clean Execution Win Rate */}
         <div className="bg-profit-bg-soft border border-profit-line rounded-xl p-3 space-y-1">
           <div className="flex items-center justify-between text-xs text-profit font-semibold">
@@ -182,7 +182,7 @@ export const DisciplineLeakCard: React.FC<DisciplineLeakCardProps> = ({
             <span className="text-[11px] font-mono text-faint">Click mistake to audit in journal</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 @md:grid-cols-2 @3xl:grid-cols-3 gap-2">
             {leaksBreakdown.slice(0, 3).map((item, idx) => (
               <button
                 key={idx}

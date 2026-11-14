@@ -16,8 +16,8 @@ export const PWAInstallButton: React.FC<{ compact?: boolean }> = ({ compact = fa
     return (
       <button
         onClick={install}
-        className={`bg-brand-solid hover:bg-brand-solid-hover text-white font-semibold rounded-xl flex items-center gap-1.5 transition shadow-sm shadow-brand-solid/20 active:scale-95 cursor-pointer ${
-          compact ? 'px-2.5 py-1.5 text-[11px]' : 'px-3.5 py-2 text-xs'
+        className={`bg-brand-solid hover:bg-brand-solid-hover text-white font-semibold rounded-lg flex items-center gap-1.5 transition shadow-sm shadow-brand-solid/20 active:scale-95 cursor-pointer ${
+          compact ? 'h-9 px-3 text-xs' : 'px-3.5 py-2 text-xs'
         }`}
         title="Install TradePulse PWA on this device"
       >
@@ -33,8 +33,8 @@ export const PWAInstallButton: React.FC<{ compact?: boolean }> = ({ compact = fa
       <>
         <button
           onClick={() => setShowIOSGuide(true)}
-          className={`bg-surface hover:bg-surface-alt text-ink-soft border border-line font-semibold rounded-xl flex items-center gap-1.5 transition cursor-pointer shadow-xs ${
-            compact ? 'px-2.5 py-1.5 text-[11px]' : 'px-3 py-2 text-xs'
+          className={`bg-surface hover:bg-surface-alt text-ink-soft border border-line font-semibold rounded-lg flex items-center gap-1.5 transition cursor-pointer shadow-xs ${
+            compact ? 'h-9 px-3 text-xs' : 'px-3 py-2 text-xs'
           }`}
           title="Install on iPhone / iPad"
         >
@@ -121,7 +121,7 @@ export const PWAInstallButton: React.FC<{ compact?: boolean }> = ({ compact = fa
         alert('To install TradePulse: Click the install icon in your browser address bar (top right) or use Menu > Install.');
       }}
       className={`bg-surface hover:bg-surface-alt text-ink-soft border border-line font-medium rounded-xl flex items-center gap-1.5 transition hidden sm:flex shadow-xs cursor-pointer ${
-        compact ? 'px-2.5 py-1 text-[11px]' : 'px-3 py-1.5 text-xs'
+        compact ? 'h-9 px-3 text-xs' : 'px-3 py-1.5 text-xs'
       }`}
       title="Install as Progressive Web App"
     >

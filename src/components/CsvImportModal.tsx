@@ -135,7 +135,7 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({ isOpen, onClose,
     if (chosen.length === 0) return;
     onImportTrades(chosen);
     try {
-      confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 }, colors: ['#78350f', '#92400e', '#1e6b37', '#b45309'] });
+      confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 }, colors: ['#4f46e5', '#6366f1', '#16a34a', '#0891b2'] });
     } catch { /* decorative */ }
     onClose();
   };

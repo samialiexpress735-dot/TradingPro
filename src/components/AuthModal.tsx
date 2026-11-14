@@ -139,12 +139,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <Laptop className="w-3.5 h-3.5 text-brand" />
             <span>Desktop Computer</span>
           </div>
-          <span className="text-[#c7aa91]">•</span>
+          <span className="text-[#94a3b8]">•</span>
           <div className="flex items-center gap-1.5">
             <Smartphone className="w-3.5 h-3.5 text-brand" />
             <span>Mobile Phone</span>
           </div>
-          <span className="text-[#c7aa91]">•</span>
+          <span className="text-[#94a3b8]">•</span>
           <span className="font-semibold text-profit">Real-Time Sync</span>
         </div>
 

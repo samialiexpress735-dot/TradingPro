@@ -74,65 +74,42 @@ export const Dashboard: React.FC<DashboardProps> = ({
 }) => {
   const isNetPositive = stats.netProfit >= 0;
   const recentTrades = trades.slice(0, 5);
+  const hasClosed = trades.some((t) => t.status === 'closed');
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      {/* Top Welcome & Quick Actions Bar */}
-      <div className="bg-surface border border-line rounded-2xl p-3.5 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+    <div className="space-y-5 sm:space-y-7">
+      {/* Page header: title on the left, only the actions that are NOT in the main nav on the right */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-base sm:text-xl font-bold text-ink tracking-tight">Trading Dashboard &amp; P&amp;L</h1>
-            <span className="px-2 py-0.5 rounded-full bg-profit-bg text-profit text-[10px] font-mono border border-profit-line font-bold">
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-xl sm:text-2xl font-bold text-ink tracking-tight">Dashboard</h1>
+            <span className="px-2 py-0.5 rounded-full bg-profit-bg text-profit text-[10px] font-mono border border-profit-line font-bold flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-profit-solid animate-pulse" />
               LIVE
             </span>
           </div>
-          <p className="text-[11px] sm:text-xs text-muted mt-0.5 sm:mt-1">
-            Realized performance across all accounts and execution strategies.
+          <p className="text-xs sm:text-[13px] text-muted mt-1">
+            Realized performance across all accounts and strategies.
           </p>
         </div>
 
-        <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
+        <div className="flex items-center gap-2 flex-wrap">
           {onOpenDepositModal && (
             <button
               onClick={onOpenDepositModal}
-              className="px-2.5 sm:px-3 py-1.5 sm:py-2 bg-surface-alt hover:bg-sunken text-brand text-xs font-semibold rounded-xl border border-line-brand flex items-center justify-center gap-1.5 transition cursor-pointer"
+              className="h-9 px-3 bg-surface hover:bg-sunken text-ink-soft text-xs font-semibold rounded-lg border border-line-strong flex items-center gap-1.5 transition cursor-pointer"
               title="Deposit or withdraw simulated paper funds"
             >
-              <Wallet className="w-3.5 h-3.5 text-brand shrink-0" />
-              <span className="truncate">Deposit/Withdraw</span>
+              <Wallet className="w-3.5 h-3.5 text-faint shrink-0" />
+              <span>Deposit / Withdraw</span>
             </button>
           )}
-
-          <button
-            onClick={() => onNavigateToTab('review')}
-            className="px-2.5 sm:px-3 py-1.5 sm:py-2 bg-surface-alt hover:bg-sunken text-brand text-xs font-semibold rounded-xl border border-line-brand flex items-center justify-center gap-1.5 transition cursor-pointer"
-          >
-            <CalendarCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand shrink-0" />
-            <span className="truncate">Daily Debrief</span>
-          </button>
-
           <button
             onClick={onOpenChecklist}
-            className="px-2.5 sm:px-3 py-1.5 sm:py-2 bg-canvas hover:bg-sunken text-ink-soft text-xs font-semibold rounded-xl border border-line flex items-center justify-center gap-1.5 transition cursor-pointer"
+            className="h-9 px-3 bg-surface hover:bg-sunken text-ink-soft text-xs font-semibold rounded-lg border border-line-strong flex items-center gap-1.5 transition cursor-pointer"
           >
-            <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-profit shrink-0" />
-            <span className="truncate">Checklist</span>
-          </button>
-
-          <button
-            onClick={() => onNavigateToTab('calculator')}
-            className="px-2.5 sm:px-3 py-1.5 sm:py-2 bg-sunken hover:bg-line text-brand text-xs font-semibold rounded-xl border border-line-brand flex items-center justify-center gap-1.5 transition cursor-pointer"
-          >
-            <Target className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-            <span className="truncate">Risk Sizer</span>
-          </button>
-
-          <button
-            onClick={onAddTrade}
-            className="px-3 sm:px-4 py-1.5 sm:py-2 bg-brand-solid hover:bg-brand-solid-hover text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition shadow-xs cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-            <span className="truncate">Log Trade</span>
+            <ShieldCheck className="w-3.5 h-3.5 text-profit shrink-0" />
+            <span>Checklist</span>
           </button>
         </div>
       </div>
@@ -194,38 +171,19 @@ export const Dashboard: React.FC<DashboardProps> = ({
         />
       </div>
 
-      {/* Daily Loss Limit */}
+      {/* Daily loss limit: slim full-width guard rail */}
       {dailyLimit && <DailyLossLimitCard limit={dailyLimit} />}
 
-      {/* Monthly P&L Target Tracker */}
-      <MonthlyTargetTracker
-        trades={trades}
-        startingBalance={startingBalance}
-        userId={userId}
-        initialTargetAmount={monthlyTargetAmount}
-        initialTargetType={monthlyTargetType}
-        onTargetChange={onTargetChange}
-      />
-
+      {/* Main area: equity curve (wide) beside today's risk + latest executions */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-stretch">
+        <div className="lg:col-span-8 min-w-0 flex flex-col">
       {/* Main Row: Equity Curve Chart */}
       <EquityChart data={equityData} startingBalance={startingBalance} />
-
-      {/* Execution Leaks & Behavioral Cost Analysis */}
-      <DisciplineLeakCard
-        trades={trades}
-        onNavigateToTab={onNavigateToTab}
-        onNavigateToJournalWithFilter={onNavigateToJournalWithFilter}
-      />
-
-      {/* Row: Calendar Heatmap and Recent Trades side-by-side */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left: Calendar Heatmap */}
-        <div className="lg:col-span-7">
-          <CalendarHeatmap trades={trades} onSelectDate={onSelectDate} />
         </div>
 
-        {/* Right: Recent Trades Quick Stream */}
-        <div className="lg:col-span-5 bg-surface border border-line rounded-2xl p-5 shadow-xs flex flex-col justify-between">
+        <div className="lg:col-span-4 min-w-0 flex flex-col gap-4 sm:gap-6">
+        {/* Latest executions */}
+        <div className="flex-1 bg-surface border border-line rounded-2xl p-5 shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-line-soft pb-3 mb-4">
               <h3 className="text-xs font-bold uppercase tracking-wider text-ink-soft">
@@ -352,7 +310,34 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </button>
           </div>
         </div>
+        </div>
       </div>
+
+      {/* Second row: when you trade (calendar) beside what it costs you (execution leaks) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-stretch">
+        <div className={`${hasClosed ? 'lg:col-span-7' : 'lg:col-span-12'} min-w-0`}>
+          <CalendarHeatmap trades={trades} onSelectDate={onSelectDate} />
+        </div>
+        {hasClosed && (
+          <div className="lg:col-span-5 min-w-0 flex flex-col [&>*]:flex-1">
+            <DisciplineLeakCard
+        trades={trades}
+        onNavigateToTab={onNavigateToTab}
+        onNavigateToJournalWithFilter={onNavigateToJournalWithFilter}
+      />
+          </div>
+        )}
+      </div>
+
+      {/* Goal tracker */}
+      <MonthlyTargetTracker
+        trades={trades}
+        startingBalance={startingBalance}
+        userId={userId}
+        initialTargetAmount={monthlyTargetAmount}
+        initialTargetType={monthlyTargetType}
+        onTargetChange={onTargetChange}
+      />
 
       {/* Google AdSense Responsive Leaderboard Display Unit */}
       <AdSenseBanner

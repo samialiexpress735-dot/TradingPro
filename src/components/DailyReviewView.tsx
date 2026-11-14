@@ -192,7 +192,7 @@ export const DailyReviewView: React.FC<DailyReviewViewProps> = ({ trades, userId
           particleCount: 50,
           spread: 50,
           origin: { y: 0.6 },
-          colors: ['#78350f', '#1e6b37', '#92400e'],
+          colors: ['#4f46e5', '#16a34a', '#6366f1'],
         });
       } catch {
         // fallback
@@ -269,14 +269,14 @@ export const DailyReviewView: React.FC<DailyReviewViewProps> = ({ trades, userId
           <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
             <span className="text-faint font-medium">Session:</span>
             <span className="font-bold text-ink font-mono">{daysTrades.length} closed</span>
-            <span className="text-[#d5c3b1]">•</span>
+            <span className="text-[#cbd5e1]">•</span>
             <span>
               Net:{' '}
               <strong className={daysPnL >= 0 ? 'text-profit' : 'text-loss'}>
                 {daysPnL >= 0 ? '+' : '-'}${Math.abs(daysPnL).toFixed(2)}
               </strong>
             </span>
-            <span className="text-[#d5c3b1]">•</span>
+            <span className="text-[#cbd5e1]">•</span>
             <span>
               WR:{' '}
               <strong className="text-brand">

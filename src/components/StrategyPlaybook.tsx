@@ -166,7 +166,7 @@ export const StrategyPlaybook: React.FC<StrategyPlaybookProps> = ({
                     <div className="flex items-center gap-2.5">
                       <span
                         className="w-3 h-3 rounded-full shrink-0"
-                        style={{ backgroundColor: strat.color || '#78350f' }}
+                        style={{ backgroundColor: strat.color || '#4f46e5' }}
                       />
                       <span className="font-bold text-ink text-sm">{strat.name}</span>
                     </div>
@@ -382,7 +382,7 @@ export const StrategyPlaybook: React.FC<StrategyPlaybookProps> = ({
               <div>
                 <label className="block text-xs font-medium text-muted mb-1">Color Tag</label>
                 <div className="flex gap-2">
-                  {['#78350f', '#92400e', '#b45309', '#1e6b37', '#0f766e', '#1d4ed8', '#be123c'].map((c) => (
+                  {['#4f46e5', '#7c3aed', '#0891b2', '#16a34a', '#d97706', '#2563eb', '#e11d48'].map((c) => (
                     <button
                       key={c}
                       type="button"

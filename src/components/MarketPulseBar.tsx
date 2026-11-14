@@ -122,9 +122,9 @@ export const MarketPulseBar: React.FC<MarketPulseBarProps> = ({
   };
 
   return (
-    <div className="bg-inverse text-[#ded3c8] border-b border-[#35261c] text-xs transition select-none">
+    <div className="bg-inverse text-[#cbd5e1] border-b border-[#1e293b] text-xs transition select-none">
       {/* Ticker Row */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2 flex items-center justify-between gap-3 overflow-hidden">
+      <div className="max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 py-2 flex items-center justify-between gap-3 overflow-hidden">
         {/* Left: Global Session Clock Indicator */}
         <div className="flex items-center gap-2.5 shrink-0">
           <button
@@ -144,7 +144,7 @@ export const MarketPulseBar: React.FC<MarketPulseBarProps> = ({
           <span className="text-faint hidden sm:inline" aria-hidden="true">·</span>
           <button
             onClick={cycleTimeMode}
-            className="font-mono text-[11px] text-[#bda798] hidden sm:inline-flex items-center gap-1 bg-inverse hover:bg-inverse px-1.5 py-0.5 rounded transition cursor-pointer"
+            className="font-mono text-[11px] text-[#94a3b8] hidden sm:inline-flex items-center gap-1 bg-inverse hover:bg-inverse px-1.5 py-0.5 rounded transition cursor-pointer"
           >
             {renderActiveTime()}
           </button>
@@ -165,7 +165,7 @@ export const MarketPulseBar: React.FC<MarketPulseBarProps> = ({
                 <span className="font-mono font-bold text-white text-[11px] sm:text-xs">
                   {t.symbol}
                 </span>
-                <span className="font-mono text-[11px] sm:text-xs text-[#f5ede4]">
+                <span className="font-mono text-[11px] sm:text-xs text-[#f1f5f9]">
                   ${t.lastPrice > 10 ? t.lastPrice.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 2 }) : t.lastPrice.toFixed(4)}
                 </span>
                 <span
@@ -196,7 +196,7 @@ export const MarketPulseBar: React.FC<MarketPulseBarProps> = ({
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="text-[11px] text-[#b8a292] hover:text-white flex items-center gap-1 transition px-1.5 py-0.5 rounded-sm hover:bg-white/5 cursor-pointer"
+            className="text-[11px] text-[#94a3b8] hover:text-white flex items-center gap-1 transition px-1.5 py-0.5 rounded-sm hover:bg-white/5 cursor-pointer"
           >
             <span className="hidden md:inline font-mono text-[10px]">Session Intel</span>
             {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -206,7 +206,7 @@ export const MarketPulseBar: React.FC<MarketPulseBarProps> = ({
 
       {/* Expanded Quick Action / Session Intel Drawer */}
       {(isExpanded || selectedTicker) && (
-        <div className="border-t border-[#35261c] bg-inverse px-3 sm:px-6 lg:px-8 py-3 animate-in fade-in duration-150 space-y-3">
+        <div className="border-t border-[#1e293b] bg-inverse px-3 sm:px-6 lg:px-8 py-3 animate-in fade-in duration-150 space-y-3">
           {/* Global Financial Hubs Status Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {clientClock.hubs.map((hub) => (
@@ -215,7 +215,7 @@ export const MarketPulseBar: React.FC<MarketPulseBarProps> = ({
                 className={`p-2 rounded border transition text-left ${
                   hub.isOpen
                     ? 'bg-inverse border-amber-500/40 shadow-sm'
-                    : 'bg-inverse border-[#2e2017] opacity-80'
+                    : 'bg-inverse border-[#1b2536] opacity-80'
                 }`}
               >
                 <div className="flex items-center justify-between mb-1">
@@ -241,7 +241,7 @@ export const MarketPulseBar: React.FC<MarketPulseBarProps> = ({
             ))}
           </div>
 
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-1 border-t border-[#2a1d15]">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-1 border-t border-[#172033]">
             {/* Session Context */}
             <div className="space-y-0.5">
               <div className="flex items-center gap-2 text-xs flex-wrap">
@@ -250,7 +250,7 @@ export const MarketPulseBar: React.FC<MarketPulseBarProps> = ({
                   {clientClock.activeSession}
                 </span>
                 <span className="text-faint">·</span>
-                <span className="text-[#d5c3b4] text-[11px]">{clientClock.sessionStateNote}</span>
+                <span className="text-[#cbd5e1] text-[11px]">{clientClock.sessionStateNote}</span>
               </div>
               <div className="text-[10px] text-faint flex items-center gap-2 font-mono">
                 <span>Local Timezone: {clientClock.localTimezone}</span>
@@ -288,9 +288,9 @@ export const MarketPulseBar: React.FC<MarketPulseBarProps> = ({
                   onClick={() => {
                     onNavigateToTab('journal');
                   }}
-                  className="px-2.5 py-1 bg-inverse hover:bg-inverse-2 text-[#ded3c8] border border-brand rounded-md text-[11px] font-semibold flex items-center gap-1 transition cursor-pointer"
+                  className="px-2.5 py-1 bg-inverse hover:bg-inverse-2 text-[#cbd5e1] border border-brand rounded-md text-[11px] font-semibold flex items-center gap-1 transition cursor-pointer"
                 >
-                  <BookOpen className="w-3 h-3 text-[#b8a292]" />
+                  <BookOpen className="w-3 h-3 text-[#94a3b8]" />
                   View Logged Trades
                 </button>
               </div>

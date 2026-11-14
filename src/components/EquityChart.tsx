@@ -21,7 +21,7 @@ export const EquityChart: React.FC<EquityChartProps> = ({ data, startingBalance 
     if (!el || typeof ResizeObserver === 'undefined') return;
     const update = () => {
       const w = Math.max(260, Math.round(el.clientWidth));
-      const h = w < 520 ? 230 : 290;
+      const h = Math.max(w < 520 ? 230 : 290, Math.round(el.clientHeight));
       setSize((prev) => (prev.w === w && prev.h === h ? prev : { w, h }));
     };
     update();
@@ -164,7 +164,7 @@ export const EquityChart: React.FC<EquityChartProps> = ({ data, startingBalance 
     })}`;
 
   return (
-    <div className="bg-surface border border-line rounded-2xl p-5 shadow-xs relative overflow-hidden">
+    <div className="flex-1 flex flex-col bg-surface border border-line rounded-2xl p-5 shadow-xs relative overflow-hidden">
       {/* Header controls */}
       <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
         <div>
@@ -281,14 +281,16 @@ export const EquityChart: React.FC<EquityChartProps> = ({ data, startingBalance 
       )}
 
       {/* SVG Container */}
-      <div ref={wrapRef} className="relative w-full overflow-hidden select-none">
+      <div className="relative w-full flex-1 flex flex-col overflow-hidden select-none">
+        {/* Chart area: grows with the card when the dashboard grid stretches it */}
+        <div ref={wrapRef} className="relative flex-1 min-h-[230px] sm:min-h-[290px]">
         <svg
           viewBox={`0 0 ${size.w} ${size.h}`}
           width={size.w}
           height={size.h}
           role="img"
           aria-label="Equity curve chart"
-          className="block max-w-full overflow-visible touch-pan-y"
+          className="absolute inset-0 block max-w-full overflow-visible touch-pan-y"
           onMouseLeave={() => setHoverIndex(null)}
           onTouchMove={(e) => {
             if (!points || points.length === 0) return;
@@ -321,7 +323,7 @@ export const EquityChart: React.FC<EquityChartProps> = ({ data, startingBalance 
             return (
               <g key={ratio}>
                 <line x1={pad.left} y1={y} x2={size.w - pad.right} y2={y} stroke="var(--line-soft)" strokeDasharray="3 3" strokeWidth="1" />
-                <text x={pad.left - 8} y={y + 4} fill="var(--faint)" fontSize="10" textAnchor="end" fontFamily="JetBrains Mono">
+                <text x={pad.left - 8} y={y + 4} fill="var(--faint)" fontSize="10" textAnchor="end" fontFamily="Geist Mono, ui-monospace, monospace">
                   {formatAxisValue(val)}
                 </text>
               </g>
@@ -338,7 +340,7 @@ export const EquityChart: React.FC<EquityChartProps> = ({ data, startingBalance 
             strokeDasharray="4 4"
             strokeWidth="1.2"
           />
-          <text x={size.w - pad.right + 5} y={baselineY + 3} fill="var(--faint)" fontSize="9" textAnchor="start" fontFamily="JetBrains Mono">
+          <text x={size.w - pad.right + 5} y={baselineY + 3} fill="var(--faint)" fontSize="9" textAnchor="start" fontFamily="Geist Mono, ui-monospace, monospace">
             Base
           </text>
 
@@ -409,6 +411,7 @@ export const EquityChart: React.FC<EquityChartProps> = ({ data, startingBalance 
             </g>
           ))}
         </svg>
+        </div>
 
         {/* Floating tooltip */}
         {activePoint && (

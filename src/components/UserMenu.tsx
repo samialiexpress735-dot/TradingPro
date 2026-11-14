@@ -88,7 +88,7 @@ export const UserMenu: React.FC<UserMenuProps> = ({
       <div className="flex items-center gap-1.5">
         <button
           onClick={onOpenAuth}
-          className="shrink-0 px-2.5 sm:px-3 py-1.5 bg-sunken-strong hover:bg-line-strong text-ink-soft hover:text-ink text-xs font-semibold rounded-xl border border-line-strong flex items-center gap-1.5 transition cursor-pointer shadow-xs"
+          className="shrink-0 h-9 px-2.5 sm:px-3 bg-sunken hover:bg-sunken-strong text-ink-soft hover:text-ink text-xs font-semibold rounded-lg border border-line flex items-center gap-1.5 transition cursor-pointer"
           aria-label="Sign in or create account"
           title="Sign in or create account to sync across devices"
         >
@@ -108,7 +108,7 @@ export const UserMenu: React.FC<UserMenuProps> = ({
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 p-1 sm:px-2.5 sm:py-1 bg-surface hover:bg-canvas border border-line-strong rounded-xl transition cursor-pointer shadow-xs group"
+        className="flex items-center gap-2 h-9 p-1 sm:px-2.5 bg-surface hover:bg-sunken border border-line rounded-lg transition cursor-pointer group"
       >
         <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-gradient-to-tr from-brand-solid to-brand-solid-2 text-white flex items-center justify-center font-bold text-xs shadow-xs">
           {initial}

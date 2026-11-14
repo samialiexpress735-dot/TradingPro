@@ -90,7 +90,7 @@ export const DepositWithdrawModal: React.FC<DepositWithdrawModalProps> = ({
           particleCount: 40,
           spread: 60,
           origin: { y: 0.6 },
-          colors: ['#16a34a', '#b45309', '#f59e0b'],
+          colors: ['#16a34a', '#4f46e5', '#22d3ee'],
         });
       } catch {}
     }

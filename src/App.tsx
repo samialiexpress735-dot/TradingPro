@@ -698,7 +698,7 @@ export default function App() {
       <MarketPulseBar onNavigateToTab={setActiveTab} />
 
       {/* Main View Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 lg:p-8">
+      <main className="flex-1 max-w-[1440px] w-full mx-auto p-3 sm:p-6 lg:p-8">
         <DailyLossLimitBanner
           limit={dailyLimit}
           dismissedDay={dismissedLimitDay}
@@ -787,7 +787,7 @@ export default function App() {
 
       {/* Footer */}
       <footer className="border-t border-line bg-sunken-strong py-6 px-4 text-center text-xs text-muted">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+        <div className="max-w-[1440px] mx-auto flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="font-bold text-ink">TradePulse</span>
             <span>• Quantitative Journal &amp; Edge Analytics</span>

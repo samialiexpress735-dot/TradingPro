@@ -261,7 +261,7 @@ export const MarketNewsView: React.FC<MarketNewsViewProps> = ({
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-[#8c7462] text-white uppercase tracking-wider">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-[#64748b] text-white uppercase tracking-wider">
             Low Impact
           </span>
         );
@@ -279,10 +279,10 @@ export const MarketNewsView: React.FC<MarketNewsViewProps> = ({
               <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
               Live Catalyst Intelligence &amp; Trading Impact
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#fdfbf9]">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#f8fafc]">
               Market News &amp; Macro Catalysts
             </h1>
-            <p className="text-sm text-[#d4c3b5] max-w-2xl leading-relaxed">
+            <p className="text-sm text-[#cbd5e1] max-w-2xl leading-relaxed">
               Curated financial headlines, Binance perpetual futures announcements, and macro releases analyzed
               for directional bias, stop-loss risks, and high-probability execution setups.
             </p>
@@ -294,7 +294,7 @@ export const MarketNewsView: React.FC<MarketNewsViewProps> = ({
               <div className="text-xl sm:text-2xl font-black text-amber-400">
                 {catalysts.filter((c) => c.impactLevel === 'HIGH').length}
               </div>
-              <div className="text-[10px] sm:text-xs text-[#b8a292] font-medium uppercase tracking-wider">
+              <div className="text-[10px] sm:text-xs text-[#94a3b8] font-medium uppercase tracking-wider">
                 High Impact
               </div>
             </div>
@@ -302,7 +302,7 @@ export const MarketNewsView: React.FC<MarketNewsViewProps> = ({
               <div className="text-xl sm:text-2xl font-black text-emerald-400">
                 {catalysts.filter((c) => c.sentiment === 'BULLISH').length}
               </div>
-              <div className="text-[10px] sm:text-xs text-[#b8a292] font-medium uppercase tracking-wider">
+              <div className="text-[10px] sm:text-xs text-[#94a3b8] font-medium uppercase tracking-wider">
                 Bullish
               </div>
             </div>
@@ -310,7 +310,7 @@ export const MarketNewsView: React.FC<MarketNewsViewProps> = ({
               <div className="text-xl sm:text-2xl font-black text-rose-400">
                 {catalysts.filter((c) => c.sentiment === 'BEARISH').length}
               </div>
-              <div className="text-[10px] sm:text-xs text-[#b8a292] font-medium uppercase tracking-wider">
+              <div className="text-[10px] sm:text-xs text-[#94a3b8] font-medium uppercase tracking-wider">
                 Bearish
               </div>
             </div>
@@ -627,19 +627,19 @@ export const MarketNewsView: React.FC<MarketNewsViewProps> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                   <div className="space-y-1">
                     <span className="text-faint text-[10px] uppercase font-mono">Recommended Action</span>
-                    <p className="text-[#f5ede4] font-medium leading-relaxed">
+                    <p className="text-[#f1f5f9] font-medium leading-relaxed">
                       {analysisResult.tacticalAdvice.recommendedAction}
                     </p>
                   </div>
                   <div className="space-y-1">
                     <span className="text-faint text-[10px] uppercase font-mono">Stop Loss &amp; Invalidation</span>
-                    <p className="text-[#f5ede4] font-medium leading-relaxed">
+                    <p className="text-[#f1f5f9] font-medium leading-relaxed">
                       {analysisResult.tacticalAdvice.stopLossGuidance}
                     </p>
                   </div>
                   <div className="space-y-1">
                     <span className="text-faint text-[10px] uppercase font-mono">Optimal Setup</span>
-                    <p className="text-[#f5ede4] font-medium leading-relaxed">
+                    <p className="text-[#f1f5f9] font-medium leading-relaxed">
                       {analysisResult.tacticalAdvice.bestSetup}
                     </p>
                   </div>
